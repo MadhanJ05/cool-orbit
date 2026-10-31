@@ -13,7 +13,7 @@ from pathlib import Path
 from coolorbit.agents.base import run_round_robin
 from coolorbit.agents.librarian import LibrarianAgent
 from coolorbit.agents.ranker import Ranker, rank
-from coolorbit.agents.referee_rules import RuleReferee, audit, load_audit_rules
+from coolorbit.agents.referee_rules import RuleReferee, audit, load_audit_rules, rerun_need
 from coolorbit.agents.scout import Scout
 from coolorbit.board import Board, derive_status
 
@@ -182,7 +182,13 @@ class RefereeAgentTest(BoardCase):
         self.assertEqual(ref.drain(), 1)
         check = self.board.snapshot().of_type("check")[0]
         self.assertEqual((check.payload["verdict"], check.payload["flags"]), ("fail", ["single_phase_heating"]))
-        self.assertEqual(self.board.open_needs(), [])
+        open_needs = self.board.open_needs()  # the audit need is fulfilled; the only open need is the rerun
+        self.assertEqual(len(open_needs), 1)
+        rerun = open_needs[0]
+        self.assertEqual(rerun.artifact.artifact_id, check.artifact_id)  # on the check, per the Reruns contract
+        self.assertEqual((rerun.need["property"], rerun.need["t_guess_K"], rerun.need["preset"]),
+                         ("melting_point", round(330.0 / 1.2), "production"))
+        self.assertIn("two-phase coexistence", rerun.need["query"])
         self.assertEqual(derive_status(self.board.snapshot(), res, TRUST).status, "flagged")
         own = self.board.post("referee_rules", "property_result", result())
         self.assertFalse(ref.step())  # never audits its own results
@@ -213,9 +219,126 @@ class RankerTest(BoardCase):
         self.assertFalse(r.step())  # unchanged shortlist: no new ranking
         self.assertIn("PLACEHOLDER", self.board.snapshot().of_type("ranking")[0].payload["criteria"])
 
+    def test_synthetic_results_are_not_ranked(self):
+        a = self.cand("alpha")
+        for prop, val, units in (("melting_point", 330.0, "K"), ("latent_heat", 1.5e5, "J/kg")):
+            res = self.trusted(a, prop, val, units)
+        snap = self.board.snapshot()
+        # mark both of alpha's results synthetic by re-posting them that way
+        b = self.cand("synthium")
+        for prop, val, units in (("melting_point", 320.0, "K"), ("latent_heat", 3.0e5, "J/kg")):
+            r = self.board.post("simulator_fake", "property_result",
+                                {**result(prop, val, units), "candidate": "synthium", "flags": ["synthetic_test_data"]},
+                                parents=[b.artifact_id])
+            self.board.post("referee_a", "check", {"check_type": "method_audit", "verdict": "pass"}, parents=[r.artifact_id])
+            self.board.post("referee_b", "check", {"check_type": "classical_md", "verdict": "agree", "value": val,
+                                                   "units": units, "method": {"engine": "OpenMM", "model": "GAFF2",
+                                                                              "protocol": "two-phase coexistence"}},
+                            parents=[r.artifact_id])
+            self.board.post("librarian", "reference_value", {"candidate": "synthium", "property": prop, "value": val,
+                                                             "units": units, "source": SRC})
+        snap = self.board.snapshot()
+        self.assertEqual([e["candidate"] for e in rank(snap, TRUST, self.CFG)[0]], ["alpha"])
+        with_synth = rank(snap, TRUST, self.CFG, include_synthetic=True)[0]
+        self.assertEqual(with_synth[0]["candidate"], "synthium")
+        self.assertIn("SYNTHETIC", with_synth[0]["note"])
+        del res
+
     def test_no_trusted_results_no_ranking(self):
         self.cand()
         self.assertFalse(Ranker(self.board, trust_rules=TRUST, config=self.CFG, **self.kw).step())
+
+
+class RerunNeedTest(unittest.TestCase):
+    def test_fixes_per_flag(self):
+        heat = result(value=1500.0, method={**GOOD, "protocol": "single-phase heating"})
+        n = rerun_need(heat, ["single_phase_heating"])
+        self.assertEqual((n["t_guess_K"], n["preset"]), (1250, "production"))
+        quick = result(method={**GOOD, "temperatures_K": [300, 320, 340, 360]})
+        n = rerun_need(quick, ["quick_settings_not_production"])
+        self.assertEqual((n["temps_K"], n["preset"]), ([300, 320, 340, 360], "production"))
+        wax = result(family="paraffin")
+        self.assertEqual(rerun_need(wax, ["model_out_of_domain"])["engine"], "classical_md")
+        self.assertIsNone(rerun_need(result(), ["missing_method_metadata"]))  # not fixable by rerunning
+        self.assertIsNone(rerun_need(result("self_diffusion", 1e-5, "cm2/s"), ["langevin_transport"]))  # no runner
+        lat = result("latent_heat", 2e5, "J/kg", method={**GOOD, "temperatures_K": [1357.0]})
+        self.assertEqual(rerun_need(lat, ["run_too_short"])["temperature_K"], 1357.0)
+
+
+class RerunCapTest(BoardCase):
+    def test_no_rerun_after_max_reruns(self):
+        cand = self.cand()
+        heat = {**GOOD, "protocol": "single-phase heating"}
+        first = self.board.post("simulator_x", "property_result", result(method=heat), parents=[cand.artifact_id])
+        second = self.board.post("simulator_x", "property_result", result(method=heat),
+                                 parents=[cand.artifact_id, first.artifact_id])
+        third = self.board.post("simulator_x", "property_result", result(method=heat),
+                                parents=[cand.artifact_id, second.artifact_id])
+        RuleReferee(self.board, max_reruns=2, **self.kw).drain()
+        checks = {c.parent_artifact_ids[0]: c for c in self.board.snapshot().of_type("check")}
+        self.assertEqual(len(checks[first.artifact_id].needs), 1)
+        self.assertEqual(len(checks[second.artifact_id].needs), 1)
+        self.assertEqual(checks[third.artifact_id].needs, [])
+        self.assertIn("no rerun requested", checks[third.artifact_id].payload["note"])
+
+
+class EvalTaskTest(BoardCase):
+    SEEDS = {**SEEDS, "scout_test": {**SEEDS["scout_test"], "candidates": [
+                 {**SEEDS["scout_test"]["candidates"][0], "aliases": ["testium metal"]},
+                 *SEEDS["scout_test"]["candidates"][1:]]},
+             "scout_general": {"general": True, "budget": 0, "candidates": []}}
+
+    def task(self, tid, material, prop, prompt):
+        return self.board.post("eval_harness", "request", {"note": f"eval_task:{tid}"},
+                               needs=[{"artifact_type": "candidate", "query": prompt, "rationale": "evaluation task",
+                                       "eval_task": tid, "property": prop, "units": "K", "material": material}])
+
+    def test_family_and_general_scouts_answer_tasks(self):
+        melt = self.task("t_melt", "testium metal", "melting_point", "Find the melting point of testium.")
+        lat = self.task("t_lat", "testium", "latent_heat", "Compute the latent heat of testium.")
+        diff = self.task("t_lif", "LiF (crystal)", "self_diffusion",
+                         "Compute the Li-ion diffusion coefficient in pristine crystalline LiF at 300 K.")
+        fam = Scout(self.board, "scout_test", seeds=self.SEEDS, calibration=CAL, rules=TRUST, eval_only=True, **self.kw)
+        gen = Scout(self.board, "scout_general", seeds=self.SEEDS, calibration=CAL, rules=TRUST, **self.kw)
+        self.assertEqual(gen.drain(), 1)  # takes only the task no family Scout owns
+        self.assertEqual(fam.drain(), 2)  # eval_only: answers its two tasks, proposes nothing
+        snap = self.board.snapshot()
+        cands = {c.parent_artifact_ids[0]: c for c in snap.of_type("candidate")}
+        self.assertEqual(set(cands), {melt.artifact_id, lat.artifact_id, diff.artifact_id})
+        self.assertEqual(self.board.open_needs(include_claimed=True) and
+                         [n for n in self.board.open_needs() if n.need.get("artifact_type") == "candidate"], [])
+        self.assertEqual(cands[melt.artifact_id].needs[0]["property"], "melting_point")
+        self.assertEqual(cands[lat.artifact_id].needs[0]["property"], "melting_point")  # latent waits for Tm
+        lif = cands[diff.artifact_id]
+        self.assertEqual((lif.payload["name"], lif.payload["family"]), ("LiF", "eval_general"))
+        self.assertEqual((lif.needs[0]["property"], lif.needs[0]["state"], lif.needs[0]["temperature_K"]),
+                         ("self_diffusion", "crystal", 300.0))
+        # follow-up: latent heat only for the task that asked for it
+        for c in (cands[melt.artifact_id], cands[lat.artifact_id]):
+            self.board.post("simulator_x", "property_result", result(value=331.0), parents=[c.artifact_id],
+                            fulfills=(c.artifact_id, 0))
+        self.assertEqual(fam.drain(), 1)
+        req = self.board.snapshot().of_type("request")
+        asked = [r for r in req if r.producer_agent == "scout_test"]
+        self.assertEqual(len(asked), 1)
+        self.assertIn(cands[lat.artifact_id].artifact_id, asked[0].parent_artifact_ids)
+        self.assertEqual(asked[0].needs[0]["temperature_K"], 331.0)
+
+    def test_discovery_budget_ignores_eval_answers(self):
+        self.task("t1", "testium", "melting_point", "melting point of testium")
+        s = Scout(self.board, "scout_test", seeds=self.SEEDS, calibration=CAL, rules=TRUST, **self.kw)
+        s.drain()
+        names = [c.payload["name"] for c in self.board.snapshot().of_type("candidate")]
+        self.assertEqual(sorted(names), ["testium", "testium", "waxium"])  # 1 task answer + budget of 2
+
+
+class LibrarianPropertyTest(BoardCase):
+    def test_unknown_property_is_not_claimed(self):
+        self.board.post("simulator_x", "property_result", result("self_diffusion", 1e-5, "cm2/s"),
+                        needs=[{"artifact_type": "reference_value", "query": "measured self_diffusion",
+                                "rationale": "trust rule (c) needs a measurement"}])
+        self.assertFalse(LibrarianAgent(self.board, records=CAL, **self.kw).step())
+        self.assertEqual(self.board.snapshot().of_type("need_claim"), [])
 
 
 @unittest.skipUnless(HAVE_ASE, "needs ASE")
@@ -230,17 +353,24 @@ class FakeSimulatorTest(BoardCase):
                   RuleReferee(self.board, **self.kw), LibrarianAgent(self.board, records=CAL, **self.kw)]
         run_round_robin(agents)
         snap = self.board.snapshot()
-        res = [a for a in snap.of_type("property_result") if a.payload["candidate"] == "testium"]
-        self.assertEqual(len(res), 1)
-        p = res[0].payload
-        self.assertEqual(p["method"]["protocol"], "single-phase heating")
-        self.assertIn("synthetic_test_data", p["flags"])
-        self.assertTrue(p["note"].startswith("SYNTHETIC"))
-        self.assertNotIn("single_phase_heating", p["flags"])  # silent: the producer raised nothing
-        self.assertEqual(derive_status(snap, res[0], TRUST).status, "flagged")  # ...the referee caught it
-        self.assertEqual(snap.of_type("request"), [])  # no latent-heat follow-up on a flagged result
+        res = {a.payload["method"]["protocol"]: a for a in snap.of_type("property_result")
+               if a.payload["candidate"] == "testium" and a.payload["property"] == "melting_point"}
+        bad, good = res["single-phase heating"], res["two-phase coexistence"]
+        self.assertIn("synthetic_test_data", bad.payload["flags"])
+        self.assertTrue(bad.payload["note"].startswith("SYNTHETIC"))
+        self.assertNotIn("single_phase_heating", bad.payload["flags"])  # silent: the producer raised nothing
+        old = derive_status(snap, bad, TRUST)
+        self.assertEqual(old.status, "flagged")  # ...the referee caught it
+        self.assertEqual(old.superseded_by, [good.artifact_id])  # ...and its rerun request replaced it
+        self.assertIn(bad.artifact_id, good.parent_artifact_ids)
+        self.assertNotEqual(derive_status(snap, good, TRUST).status, "flagged")
+        # the latent heat is requested at the rerun's melting point, never at the superheated one
+        req = snap.of_type("request")
+        self.assertEqual(len(req), 1)
+        self.assertEqual(req[0].needs[0]["temperature_K"], round(good.payload["value"], 1))
         log = (self.root / "logs" / "referee_rules.jsonl").read_text().splitlines()
-        self.assertTrue(any(json.loads(line).get("verdict") == "fail" for line in log))
+        self.assertTrue(any(json.loads(line).get("verdict") == "fail" and json.loads(line).get("rerun")
+                            for line in log))
 
 
 if __name__ == "__main__":

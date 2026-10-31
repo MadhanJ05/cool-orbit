@@ -31,20 +31,21 @@ def main() -> None:
     ap.add_argument("--llm", default="inconclusive", choices=["inconclusive", "always", "never"],
                     help="when the premise checker asks Claude (needs ANTHROPIC_API_KEY in .env)")
     ap.add_argument("--rounds", type=int, default=200)
+    ap.add_argument("--eval-only", action="store_true", help="Scouts answer eval tasks only (comparison runs)")
     args = ap.parse_args()
 
     board = Board(args.board)
     seeds = load_seeds()
     # The premise checker goes first so requests are checked before anyone runs them.
     agents = [PremiseChecker(board, client=None if args.llm == "never" else "auto", llm_mode=args.llm)]
-    agents += [Scout(board, s, seeds=seeds, preset=args.preset) for s in (args.scouts or seeds)]
+    agents += [Scout(board, s, seeds=seeds, preset=args.preset, eval_only=args.eval_only) for s in (args.scouts or seeds)]
     if args.fake_sim:
         from coolorbit.agents.fake_simulator import FakeSimulatorAgent
 
         agents.append(FakeSimulatorAgent(args.board, traps=dict(t.split("=", 1) for t in args.trap)))
     agents += [RuleReferee(board), LibrarianAgent(board)]
     if not args.no_ranker:
-        agents.append(Ranker(board))
+        agents.append(Ranker(board, include_synthetic=args.fake_sim))  # synthetic entries are labelled
     rounds = run_round_robin(agents, args.rounds)
     print(f"idle after {rounds} round(s). View: python -m coolorbit.board show --board {args.board} -v")
 

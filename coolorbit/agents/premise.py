@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import os
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -44,6 +45,11 @@ STATIC_PROPERTIES = {"equation_of_state", "bulk_modulus", "lattice_constant", "e
                      "adsorption_energy", "binding_energy", "formation_energy", "surface_energy"}
 WELL_POSED_MELTING = ("coexistence", "hysteresis", "two-phase", "interface")
 PRISTINE_WORDS = ("pristine", "perfect crystal", "defect-free", "defect free", "ideal crystal", "no defects")
+# "perfect fcc copper crystal", "ideal single crystal", ...: an adjective, then a few words, then crystal/lattice
+PRISTINE_RE = re.compile(r"\b(?:perfect|ideal|defect[- ]free)\b(?:\s+[\w()/-]+){0,4}?\s+(?:crystal|lattice)\b")
+# In this project "conductivity" means thermal conductivity (data/calibration units W/m/K): phonon/electron
+# transport, measurable in a perfect crystal. Ion/atom transport properties are the timescale-limited ones.
+THERMAL_PROPERTIES = {"conductivity", "thermal_conductivity", "thermal_diffusivity"}
 CRYSTAL_WORDS = ("crystal", "crystalline", "solid", "lattice")
 LIQUID_WORDS = ("liquid", "molten", "melt ", "amorphous", "glass")
 ATTEMPT_FREQ_HZ = 1.0e13  # typical phonon attempt frequency for an Arrhenius hop estimate
@@ -97,7 +103,8 @@ def _pristine(task: dict) -> bool:
         return True
     if defects and defects not in ("unknown", "unspecified"):
         return False  # vacancies, interstitials, dopants, grain boundaries ... were put in deliberately
-    return any(w in _text(task) for w in PRISTINE_WORDS)
+    text = _text(task)
+    return any(w in text for w in PRISTINE_WORDS) or bool(PRISTINE_RE.search(text))
 
 
 def _organic(task: dict, rules: dict) -> bool:
@@ -125,7 +132,8 @@ def premise_rules(task: dict, rules: Optional[dict] = None) -> PremiseVerdict:
     state = _state(task)
 
     # 1. Transport in a pristine crystal at MD timescales (NVIDIA's LiF probe).
-    if transport and "thermal" not in prop and state == "crystal":
+    thermal = prop in THERMAL_PROPERTIES or "thermal" in prop
+    if transport and not thermal and state == "crystal":
         length_ps = m.get("sim_length_ps")
         ea = task.get("activation_energy_eV")
         t = task.get("temperature_K")
@@ -171,7 +179,7 @@ def premise_rules(task: dict, rules: Optional[dict] = None) -> PremiseVerdict:
                      + ("" if task.get("temperature_K") else "; condition: give the transition temperature")]
     elif prop in STATIC_PROPERTIES:
         v.verdict, v.reasons = "pass", [f"{prop} is a static (relaxation / energy) property: no timescale issue"]
-    elif transport and "thermal" not in prop and state == "liquid":
+    elif transport and not thermal and state == "liquid":
         v.verdict = "pass"
         v.reasons = [f"{prop} in a liquid is measurable in ns-scale MD"
                      + ("" if "nve" in ensemble else "; condition: NVE production (no thermostat)")]

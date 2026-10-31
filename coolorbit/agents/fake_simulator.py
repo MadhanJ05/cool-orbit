@@ -7,7 +7,8 @@ it refuses to touch any board whose directory name does not start with ``dev-`` 
 
 Traps: ``traps={"Cu": "single_phase_heating"}`` makes it answer like a naive single agent would:
 single-phase heating with a superheated value. ``"silent_heating"`` does the same without raising any
-producer flag, so only a referee reading the protocol can catch it.
+producer flag, so only a referee reading the protocol can catch it. Traps fire on the first attempt only,
+so a rerun requested by a referee comes back with the (synthetic) coexistence answer.
 
 Needs ASE (``pip install ase``) because the real Simulator parses structures with it.
 
@@ -55,7 +56,8 @@ def synthetic_runner(traps: Optional[dict[str, str]] = None):
     traps = {norm(k): v for k, v in (traps or {}).items()}
 
     def run(job, out_dir: Path, timeout_s: float):
-        trap = traps.get(norm(job.name))
+        # Traps fire on the first attempt only: a rerun requested by a referee gets the honest answer.
+        trap = None if getattr(job, "supersedes", None) else traps.get(norm(job.name))
         mode = job.mode
         flags: list[str] = []
         if job.mode == "coexistence":
