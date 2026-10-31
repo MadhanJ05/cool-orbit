@@ -1,0 +1,3 @@
+# Exports are generated (python -m dashboard.export); never commit them by accident,
+# especially synthetic demo exports. For deployment, export at build time.
+data/
