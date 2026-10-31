@@ -1,0 +1,3 @@
+[simulator_gb10] watching boards/e2e-cu-quick (Ctrl+C to stop)
+[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
+[simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature froze: the melting point is below the bracket

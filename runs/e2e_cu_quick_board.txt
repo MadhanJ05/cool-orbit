@@ -1,0 +1,14 @@
+Board boards/e2e-cu-quick: 3 artifacts from 2 agents
+WARNING: trust tolerances are NOT frozen (placeholders pending the chemistry lead); statuses are provisional.
+
+PROPOSED (no results yet)
+  734306e1  Cu                       metal            trust     by scout_manual
+
+RESULTS
+  id        candidate            property        value                method                                       by             status
+
+FAILED / REFUSED RUNS
+  5594c746  FAILED   attempt 1  melting_point of Cu via two-phase coexistence (ALCHEMI)  by simulator_gb10
+            - no temperature froze: the melting point is below the bracket
+1 open need(s) on boards/e2e-cu-quick
+  5594c746#0  [property_result] melting_point of Cu (retry 2: bracket shifted down)  (UNCLAIMED)

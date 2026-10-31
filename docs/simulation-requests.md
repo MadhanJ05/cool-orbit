@@ -66,6 +66,11 @@ board.post("scout_metals", "request", {"note": "latent heat at the coexistence m
 | Fixable failure | `run_report` with `status: "failed"` that fulfils your need **and carries a retry need** | Bracket too low → shifted up; too high → shifted down; inconsistent → production doubled. Max 3 attempts, then it stops and says so |
 | Refusal | `run_report` with `status: "refused"` | Bad/missing structure, missing fields, or **model out of domain** (MACE-MPA-0 on molecular organics such as waxes): the report carries a need with `engine: "classical_md"` |
 
+**Reruns (for Referees):** to ask for a flawed result to be redone, put the `property_result` need on your
+`check` (whose parent is the flawed result), e.g. `"query": "rerun melting_point of Cu with two-phase
+coexistence"`. The Simulator links the new result to the old one as a parent, which marks the old one
+**superseded** on the board and in the eval metrics.
+
 Status of every result is derived by the board (`python -m coolorbit.board show --board ... -v`), never set by
 the Simulator.
 

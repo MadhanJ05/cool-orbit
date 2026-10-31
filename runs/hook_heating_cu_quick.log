@@ -1,0 +1,39 @@
+Warp 1.18.0 initialized:
+   CUDA Toolkit 13.4, Driver 13.0
+   Devices:
+     "cpu"      : "aarch64"
+     "cuda:0"   : "NVIDIA GB10" (122 GiB, sm_121, mempool enabled)
+   Kernel cache:
+     /home/dell/.cache/warp/1.18.0
+heating: 256 atoms x 5 system(s); ~3 min at the measured GB10 rate. Flags: none
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Failed to get GPU information from pynvml: Not Supported. Using default values for NVIDIA GB10.
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+/home/dell/Desktop/cool-orbit/coolorbit/hooks/superheating.py:129: UserWarning: SuperheatingDetectorHook: system 4 started as a defect-free crystal and melted at step 650 (T = 2042 K). A perfect crystal superheats, so this temperature overestimates the melting point. Use two-phase (solid-liquid) coexistence.
+  self._fire(rep)
+/home/dell/Desktop/cool-orbit/coolorbit/hooks/superheating.py:129: UserWarning: SuperheatingDetectorHook: system 3 started as a defect-free crystal and melted at step 750 (T = 1873 K). A perfect crystal superheats, so this temperature overestimates the melting point. Use two-phase (solid-liquid) coexistence.
+  self._fire(rep)
+/home/dell/Desktop/cool-orbit/coolorbit/hooks/superheating.py:129: UserWarning: SuperheatingDetectorHook: system 2 started as a defect-free crystal and melted at step 950 (T = 1630 K). A perfect crystal superheats, so this temperature overestimates the melting point. Use two-phase (solid-liquid) coexistence.
+  self._fire(rep)
+GPU information: NVIDIA GB10, 12, 1, 128, 48, 140, 1700
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+NOTE: single-phase heating of a perfect crystal superheats; this is the deliberately wrong baseline.
+  [heating_npt] 2500 steps x 1280 atoms in 173 s
+  T= 1300.0 K: PE = -3.9026 eV/atom
+  T= 1500.0 K: PE = -3.8613 eV/atom
+  T= 1700.0 K: PE = -3.6957 eV/atom
+  T= 1900.0 K: PE = -3.6540 eV/atom
+  T= 2100.0 K: PE = -3.6175 eV/atom
+
+RESULT (ok): melting_point = 1600.0 +/- 100.0 K
+Flags: ['single_phase_heating', 'superheating_observed', 'superheating_risk', 'quick_settings_not_production']   Wall time: 2.9 min   Output: runs/melting/20261031T171151Z_Cu_heating_quick
