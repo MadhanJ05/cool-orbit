@@ -52,8 +52,8 @@
     }
   },
   "melting_point_guess": {
-    "value_K": 544.15,
-    "source": "PubChem CID 5359367 melting point 271 °C (= 544.15 K) from the Hazardous Substances Data Bank, citing The Merck Index (Budavari ed., 1996), p. 211, https://pubchem.ncbi.nlm.nih.gov/compound/5359367 (NIST WebBook lists no T_fus for Bi)",
+    "value_K": 544.556,
+    "source": "data/calibration/tier1.json (NIST Certificate of Analysis, Standard Reference Material 2235 'Bismuth for Thermal Analysis' (2015), https://tsapps.nist.gov/srmext/certificates/archives/2235.pdf)",
     "use": "ONLY to place the temperature bracket. Not a reference value: the calibration references live in data/calibration/ (Teammate 1)."
   },
   "settings": {
@@ -66,7 +66,7 @@
     "prod_steps": 25000,
     "record_every": 50,
     "pe_threshold_eV_per_atom": 0.002,
-    "t_melt_factor": 1.6,
+    "t_melt_factor": 3.0,
     "latent_t_hot_factor": 3.0,
     "seed": 2026,
     "bracket_factors": [
@@ -76,88 +76,114 @@
       1.1,
       1.2
     ],
-    "T_prep_K": 544.1,
-    "T_melt_K": 870.6
+    "T_prep_K": 544.6,
+    "T_melt_K": 1633.8
   },
   "jobs": [
     {
-      "id": "Bi-coexist-T435.3",
+      "id": "Bi-coexist-T435.6",
       "kind": "coexistence",
-      "T_K": 435.3,
-      "command": "lmp -in ../in.coexist.lmp -var T 435.3 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "T_K": 435.6,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Bi-coexist-T435.6.lammps -var T 435.6 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026",
       "outputs": [
-        "pe_T435.3.dat",
-        "log.lammps"
+        "pe_T435.6.dat",
+        "log_Bi-coexist-T435.6.lammps"
       ]
     },
     {
-      "id": "Bi-coexist-T489.7",
+      "id": "Bi-coexist-T490.1",
       "kind": "coexistence",
-      "T_K": 489.7,
-      "command": "lmp -in ../in.coexist.lmp -var T 489.7 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "T_K": 490.1,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Bi-coexist-T490.1.lammps -var T 490.1 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026",
       "outputs": [
-        "pe_T489.7.dat",
-        "log.lammps"
+        "pe_T490.1.dat",
+        "log_Bi-coexist-T490.1.lammps"
       ]
     },
     {
-      "id": "Bi-coexist-T544.1",
+      "id": "Bi-coexist-T544.6",
       "kind": "coexistence",
-      "T_K": 544.1,
-      "command": "lmp -in ../in.coexist.lmp -var T 544.1 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "T_K": 544.6,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Bi-coexist-T544.6.lammps -var T 544.6 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026",
       "outputs": [
-        "pe_T544.1.dat",
-        "log.lammps"
+        "pe_T544.6.dat",
+        "log_Bi-coexist-T544.6.lammps"
       ]
     },
     {
-      "id": "Bi-coexist-T598.6",
+      "id": "Bi-coexist-T599",
       "kind": "coexistence",
-      "T_K": 598.6,
-      "command": "lmp -in ../in.coexist.lmp -var T 598.6 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "T_K": 599.0,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Bi-coexist-T599.lammps -var T 599 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026",
       "outputs": [
-        "pe_T598.6.dat",
-        "log.lammps"
+        "pe_T599.dat",
+        "log_Bi-coexist-T599.lammps"
       ]
     },
     {
-      "id": "Bi-coexist-T653",
+      "id": "Bi-coexist-T653.5",
       "kind": "coexistence",
-      "T_K": 653.0,
-      "command": "lmp -in ../in.coexist.lmp -var T 653 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "T_K": 653.5,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Bi-coexist-T653.5.lammps -var T 653.5 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026",
       "outputs": [
-        "pe_T653.dat",
-        "log.lammps"
+        "pe_T653.5.dat",
+        "log_Bi-coexist-T653.5.lammps"
       ]
     },
     {
       "id": "Bi-latent-solid",
       "kind": "latent",
       "phase": "solid",
-      "T_K": 544.1,
-      "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
-      "command": "lmp -in ../in.latent.lmp -var phase solid -var T 544.1 -var seed 2026",
+      "T_K": "<Tm_MEAM>",
+      "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
+      "command": "lmp -in ../in.latent.lmp -log log_Bi-latent-solid.lammps -var phase solid -var T <Tm_MEAM> -var seed 2026",
       "outputs": [
-        "h_solid_T544.1.dat",
-        "log.lammps"
+        "h_solid_T<Tm_MEAM>.dat",
+        "log_Bi-latent-solid.lammps"
       ]
     },
     {
       "id": "Bi-latent-liquid",
       "kind": "latent",
       "phase": "liquid",
-      "T_K": 544.1,
-      "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
-      "command": "lmp -in ../in.latent.lmp -var phase liquid -var T 544.1 -var seed 2026",
+      "T_K": "<Tm_MEAM>",
+      "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
+      "command": "lmp -in ../in.latent.lmp -log log_Bi-latent-liquid.lammps -var phase liquid -var T <Tm_MEAM> -var seed 2026",
       "outputs": [
-        "h_liquid_T544.1.dat",
-        "log.lammps"
+        "h_liquid_T<Tm_MEAM>.dat",
+        "log_Bi-latent-liquid.lammps"
       ]
     }
   ],
+  "atomic_mass_amu": 208.9804,
+  "method": {
+    "engine": "LAMMPS",
+    "model": "2NN MEAM, NIST IPR 2021--Zhou-H--Bi--LAMMPS--ipr1",
+    "nist_implementation": "2021--Zhou-H--Bi--LAMMPS--ipr1",
+    "doi": "10.1088/1361-651x/ac095c",
+    "timestep_fs": 2.0,
+    "seed": 2026,
+    "coexistence": {
+      "protocol": "two-phase coexistence",
+      "ensemble": "NPT (Nose-Hoover, aniso)",
+      "n_atoms": 1728,
+      "sim_length_ps": 50.0
+    },
+    "latent": {
+      "protocol": "solid vs liquid enthalpy at Tm",
+      "ensemble": "NPT (Nose-Hoover; solid aniso, liquid iso)",
+      "n_atoms": 360,
+      "sim_length_ps": 50.0
+    }
+  },
   "analysis": {
     "coexistence": "python ../analyze.py coexist pe_T*.dat",
-    "latent": "python ../analyze.py latent --mass-amu 208.9804 h_solid_T<T>.dat h_liquid_T<T>.dat --log-solid <solid log> --log-liquid <liquid log>"
+    "latent": "python ../analyze.py latent h_solid_T<Tm_MEAM>.dat h_liquid_T<Tm_MEAM>.dat --log-solid log_Bi-latent-solid.lammps --log-liquid log_Bi-latent-liquid.lammps"
   },
   "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
 }

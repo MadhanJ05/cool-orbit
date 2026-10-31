@@ -39,7 +39,25 @@ NIST = "https://www.ctcms.nist.gov/potentials/entry/"
 # T_melt = 1.6 x T_prep). Same protocol, different method.
 SETTINGS = {"dt_ps": 0.002, "tdamp_ps": 0.1, "pdamp_ps": 1.0, "equil_steps": 4000, "melt_steps": 6000,
             "quench_steps": 3000, "prod_steps": 25000, "record_every": 50, "pe_threshold_eV_per_atom": 0.002,
-            "t_melt_factor": 1.6, "latent_t_hot_factor": 3.0, "seed": 2026}
+            "t_melt_factor": 3.0, "latent_t_hot_factor": 3.0, "seed": 2026}
+# T_melt = 3 x T_prep (not melting.py's 1.6x): with the thermostat now measuring only the liquid half (fix_modify temp
+# tliq), 1.6x is the real temperature of the melting half, and perfect-crystal halves superheat well past that.
+CALIBRATION = REPO / "data" / "calibration" / "tier1.json"
+DROPPED = {
+    "Ga": "failed the alpha-Ga stability check (metals/Ga/stability/RESULT.md): the relaxed 0 K cell is off by -8.4% (b) "
+          "and +6.6% (c) and the 2.44 A dimer is lost (first neighbour peak 2.71 A, ~1.9 neighbours within 2.6 A), so "
+          "this potential's 'alpha-Ga' is a different structure; its melting point would not be gallium's.",
+}
+
+
+def tm_guess(symbol: str) -> tuple[float, str]:
+    """Measured melting point from the Tier-1 calibration set (Teammate 1), used only to place the bracket."""
+    data = json.loads(CALIBRATION.read_text(encoding="utf-8"))
+    recs = data["records"] if isinstance(data, dict) else data
+    hits = [r for r in recs if r["candidate"] == symbol and r["property"] == "melting_point" and r["value"] is not None]
+    if len(hits) != 1:
+        raise ValueError(f"{symbol}: expected one sourced melting_point in {CALIBRATION}, found {len(hits)}")
+    return float(hits[0]["value"]), f"data/calibration/tier1.json ({hits[0]['source']})"
 BRACKET_FACTORS = [0.80, 0.90, 1.00, 1.10, 1.20]  # wide: the MEAM models' own melting points are not published
 COEXIST_MIN_LATERAL_A, COEXIST_MIN_Z_FACTOR = 24.0, 2.0
 SOLID_MIN_SIDE_A = 20.0
@@ -59,9 +77,6 @@ ELEMENTS = {
                     "alpha-Ga is a covalent-dimer (Cmce) metal; 2NN MEAM fitted with an fcc reference may not "
                     "reproduce its structure. Check the solid stays alpha-Ga during the solid NPT stage.",
                     "No NIST potential for pure Ga ships LAMMPS files (Belashchenko 2012 EAM is liquid-only, no files)."],
-        "tm_guess_K": 302.92,
-        "tm_guess_source": "NIST Chemistry WebBook, gallium, phase change data: T_fus 302.92 K (Marsh, 1987; "
-                           "TRC uncertainty 0.004 K), https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440553&Units=SI&Mask=4",
     },
     "In": {
         "nist_entry": "2008--Do-E-C-Shin-Y-H-Lee-B-J--In",
@@ -72,9 +87,6 @@ ELEMENTS = {
         "files": ["library.meam", "In.meam"],
         "pair_coeff": "pair_coeff * * potential/library.meam In potential/In.meam In",
         "caveats": [],
-        "tm_guess_K": 430.15,
-        "tm_guess_source": "NIST Chemistry WebBook, indium, phase change data: T_fus 430.15 K (TRC, nominal value, "
-                           "uncertainty 1 K), https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440746&Units=SI&Mask=4",
     },
     "Sn": {
         "nist_entry": "2018--Ko-W-S-Kim-D-H-Kwon-Y-J-Lee-M--Sn",
@@ -85,9 +97,6 @@ ELEMENTS = {
         "files": ["library.meam", "Sn.meam"],
         "pair_coeff": "pair_coeff * * potential/library.meam Sn potential/Sn.meam Sn",
         "caveats": ["Starts from beta-Sn (white tin), the phase that melts; alpha-Sn is irrelevant above 286 K."],
-        "tm_guess_K": 505.11,
-        "tm_guess_source": "NIST Chemistry WebBook, tin, phase change data: T_fus 505.11 K (TRC uncertainty "
-                           "0.0005 K; 505.15 K also listed), https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440315&Units=SI&Mask=4",
     },
     "Bi": {
         "nist_entry": "2021--Zhou-H-Dickel-D-E-Baskes-M-I-et-al--Bi",
@@ -100,10 +109,6 @@ ELEMENTS = {
         "pair_coeff": "pair_coeff * * potential/Bi.library.meam Bi potential/Bi.parameter.meam Bi",
         "caveats": ["The paper's abstract says the potential reproduces the melting point of pure Bi, so the "
                     "classical check is partly fitted to the experimental value for Bi; say so when comparing."],
-        "tm_guess_K": 544.15,
-        "tm_guess_source": "PubChem CID 5359367 melting point 271 °C (= 544.15 K) from the Hazardous Substances "
-                           "Data Bank, citing The Merck Index (Budavari ed., 1996), p. 211, "
-                           "https://pubchem.ncbi.nlm.nih.gov/compound/5359367 (NIST WebBook lists no T_fus for Bi)",
     },
 }
 
@@ -154,23 +159,32 @@ def build(symbol: str, out_root: Path = OUT) -> dict:
         f"# {symbol}: 2NN MEAM, NIST IPR {info['nist_implementation']} (doi:{info['doi']}). Needs the MEAM package.\n"
         f"pair_style meam\n{info['pair_coeff']}\n", encoding="utf-8")
 
-    tg = info["tm_guess_K"]
+    tg, tg_source = tm_guess(symbol)
     temps = [round(f * tg, 1) for f in BRACKET_FACTORS]
     t_prep = round(tg, 1)
     t_melt = round(SETTINGS["t_melt_factor"] * t_prep, 1)
     common = (f"-var Tprep {t_prep} -var Tmelt {t_melt} -var seed {SETTINGS['seed']}")
-    jobs = [{"id": f"{symbol}-coexist-T{t:g}", "kind": "coexistence", "T_K": t,
-             "command": f"lmp -in ../in.coexist.lmp -var T {t:g} {common}",
-             "outputs": [f"pe_T{t:g}.dat", "log.lammps"]} for t in temps]
-    jobs += [{"id": f"{symbol}-latent-{phase}", "kind": "latent", "phase": phase, "T_K": round(tg, 1),
-              "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
-              "command": f"lmp -in ../in.latent.lmp -var phase {phase} -var T {round(tg, 1):g} -var seed {SETTINGS['seed']}",
-              "outputs": [f"h_{phase}_T{round(tg, 1):g}.dat", "log.lammps"]} for phase in ("solid", "liquid")]
+    jobs = []
+    if symbol not in DROPPED:
+        for t in temps:
+            jid = f"{symbol}-coexist-T{t:g}"
+            jobs.append({"id": jid, "kind": "coexistence", "T_K": t, "status": "ready (needs approval to submit)",
+                         "command": f"lmp -in ../in.coexist.lmp -log log_{jid}.lammps -var T {t:g} {common}",
+                         "outputs": [f"pe_T{t:g}.dat", f"log_{jid}.lammps"]})
+        for phase in ("solid", "liquid"):
+            jid = f"{symbol}-latent-{phase}"
+            jobs.append({"id": jid, "kind": "latent", "phase": phase, "T_K": "<Tm_MEAM>",
+                         "status": "BLOCKED until this potential's own melting point is known from the coexistence "
+                                   "jobs (latent heat is defined at the model's Tm, not the experimental one)",
+                         "command": f"lmp -in ../in.latent.lmp -log log_{jid}.lammps -var phase {phase} "
+                                    f"-var T <Tm_MEAM> -var seed {SETTINGS['seed']}",
+                         "outputs": [f"h_{phase}_T<Tm_MEAM>.dat", f"log_{jid}.lammps"]})
     phase_name = ELEMENT_CRYSTALS[symbol][0]
     manifest = {
         "element": symbol,
         "purpose": "Independent classical-MD check (MEAM) of the GB10's MACE melting point and latent heat.",
-        "status": "inputs only; NOT submitted. Ask Madhan before submitting any Nebius job.",
+        "status": (f"DROPPED: {DROPPED[symbol]}" if symbol in DROPPED else
+                   "inputs only; NOT submitted. Ask Madhan before submitting any Nebius job."),
         "engine": "LAMMPS (needs the MEAM package: check `lmp -h | grep -i meam` on the Nebius image)",
         "potential": {k: info[k] for k in ("citation", "doi", "nist_entry", "nist_implementation", "pair_coeff")}
                      | {"nist_url": f"{NIST}{info['nist_entry']}/",
@@ -184,14 +198,23 @@ def build(symbol: str, out_root: Path = OUT) -> dict:
                                   "box_A": [round(float(x), 3) for x in coexist.cell.lengths()]},
                       "solid": {"file": "data.solid.lmp", "reps": list(solid_reps), "n_atoms": len(solid),
                                 "box_A": [round(float(x), 3) for x in solid.cell.lengths()]}},
-        "melting_point_guess": {"value_K": tg, "source": info["tm_guess_source"],
+        "melting_point_guess": {"value_K": tg, "source": tg_source,
                                 "use": "ONLY to place the temperature bracket. Not a reference value: the "
                                        "calibration references live in data/calibration/ (Teammate 1)."},
         "settings": SETTINGS | {"bracket_factors": BRACKET_FACTORS, "T_prep_K": t_prep, "T_melt_K": t_melt},
         "jobs": jobs,
+        "atomic_mass_amu": round(float(coexist.get_masses()[0]), 4),
+        "method": {"engine": "LAMMPS", "model": f"2NN MEAM, NIST IPR {info['nist_implementation']}",
+                   "nist_implementation": info["nist_implementation"], "doi": info["doi"],
+                   "timestep_fs": SETTINGS["dt_ps"] * 1000, "seed": SETTINGS["seed"],
+                   "coexistence": {"protocol": "two-phase coexistence", "ensemble": "NPT (Nose-Hoover, aniso)",
+                                   "n_atoms": len(coexist), "sim_length_ps": SETTINGS["prod_steps"] * SETTINGS["dt_ps"]},
+                   "latent": {"protocol": "solid vs liquid enthalpy at Tm",
+                              "ensemble": "NPT (Nose-Hoover; solid aniso, liquid iso)", "n_atoms": len(solid),
+                              "sim_length_ps": SETTINGS["prod_steps"] * SETTINGS["dt_ps"]}},
         "analysis": {"coexistence": "python ../analyze.py coexist pe_T*.dat",
-                     "latent": f"python ../analyze.py latent --mass-amu {coexist.get_masses()[0]:.4f} "
-                               "h_solid_T<T>.dat h_liquid_T<T>.dat --log-solid <solid log> --log-liquid <liquid log>"},
+                     "latent": f"python ../analyze.py latent h_solid_T<Tm_MEAM>.dat h_liquid_T<Tm_MEAM>.dat "
+                               f"--log-solid log_{symbol}-latent-solid.lammps --log-liquid log_{symbol}-latent-liquid.lammps"},
         "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule "
                              "as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart.",
     }

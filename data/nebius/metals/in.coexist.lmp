@@ -1,11 +1,16 @@
-# Two-phase (solid-liquid) coexistence at ONE trial temperature T. Run from an element folder:
-#   lmp -in ../in.coexist.lmp -var T 520 -var Tprep 505.1 -var Tmelt 808.2 -var seed 2026
+# Two-phase (solid-liquid) coexistence at ONE trial temperature T. Run from an element folder, one log per job:
+#   lmp -in ../in.coexist.lmp -log log_<id>.lammps -var T 520 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
 # Mirrors coolorbit/sim/melting.py (GB10, MACE) with a classical MEAM potential:
 #   1. relax the crystal (NPT, anisotropic) at Tprep
-#   2. freeze the lower half (z), melt the upper half at Tmelt (z free to expand: the liquid is less dense)
+#   2. freeze the lower half (z), melt the upper half at Tmelt with z free (the liquid's density differs from the
+#      crystal's: lower for most metals, HIGHER for Ga and Bi, so z may shrink as well as grow)
 #   3. quench the liquid half to T
 #   4. production NPT (anisotropic, P = 0) at T; record PE/atom. Above Tm the liquid grows and PE rises;
 #      below Tm the crystal grows and PE falls. analyze.py makes the call against the run's own noise.
+# The thermostat of steps 2-3 measures ONLY the liquid half (compute tliq + fix_modify temp): by default fix npt
+# on a group still computes T over all atoms, and with the frozen half at zero velocity the liquid would run at
+# ~2x the set temperature.
+# If the upper half did not melt (MELT_CHECK), this is single-phase heating in disguise: analyze.py refuses it.
 # Never single-phase heating (superheats). Units: metal (ps, eV, A, bar).
 
 variable        dt      index 0.002
@@ -27,7 +32,7 @@ neigh_modify    every 1 delay 0 check yes
 timestep        ${dt}
 
 variable        pea equal pe/atoms
-thermo_style    custom step temp pe ke press vol lx ly lz
+thermo_style    custom step temp pe ke press vol lx ly lz ecouple
 thermo          ${every}
 
 # 1. crystal at Tprep -------------------------------------------------------------------------------
@@ -41,24 +46,30 @@ variable        zmid equal $(0.5*(zlo+zhi))
 region          upper block INF INF INF INF ${zmid} INF units box
 group           liquid region upper
 group           crystal subtract all liquid
+compute         tliq liquid temp
 compute         dsp all displace/atom
 variable        moved atom "c_dsp[4] > 1.5"
 compute         nml liquid reduce sum v_moved
 compute         nmc crystal reduce sum v_moved
 variable        fliq equal c_nml/count(liquid)
 variable        fcry equal c_nmc/count(crystal)
-thermo_style    custom step temp pe ke press vol lz v_fliq v_fcry
+thermo_style    custom step temp c_tliq pe ke press vol lz v_fliq v_fcry ecouple
 
 velocity        crystal set 0.0 0.0 0.0
 fix             pin crystal setforce 0.0 0.0 0.0
-velocity        liquid create ${Tmelt} $(v_seed+1) mom yes rot no dist gaussian
+velocity        liquid create ${Tmelt} $(v_seed+1) mom yes rot no dist gaussian temp tliq
 fix             hot liquid npt temp ${Tmelt} ${Tmelt} ${tdamp} z 0.0 0.0 ${pdamp} dilate liquid
+fix_modify      hot temp tliq
 run             ${melt}
-print           "MELT_CHECK liquid_moved_fraction ${fliq} crystal_moved_fraction ${fcry} (want >= 0.8 and <= 0.05)"
+variable        melt_liq equal ${fliq}
+variable        melt_cry equal ${fcry}
+variable        melt_tliq equal $(c_tliq)
+print           "MELT_CHECK liquid_moved_fraction ${melt_liq} crystal_moved_fraction ${melt_cry} liquid_T ${melt_tliq} (want >= 0.8, <= 0.05, ~Tmelt)"
 
 # 3. quench the liquid half to T ----------------------------------------------------------------------
 unfix           hot
 fix             cool liquid npt temp ${Tmelt} ${T} ${tdamp} z 0.0 0.0 ${pdamp} dilate liquid
+fix_modify      cool temp tliq
 run             ${quench}
 unfix           cool
 unfix           pin
@@ -66,10 +77,16 @@ unfix           pin
 # 4. production at T ----------------------------------------------------------------------------------
 velocity        crystal create ${T} $(v_seed+2) mom yes rot no dist gaussian
 fix             prod all npt temp ${T} ${T} ${tdamp} aniso 0.0 0.0 ${pdamp}
+thermo_style    custom step temp pe ke press vol lx ly lz ecouple
 variable        st equal step
 variable        tt equal temp
 variable        vv equal vol
+variable        lxx equal lx
+variable        lyy equal ly
 variable        lzz equal lz
-fix             log all print ${every} "${st} ${tt} ${pea} ${vv} ${lzz}" file pe_T${T}.dat screen no title "# coexistence T_target_K=${T} n_atoms=$(atoms) | step T_K pe_per_atom_eV volume_A3 lz_A"
+variable        ec equal ecouple
+# Header via `print` (fix print's title is written literally, without variable substitution), then the data rows.
+print           "# coexistence T_target_K=${T} n_atoms=$(atoms) Tprep_K=${Tprep} Tmelt_K=${Tmelt} melt_liquid_moved=${melt_liq} melt_crystal_moved=${melt_cry} melt_liquid_T_K=${melt_tliq} dt_ps=${dt} prod_steps=${prod} seed=${seed} | step T_K pe_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV" file pe_T${T}.dat screen no
+fix             log all print ${every} "${st} ${tt} ${pea} ${vv} ${lxx} ${lyy} ${lzz} ${ec}" append pe_T${T}.dat screen no
 run             ${prod}
 write_data      final_T${T}.lmp

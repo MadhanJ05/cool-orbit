@@ -1,0 +1,71 @@
+# Is alpha-Ga stable under this potential (2NN MEAM, Ga part of the Do-Shin-Lee 2009 Ga-In fit)?
+# Run from metals/Ga/:  lmp -in stability/in.ga_stability.lmp -var T 302.92 -var seed 2026 -log stability/log.ga_stability
+#   1. 0 K: relax alpha-Ga (Cmce, from data.solid.lmp) and fcc Ga, both with box relaxation -> E per atom
+#   2. alpha-Ga NPT (aniso) at T for 20 ps: does it stay alpha-Ga? (displacements, box ratios, the 2.44 A dimer)
+# Prints STABILITY lines that stability/check_ga.py turns into a pass/fail verdict.
+
+variable        steps index 10000
+variable        dt    index 0.002
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+# ---- 1a. alpha-Ga at 0 K
+read_data       data.solid.lmp
+include         potential.mod
+neighbor        1.0 bin
+print           "STABILITY experimental_box $(lx:%.4f) $(ly:%.4f) $(lz:%.4f)"
+thermo_style    custom step pe lx ly lz press
+fix             br all box/relax aniso 0.0 vmax 0.001
+minimize        1e-12 1e-12 20000 200000
+unfix           br
+variable        ea equal pe/atoms
+variable        a0 equal lx
+variable        b0 equal ly
+variable        c0 equal lz
+print           "STABILITY alpha_E0_eV_per_atom $(v_ea:%.6f) box $(lx:%.4f) $(ly:%.4f) $(lz:%.4f)"
+write_data      stability/alpha_relaxed.lmp
+clear
+
+# ---- 1b. fcc Ga at 0 K (start from the potential's fcc reference lattice constant)
+units           metal
+atom_style      atomic
+boundary        p p p
+lattice         fcc 4.2469
+region          box block 0 5 0 5 0 5
+create_box      1 box
+create_atoms    1 box
+mass            1 69.723
+include         potential.mod
+thermo_style    custom step pe lx press
+fix             br all box/relax iso 0.0 vmax 0.001
+minimize        1e-12 1e-12 20000 200000
+variable        ef equal pe/atoms
+print           "STABILITY fcc_E0_eV_per_atom $(v_ef:%.6f) a $(lx/5:%.4f)"
+clear
+
+# ---- 2. alpha-Ga at T
+units           metal
+atom_style      atomic
+boundary        p p p
+read_data       stability/alpha_relaxed.lmp
+include         potential.mod
+neighbor        1.0 bin
+timestep        ${dt}
+variable        L0x equal $(lx)
+variable        L0y equal $(ly)
+variable        L0z equal $(lz)
+velocity        all create ${T} ${seed} mom yes rot no dist gaussian
+compute         dsp all displace/atom
+variable        moved atom "c_dsp[4] > 1.5"
+compute         nm all reduce sum v_moved
+compute         cn all coord/atom cutoff 2.6
+compute         cnavg all reduce ave c_cn
+compute         rdf all rdf 200 cutoff 4.0
+fix             rdfout all ave/time 100 50 10000 c_rdf[*] file stability/rdf_T${T}.dat mode vector
+fix             npt all npt temp ${T} ${T} 0.1 aniso 0.0 0.0 1.0
+thermo_style    custom step temp pe lx ly lz press c_cnavg ecouple
+thermo          500
+run             ${steps}
+print           "STABILITY alpha_at_T T $(temp:%.1f) moved_fraction $(c_nm/atoms:%.4f) coord_2.6A $(c_cnavg:%.3f) box_ratio $(lx/v_L0x:%.4f) $(ly/v_L0y:%.4f) $(lz/v_L0z:%.4f)"
