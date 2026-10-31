@@ -1,0 +1,6 @@
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_paraffin", "event": "post", "artifact_type": "candidate", "id": "b3a83103", "summary": "candidate n-eicosane (paraffin, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_paraffin", "event": "decision", "candidate": "n-eicosane", "action": "requested ['melting_point']", "route": "classical_md", "id": "b3a83103"}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_paraffin", "event": "post", "artifact_type": "candidate", "id": "2b16c2b7", "summary": "candidate n-octadecane (paraffin, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_paraffin", "event": "decision", "candidate": "n-octadecane", "action": "requested ['melting_point']", "route": "classical_md", "id": "2b16c2b7"}
+{"ts": "2026-10-31T22:39:16+00:00", "agent": "scout_paraffin", "event": "post", "artifact_type": "candidate", "id": "75a8092c", "summary": "candidate n-hexadecane (paraffin, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T22:39:16+00:00", "agent": "scout_paraffin", "event": "decision", "candidate": "n-hexadecane", "action": "requested ['melting_point']", "route": "classical_md", "id": "75a8092c"}

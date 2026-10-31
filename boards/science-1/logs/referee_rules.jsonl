@@ -1,0 +1,3 @@
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "referee_rules", "event": "claim", "target": "7ed6f997", "need_index": 0, "query": "audit the NPT enthalpy difference (liquid alloy vs pure-element solids) latent_heat run for BiInSn"}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "referee_rules", "event": "post", "artifact_type": "check", "id": "ada06981", "summary": "method_audit: pass", "parents": ["7ed6f997"], "fulfills": ["7ed6f997", 0]}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "referee_rules", "event": "decision", "result": "7ed6f997", "candidate": "BiInSn", "property": "latent_heat", "verdict": "pass", "flags": [], "rerun": null}

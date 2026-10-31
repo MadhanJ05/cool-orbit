@@ -1,0 +1,4 @@
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_alloys", "event": "post", "artifact_type": "candidate", "id": "ebc5b678", "summary": "candidate BiInSn (low_melting_alloy, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_alloys", "event": "decision", "candidate": "BiInSn", "tier": "trust", "id": "ebc5b678", "action": "requested latent_heat at the measured melting point"}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_alloys", "event": "post", "artifact_type": "candidate", "id": "c69f6cad", "summary": "candidate InBi (low_melting_alloy, discovery tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_alloys", "event": "decision", "candidate": "InBi", "tier": "discovery", "id": "c69f6cad", "action": "requested latent_heat at the measured melting point"}

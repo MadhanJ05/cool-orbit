@@ -1,0 +1,4 @@
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_fatty_acid", "event": "post", "artifact_type": "candidate", "id": "2b229689", "summary": "candidate lauric acid (fatty_acid, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_fatty_acid", "event": "decision", "candidate": "lauric acid", "action": "requested ['melting_point']", "route": "classical_md", "id": "2b229689"}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_fatty_acid", "event": "post", "artifact_type": "candidate", "id": "3dc82146", "summary": "candidate stearic acid (fatty_acid, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_fatty_acid", "event": "decision", "candidate": "stearic acid", "action": "requested ['melting_point']", "route": "classical_md", "id": "3dc82146"}

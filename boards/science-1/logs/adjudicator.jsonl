@@ -1,0 +1,4 @@
+{"ts": "2026-10-31T20:32:15+00:00", "agent": "adjudicator", "event": "start", "board": "boards/science-1", "once": false}
+{"ts": "2026-10-31T20:52:43+00:00", "agent": "adjudicator", "event": "start", "board": "boards/science-1", "once": false}
+{"ts": "2026-10-31T21:13:50+00:00", "agent": "adjudicator", "event": "post", "artifact_type": "check", "id": "65e3e208", "summary": "method_audit: fail", "parents": ["7ed6f997"], "fulfills": null}
+{"ts": "2026-10-31T21:13:50+00:00", "agent": "adjudicator", "event": "decision", "result": "7ed6f997", "candidate": "BiInSn", "property": "latent_heat", "verdict": "fail", "settles": "referee_rules pass (ada06981), referee_llm fail (8af1ea18)", "rerun": null, "usage": {"role": "adjudicator", "model": "claude-fable-5-1", "cost_usd": 0.03954, "input_tokens": 1749, "output_tokens": 441}}

@@ -1,0 +1,6 @@
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "f3b5d7b8", "summary": "candidate In (low_melting_metal, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_metals", "event": "decision", "candidate": "In", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "f3b5d7b8"}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "0e254158", "summary": "candidate Sn (low_melting_metal, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Sn", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "0e254158"}
+{"ts": "2026-10-31T22:39:16+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "577df9a1", "summary": "candidate Bi (low_melting_metal, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T22:39:16+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Bi", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "577df9a1"}

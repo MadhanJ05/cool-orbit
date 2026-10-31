@@ -1,0 +1,44 @@
+science run on /home/dell/Desktop/cool-orbit/boards/science-1: metals ['In', 'Sn', 'Bi'], alloys ['BiInSn', 'InBi'], organics yes, preset production
+[scout_alloys] post: artifact_type=candidate, id=ebc5b678, summary=candidate BiInSn (low_melting_alloy, trust tier), parents=[], fulfills=None
+[scout_alloys] decision: candidate=BiInSn, tier=trust, id=ebc5b678, action=requested latent_heat at the measured melting point
+[scout_metals] post: artifact_type=candidate, id=f3b5d7b8, summary=candidate In (low_melting_metal, trust tier), parents=[], fulfills=None
+[scout_metals] decision: candidate=In, action=requested ['melting_point'], route=ALCHEMI, id=f3b5d7b8
+[scout_paraffin] post: artifact_type=candidate, id=b3a83103, summary=candidate n-eicosane (paraffin, trust tier), parents=[], fulfills=None
+[scout_paraffin] decision: candidate=n-eicosane, action=requested ['melting_point'], route=classical_md, id=b3a83103
+[scout_fatty_acid] post: artifact_type=candidate, id=2b229689, summary=candidate lauric acid (fatty_acid, trust tier), parents=[], fulfills=None
+[scout_fatty_acid] decision: candidate=lauric acid, action=requested ['melting_point'], route=classical_md, id=2b229689
+[scout_sugar_alcohol] post: artifact_type=candidate, id=5dbd66a2, summary=candidate erythritol (sugar_alcohol, trust tier), parents=[], fulfills=None
+[scout_sugar_alcohol] decision: candidate=erythritol, action=requested ['melting_point'], route=classical_md, id=5dbd66a2
+[scout_salt_hydrate] post: artifact_type=candidate, id=c2e26079, summary=candidate calcium chloride hexahydrate (salt_hydrate, trust tier), parents=[], fulfills=None
+[scout_salt_hydrate] decision: candidate=calcium chloride hexahydrate, action=posted without requests, reason=no runnable structure yet (add a periodic cell under data/structures/)
+[simulator_gb10] RUN: latent_heat of BiInSn via NPT enthalpy difference (liquid alloy vs pure-element solids) (ALCHEMI), 1400 atoms x 1 temps, preset production, attempt 1, ~65 min
+[simulator_gb10] RESULT 7ed6f997: latent_heat = 25334 +/- 184 J/kg flags=['eutectic_solid_assumed_pure_elements']
+[referee_rules] claim: target=7ed6f997, need_index=0, query=audit the NPT enthalpy difference (liquid alloy vs pure-element solids) latent_heat run for BiInSn
+[referee_rules] post: artifact_type=check, id=ada06981, summary=method_audit: pass, parents=['7ed6f997'], fulfills=('7ed6f997', 0)
+[referee_rules] decision: result=7ed6f997, candidate=BiInSn, property=latent_heat, verdict=pass, flags=[], rerun=None
+[librarian] claim: target=7ed6f997, need_index=2, query=measured latent_heat of BiInSn with a citable source
+[librarian] post: artifact_type=reference_value, id=6ca7f7d0, summary=measured BiInSn latent_heat = 27115 J/kg [Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3], parents=['7ed6f997'], fulfills=('7ed6f997', 2)
+[librarian] decision: candidate=BiInSn, property=latent_heat, value=27115.0, reason=found in curated dataset
+[referee_premise] post: artifact_type=check, id=fbc65a2d, summary=premise_check: pass, parents=['f3b5d7b8'], fulfills=None
+[referee_premise] decision: target=f3b5d7b8, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'In', 'family': 'low_melting_metal', 'formula': 'In', 'structure_source': 'ref:In', 'property': 'melting_point', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'two-phase coexistence', 'ensemble': None}, 'temps_K': 430, 'description': 'melting_point of In. low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (430 K)', 'melting_point_K': 429.748}
+[scout_alloys] post: artifact_type=candidate, id=c69f6cad, summary=candidate InBi (low_melting_alloy, discovery tier), parents=[], fulfills=None
+[scout_alloys] decision: candidate=InBi, tier=discovery, id=c69f6cad, action=requested latent_heat at the measured melting point
+[scout_metals] post: artifact_type=candidate, id=0e254158, summary=candidate Sn (low_melting_metal, trust tier), parents=[], fulfills=None
+[scout_metals] decision: candidate=Sn, action=requested ['melting_point'], route=ALCHEMI, id=0e254158
+[scout_paraffin] post: artifact_type=candidate, id=2b16c2b7, summary=candidate n-octadecane (paraffin, trust tier), parents=[], fulfills=None
+[scout_paraffin] decision: candidate=n-octadecane, action=requested ['melting_point'], route=classical_md, id=2b16c2b7
+[scout_fatty_acid] post: artifact_type=candidate, id=3dc82146, summary=candidate stearic acid (fatty_acid, trust tier), parents=[], fulfills=None
+[scout_fatty_acid] decision: candidate=stearic acid, action=requested ['melting_point'], route=classical_md, id=3dc82146
+[scout_sugar_alcohol] post: artifact_type=candidate, id=c29135b8, summary=candidate xylitol (sugar_alcohol, trust tier), parents=[], fulfills=None
+[scout_sugar_alcohol] decision: candidate=xylitol, action=posted without requests, reason=no runnable structure yet (add a periodic cell under data/structures/)
+[scout_salt_hydrate] post: artifact_type=candidate, id=9decf99a, summary=candidate sodium sulfate decahydrate (salt_hydrate, trust tier), parents=[], fulfills=None
+[scout_salt_hydrate] decision: candidate=sodium sulfate decahydrate, action=posted without requests, reason=no runnable structure yet (add a periodic cell under data/structures/)
+[simulator_gb10] RUN: melting_point of In via two-phase coexistence (ALCHEMI), 576 atoms x 4 temps, preset production, attempt 1, ~54 min
+[simulator_gb10] FAILED: melting_point of In via two-phase coexistence (ALCHEMI): no temperature froze: the melting point is below the bracket
+[referee_premise] post: artifact_type=check, id=9e1c9385, summary=premise_check: pass, parents=['b3a83103'], fulfills=None
+[referee_premise] decision: target=b3a83103, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'n-eicosane', 'family': 'paraffin', 'formula': 'C20H42', 'structure_source': 'pubchem:8222', 'property': 'melting_point', 'method': {'engine': 'classical_md', 'model': None, 'protocol': None, 'ensemble': None}, 'temps_K': 310, 'description': 'melting_point of n-eicosane. paraffin candidate; two-phase coexistence bracket centred on the literature value (310 K)', 'melting_point_K': 310.0}
+[scout_metals] post: artifact_type=candidate, id=577df9a1, summary=candidate Bi (low_melting_metal, trust tier), parents=[], fulfills=None
+[scout_metals] decision: candidate=Bi, action=requested ['melting_point'], route=ALCHEMI, id=577df9a1
+[scout_paraffin] post: artifact_type=candidate, id=75a8092c, summary=candidate n-hexadecane (paraffin, trust tier), parents=[], fulfills=None
+[scout_paraffin] decision: candidate=n-hexadecane, action=requested ['melting_point'], route=classical_md, id=75a8092c
+[simulator_gb10] RUN: latent_heat of InBi via NPT enthalpy difference (liquid alloy vs pure-element solids) (ALCHEMI), 1100 atoms x 1 temps, preset production, attempt 1, ~51 min

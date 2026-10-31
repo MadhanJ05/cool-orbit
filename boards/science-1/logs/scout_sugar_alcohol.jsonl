@@ -1,0 +1,4 @@
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_sugar_alcohol", "event": "post", "artifact_type": "candidate", "id": "5dbd66a2", "summary": "candidate erythritol (sugar_alcohol, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T20:04:26+00:00", "agent": "scout_sugar_alcohol", "event": "decision", "candidate": "erythritol", "action": "requested ['melting_point']", "route": "classical_md", "id": "5dbd66a2"}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_sugar_alcohol", "event": "post", "artifact_type": "candidate", "id": "c29135b8", "summary": "candidate xylitol (sugar_alcohol, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-10-31T21:12:48+00:00", "agent": "scout_sugar_alcohol", "event": "decision", "candidate": "xylitol", "action": "posted without requests", "reason": "no runnable structure yet (add a periodic cell under data/structures/)"}
