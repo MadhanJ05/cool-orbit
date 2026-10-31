@@ -1,8 +1,8 @@
 """Export boards and push them to the dashboard's Cloud Storage bucket (run on the GB10, e.g. every few minutes).
 
-    pip install google-cloud-storage      # once, on the GB10
-    export GOOGLE_APPLICATION_CREDENTIALS=~/.config/coolorbit/dashboard-push.json   # the bucket-only key; never in git
+    gcloud auth login --no-browser         # once, on the GB10 (the account that may write the bucket)
     python -m dashboard.push_exports --bucket <bucket> --board boards/science-1 --board boards/eval/<run> [--every 180]
+    # or --via python with google-cloud-storage and Application Default Credentials
 
 Each round: export into a fresh temp folder (dashboard/export.py), refuse to publish anything SYNTHETIC, upload
 every per-board file first and ``index.json`` / ``data.js`` last (so the page never points at a board that isn't
@@ -29,6 +29,20 @@ CONTENT_TYPES = {".json": "application/json; charset=utf-8", ".js": "text/javasc
 
 class Uploader(Protocol):
     def upload(self, local: Path, object_name: str, content_type: str) -> None: ...
+
+
+class GcloudUploader:
+    """`gcloud storage cp` with whatever account `gcloud auth login` set up (no key file, no extra packages)."""
+
+    def __init__(self, bucket: str, gcloud: str = "gcloud", runner=None) -> None:
+        import subprocess
+
+        self.bucket, self.gcloud = bucket, gcloud
+        self.runner = runner or (lambda cmd: subprocess.run(cmd, check=True, capture_output=True, text=True))
+
+    def upload(self, local: Path, object_name: str, content_type: str) -> None:
+        self.runner([self.gcloud, "storage", "cp", str(local), f"gs://{self.bucket}/{object_name}",
+                     "--cache-control=no-cache", f"--content-type={content_type}"])
 
 
 class GcsUploader:
@@ -71,8 +85,11 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--board", action="append", required=True, help="board or folder of boards; repeatable")
     ap.add_argument("--every", type=float, default=0, help="seconds between pushes (0 = once)")
     ap.add_argument("--allow-synthetic", action="store_true", help="never for the judges' link")
+    ap.add_argument("--via", choices=["gcloud", "python"], default="gcloud",
+                    help="gcloud: `gcloud storage cp` with the gcloud login (default); python: google-cloud-storage "
+                         "with Application Default Credentials")
     args = ap.parse_args(argv)
-    uploader = GcsUploader(args.bucket)
+    uploader = GcloudUploader(args.bucket) if args.via == "gcloud" else GcsUploader(args.bucket)
     while True:
         try:
             push_once(args.board, uploader, args.prefix, allow_synthetic=args.allow_synthetic)

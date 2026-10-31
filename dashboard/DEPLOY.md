@@ -1,5 +1,24 @@
 # Judges' live link: Cloud Run + a private Cloud Storage bucket
 
+**Live (deployed 2026-10-31):** https://coolorbit-dashboard-762928923551.us-east1.run.app
+project `scienceclaw26bos-3013`, region `us-east1`, bucket `gs://coolorbit-dash-scienceclaw26bos-3013` (prefix
+`dashboard/`). Deleted with the project Sunday night; GitHub stays the permanent copy.
+
+**What the event's GCP setup allowed (and what we did):** the org blocks service-account key creation
+(`constraints/iam.disableServiceAccountKeyCreation`), and the lab account can't grant impersonation on a
+service account (`iam.serviceAccounts.setIamPolicy` denied). So the GB10 pushes **as the team lab account**
+(`gcloud auth login --no-browser`), with `push_exports --via gcloud`; least privilege then rests on the lab
+account's own (event-restricted) roles. The `dashboard-push` service account exists, has no keys, and is unused.
+Cloud Run reads with `dashboard-run` (objectViewer on this bucket only), as designed.
+
+## GB10, as actually set up
+```bash
+gcloud auth login --no-browser          # team lab account; credentials stay in ~/.config/gcloud on the GB10
+gcloud config set project scienceclaw26bos-3013
+python -m dashboard.push_exports --bucket coolorbit-dash-scienceclaw26bos-3013 \
+    --board boards/science-1 --board boards/eval/<run> --every 180
+```
+
 ```
 GB10 (every few minutes)                         Cloud Storage (private)              Cloud Run (public URL)
 python -m dashboard.push_exports  --(bucket-only key)-->  gs://<bucket>/dashboard/*.json  <--(read-only SA)--  dashboard/server.py
@@ -58,7 +77,7 @@ Fallback if key creation is blocked: on the GB10, `gcloud auth application-defau
 
 ## Check, then tear down after the event
 ```bash
-curl -s https://<service-url>/healthz                 # ok
+curl -s https://<service-url>/health                  # ok (Cloud Run reserves /healthz)
 gcloud run services delete coolorbit-dashboard --region $REGION
 gcloud storage rm -r gs://$BUCKET
 gcloud iam service-accounts keys list --iam-account=$PUSH_SA   # then delete the key, or the account
