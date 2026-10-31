@@ -1,6 +1,7 @@
 # Nebius classical-MD input bundles (T6)
 
-**Status: input files only. Nothing has been submitted. Ask Madhan before submitting any Nebius job** (billing
+**Results: `docs/results/classical-check.md`** (run with LAMMPS on the GB10 CPU; the Nebius LAMMPS app rejected every
+submission, so nothing ran on Nebius). Ask Madhan before submitting any Nebius job (billing
 unclear; the team key is private and never goes in git).
 
 ## Metal-alloy track first: In, Sn, Bi (`metals/`); Ga dropped
@@ -12,9 +13,9 @@ solid-vs-liquid enthalpy at the melting point for the latent heat).
 
 | Element | Potential (NIST IPR implementation) | Citation | Coexistence box | Bracket (K) | Status |
 |---|---|---|---|---|---|
-| In | `2008--Do-E-C--In--LAMMPS--ipr1` (2NN MEAM) | Do, Shin, Lee, Calphad 32, 82 (2008) | 1408 atoms | 344–516 | ready |
-| Sn | `2018--Ko-W-S--Sn--LAMMPS--ipr1` (2NN MEAM) | Ko, Kim, Kwon, Lee, Metals 8, 900 (2018) | 1900 atoms | 404–606 | ready |
-| Bi | `2021--Zhou-H--Bi--LAMMPS--ipr1` (2NN MEAM) | Zhou, Dickel, Baskes, Mun, Asle Zaeem, MSMSE 29, 065008 (2021) | 1728 atoms | 436–654 | ready |
+| In | `2008--Do-E-C--In--LAMMPS--ipr1` (2NN MEAM) | Do, Shin, Lee, Calphad 32, 82 (2008) | 1408 atoms | 344–516 | **ran; potential failed its own test** (Tm 700–760 K, +63% to +77%) |
+| Sn | `2018--Ko-W-S--Sn--LAMMPS--ipr1` (2NN MEAM) | Ko, Kim, Kwon, Lee, Metals 8, 900 (2018) | 1900 atoms | 404–606 | **ran; potential failed its own test** (Tm 300–420 K, −17% or worse) |
+| Bi | `2021--Zhou-H--Bi--LAMMPS--ipr1` (2NN MEAM) | Zhou, Dickel, Baskes, Mun, Asle Zaeem, MSMSE 29, 065008 (2021) | 1728 atoms | 436–654 | **ran; passed** (Tm +7.7%, L +12.7%) |
 | Ga | `2009--Do-E-C--Ga-In--LAMMPS--ipr1` (Ga part of a Ga-In fit) | Do, Shin, Lee, J. Phys.: Condens. Matter 21, 325801 (2009) | – | – | **dropped: failed the alpha-Ga stability check** |
 
 Full citations, DOIs, NIST URLs, SHA-256 of every potential file and caveats: `metals/<El>/potential/SOURCES.md`

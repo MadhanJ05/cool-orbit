@@ -119,8 +119,11 @@ A = single agent + NVIDIA's recommended prompt; B = worker + checker pipeline; C
   59.9 vs 53.1 kJ/kg (+12.7%, within ±15%). Tin's melts at least 17% low, indium's 63–77% high, gallium's can't
   hold the crystal. So those three were **excluded automatically**: the system caught bad *checkers*, not just
   bad results. (We first suspected our own setup for indium; a control run with matched preparation showed the
-  potential itself is off.) Honest caveat: bismuth's potential was fitted to bismuth's melting point, so its pass
-  is partly built in. [S22]
+  potential itself is off.) [S22]
+- **Say the caveat before a judge does:** the one potential that passed, bismuth's, is the one whose authors report
+  it reproduces "the melting point of pure bismuth" [S15: Zhou et al. 2021]. Passing our gate is therefore expected,
+  and for Bi's *melting point* the classical check is not fully independent of the measurement it is compared with.
+  Its latent heat (+12.7%) is the less anchored test.
 - **Gallium fails both methods, and we say so:** MACE puts Ga's latent heat about 5x too low (15.2 ± 0.3 vs 80.2 kJ/kg
   measured [S11]; GB10 production run, 512 atoms [S20]), and the only LAMMPS-ready classical potential distorts
   alpha-Ga (cell off by −8.4%/+6.6%; next shell collapses toward the pair) [S15]. Ga appears on slide 4 only with **measured** data; we don't claim to simulate it.
@@ -132,7 +135,7 @@ trusted** (final call: Madhan):
 
 | Material | Trust level | What backs it | Numbers |
 |---|---|---|---|
-| Bi | **calibration** (can become *trusted*) | MACE vs measured [tier1.json] + the one classical check that passed its own test (MEAM: 586.7 K, 59.9 kJ/kg) [S22] | `[RESULT PENDING: MACE Bi melting point and latent heat]`; melts above the window, so it calibrates the method, not the shortlist |
+| Bi | **calibration** (can become *trusted*) | MACE vs measured [tier1.json] + the one classical check that passed its own test (MEAM: 586.7 K, 59.9 kJ/kg) [S22]; that potential was built to reproduce Bi's melting point (slide 8) | `[RESULT PENDING: MACE Bi melting point and latent heat]`; melts above the window, so it calibrates the method, not the shortlist |
 | In, Sn | **calibration, no independent check** | MACE vs measured only; their classical potentials failed their own test [S22] | `[RESULT PENDING]` |
 | Field's metal (Bi-In-Sn eutectic) | **method check against a measurement; flagged** | MACE alloy latent heat 25.3 ± 0.2 kJ/kg vs measured 27.1 [S21] and 25.4 (Manasijevic 2018) [S23]; the Fable adjudicator upheld the LLM referee's flag on the pure-metal-solid approximation [S24] | 25.3 kJ/kg (−6.6% / −0.3%) |
 | In-Bi alloy | **prediction** (no measured latent heat) | MACE only; labelled PREDICTION, ready for lab testing | `[RESULT PENDING]` |
@@ -221,9 +224,8 @@ Backup: a screen recording, in case the GB10 or network fails on stage.
 | S20 | MACE Ga latent heat 15.2 ± 0.3 kJ/kg vs 80.2 measured (production run, 512 atoms) | GB10 run, Madhan, 2026-10-31: `[RESULT FILE PATH PENDING: add once committed]` | reported by Madhan; **cite the committed result file before the slide** |
 | S21 | Field's metal latent heat 27.1 kJ/kg (27,115 J/kg), melting point 333.71 K | Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3 | via calibration set (tier1.json) |
 | S19 | Hook positive control: 3/3 melting crystals flagged `superheating_observed`, 0/4 two-phase boxes flagged; naive heating 1600 ± 100 K (quick settings) | `runs/melting/20261031T171151Z_Cu_heating_quick/result.json`, `runs/agent/e2e-cu-quick/.../20261031T170508Z_Cu_coexistence_quick/result.json`, `runs/hook_heating_cu_quick.log`; commit 2ebedd4 | counted from the result files; measured Cu Tm 1357.77 K from the calibration set |
-
 | S22 | Classical check: Bi MEAM 586.7 ± 17 K / 59.9 ± 0.2 kJ/kg vs 544.6 K / 53.1 kJ/kg; Sn melts between 300 and 420 K vs 505.1 K; In between 700 and 760 K vs 429.7 K; matched-preparation diagnostic; Bi potential fitted to Bi's melting point | `docs/results/classical-check.md` (all analysis files listed there, under `runs/classical/`); measured values from `data/calibration/tier1.json` (NIST SRM 2235; ITS-90; Assael 2012); fitting caveat from `data/nebius/README.md` citing Zhou et al., MSMSE 29, 065008 (2021) | GB10 CPU runs, 2026-10-31, analysed with `data/nebius/metals/analyze.py` |
 | S23 | Field's metal latent heat 25.4 ± 0.1 J/g (independent DSC, Bi 32.0 / In 51.2 / Sn 16.8 wt%) | Manasijevic et al., Materials Research 21(6), e20180501 (2018), doi:10.1590/1980-5373-MR-2018-0501, Table 4 | via calibration set (`alternates` of the BiInSn record) |
-| S24 | MACE Field's metal latent heat 25,334 ± 184 J/kg; rule audit pass, LLM referee fail, adjudicator (Claude Fable 5.1) upholds the fail | `boards/science-1` (result 7ed6f997; checks ada06981, 8af1ea18, 65e3e208), `runs/science-1.log`, `runs/science-1-llm-referee.log`, `runs/science-1-adjudicator.log` | read from the board and logs |
+| S24 | MACE Field's metal latent heat 25,334 ± 184 J/kg; rule audit pass, LLM referee fail, adjudicator (Claude Fable 5.1) upholds the fail | `boards/science-1` (result 7ed6f997; checks ada06981, 8af1ea18, 65e3e208), `runs/science-1.log`, `runs/science-1-llm-referee.log`, `runs/science-1-adjudicator.log` | read from the board and logs; committed in `bc8ba6d` (a snapshot: the science run keeps adding to the board) |
 
 Judge context (not for slides): Nikita Fedik is thanked in the NVIDIA blog's acknowledgments [S14].
