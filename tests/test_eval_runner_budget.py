@@ -9,6 +9,7 @@ import contextlib
 import io
 import json
 import re
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -18,7 +19,8 @@ from coolorbit.eval import runner as runner_mod
 from coolorbit.eval.runner import (ArmRunner, Budget, ClaudeCodeExecutor, SessionResult, _usage_fields,
                                    price_session, role_settings)
 from coolorbit.eval.tasks import TaskSet, load_tasks
-from tests.test_eval_runner import naive_answer, post
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for eval_runner_helpers (see its docstring)
+from eval_runner_helpers import naive_answer, post  # noqa: E402
 
 
 class SpendingExecutor:

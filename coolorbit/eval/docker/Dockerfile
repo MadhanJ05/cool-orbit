@@ -20,8 +20,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HOME=/tmp/home \
     DISABLE_AUTOUPDATER=1
 
+# build-essential: MACE's torch.compile/Inductor kernels need a C compiler (GB10 build: "InductorError: Failed to
+# find C compiler").
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates curl git nodejs npm \
+ && apt-get install -y --no-install-recommends build-essential ca-certificates curl git nodejs npm \
  && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" && npm cache clean --force

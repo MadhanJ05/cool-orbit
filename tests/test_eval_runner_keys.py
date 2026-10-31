@@ -19,7 +19,8 @@ from coolorbit import llm_keys
 from coolorbit.eval.metrics import score_repeat
 from coolorbit.eval.runner import ArmRunner, Budget, ClaudeCodeExecutor, SessionResult, prepare_sandbox
 from coolorbit.eval.tasks import TaskSet, load_tasks
-from tests.test_eval_runner import RULES, naive_answer, post, request_id
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for eval_runner_helpers (see its docstring)
+from eval_runner_helpers import RULES, naive_answer, post, request_id  # noqa: E402
 
 OUT_OF_CREDIT = '{"type": "result", "is_error": true, "result": "Credit balance is too low"}\n'
 PRIMARY_KEY, BACKUP_KEY = "sk-SYNTHETIC-primary", "sk-SYNTHETIC-backup"
