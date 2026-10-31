@@ -1,0 +1,36 @@
+Warp 1.18.0 initialized:
+   CUDA Toolkit 13.4, Driver 13.0
+   Devices:
+     "cpu"      : "aarch64"
+     "cuda:0"   : "NVIDIA GB10" (122 GiB, sm_121, mempool enabled)
+   Kernel cache:
+     /home/dell/.cache/warp/1.18.0
+coexistence: 512 atoms x 4 system(s); ~5 min at the measured GB10 rate. Flags: none
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Failed to get GPU information from pynvml: Not Supported. Using default values for NVIDIA GB10.
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+GPU information: NVIDIA GB10, 12, 1, 128, 48, 140, 1700
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Preparing two-phase box: 512 atoms, T_prep=1350 K, T_melt=2160 K
+  [prep_solid_npt] 500 steps x 512 atoms in 36 s
+  [prep_melt_nvt] 1500 steps x 512 atoms in 59 s
+  [prep_quench_nvt] 500 steps x 512 atoms in 24 s
+  liquid half: 50% of atoms moved > 1.5 A; crystal half: 0%
+  [production_npt] 2500 steps x 2048 atoms in 248 s
+  T= 1200.0 K (measured  1209.8): dPE = -0.0517 eV/atom -> freezing
+  T= 1300.0 K (measured  1299.5): dPE = +0.0022 eV/atom -> melting
+  T= 1400.0 K (measured  1390.3): dPE = +0.0288 eV/atom -> melting
+  T= 1500.0 K (measured  1501.0): dPE = +0.0318 eV/atom -> melting
+
+RESULT (ok): melting_point = 1295.9 +/- 50.0 K
+Flags: ['quick_settings_not_production']   Wall time: 6.1 min   Output: runs/melting/20261031T155938Z_Cu_coexistence_quick

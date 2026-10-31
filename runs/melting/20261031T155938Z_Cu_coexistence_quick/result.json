@@ -1,0 +1,50 @@
+{
+  "mode": "coexistence",
+  "prep": {
+    "frozen_half_moved_fraction": 0.0,
+    "melted_half_moved_fraction": 0.49802374839782715
+  },
+  "per_temperature": [
+    {
+      "T_target_K": 1200.0,
+      "T_measured_K": 1209.8,
+      "delta_pe_eV_per_atom": -0.05165538191795349,
+      "block_noise_eV_per_atom": 0.008052155905768387,
+      "verdict": "freezing"
+    },
+    {
+      "T_target_K": 1300.0,
+      "T_measured_K": 1299.5,
+      "delta_pe_eV_per_atom": 0.0022149980068206787,
+      "block_noise_eV_per_atom": 0.0029320291853283486,
+      "verdict": "melting"
+    },
+    {
+      "T_target_K": 1400.0,
+      "T_measured_K": 1390.3,
+      "delta_pe_eV_per_atom": 0.028805136680603027,
+      "block_noise_eV_per_atom": 0.0031961922737834005,
+      "verdict": "melting"
+    },
+    {
+      "T_target_K": 1500.0,
+      "T_measured_K": 1501.0,
+      "delta_pe_eV_per_atom": 0.03180810809135437,
+      "block_noise_eV_per_atom": 0.004087011805025326,
+      "verdict": "melting"
+    }
+  ],
+  "status": "ok",
+  "value": 1295.9,
+  "uncertainty": 50.0,
+  "units": "K",
+  "property": "melting_point",
+  "bracket_K": [
+    1200.0,
+    1300.0
+  ],
+  "wall_s": 366.5,
+  "flags": [
+    "quick_settings_not_production"
+  ]
+}
