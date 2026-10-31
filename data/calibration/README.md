@@ -57,18 +57,26 @@ review tables ("as compiled in") > handbook values quoted by PubChem/HSDB (marke
 | Sugar alcohols | Barone 1990 (via NIST, TRC uncertainty) | Barone 1990 | conductivity literature disagrees widely (xylitol solid 0.373 vs 1.3 W/m/K) |
 | Plastic crystals (NPG, pentaerythritol) | Zhang 1988 / Barone 1990 | solid-solid and fusion stored separately | solid-solid transition carries most of the heat |
 | Salt hydrates | Lorsch 1975, De Paola 2017, Guion 1983 DSC, Xie 2017 | same | primary papers cited "as compiled in" Hirschey 2018 / Xie 2017 |
-| Metals | ITS-90 (Cu), JANAF (Al), NIST (Ga), Assael 2012 (In), Zamora 2021 (Field's metal) | JANAF H-H(Tr) jump; Archer 2003 for In | conductivity from Ho, Powell & Liley 1972 (OCR of a scan) |
+| Metals | ITS-90 (Cu, Sn), JANAF (Al), NIST (Ga), Assael 2012 (In), NIST SRM 2235 (Bi) | JANAF H-H(Tr) jump (Cu, Al, Ga); Archer 2003 (In); NIST SRM 2220 (Sn) and SRM 2235 (Bi) certificates | conductivity from Ho, Powell & Liley 1972 (scanned tables) |
+| Low-melting alloys (`BiInSn` = Field's metal, `BiSn`, `InBi`, `InSn`, `GaIn` = EGaIn, `GaInSn` = Galinstan; compositions in wt% in `formula`) | DSC (Zamora 2021) for Field's metal; otherwise datasheet, vendor or review-table values, labelled in `source`/`note` | **measured only for Field's metal** (two DSC papers, ~6.5% apart); all others `null` = prediction targets | Pan 2016 compiled values are not used: it is a prediction paper and measured-vs-predicted could not be checked |
 
 ## Known gaps and weak spots (reported, not hidden)
 
 - **Conductivity null** for all paraffins and fatty acids, D-mannitol, pentaerythritol,
-  Na2SO4.10H2O, Na2HPO4.12H2O, sodium acetate trihydrate, Mg(NO3)2.6H2O and Field's metal.
+  Na2SO4.10H2O, Na2HPO4.12H2O, sodium acetate trihydrate, Mg(NO3)2.6H2O, Field's metal and In-Bi.
 - **Density null** where the only value was measured at the melting point (phase ambiguous):
   myristic and palmitic acid; and for Cu, Al, Field's metal. (n-octadecane and n-eicosane solid densities
   come from Hirschey 2018 Table 3, citing Shlosinger & Bentilla 1965; temperature not stated.)
 - **Low confidence:** Mg(NO3)2.6H2O (single secondary compilation; primary paper Sadovska 2015 could
   not be opened). Sodium acetate trihydrate latent heat has a wide spread (226-289 kJ/kg); the DSC
   value used is the top of the range. CaCl2.6H2O melting point spans 25.2-30 C.
+- **Alloys:** latent heat is null for `BiSn`, `InBi`, `InSn`, `GaIn`, `GaInSn` (no opened peer-reviewed
+  measurement; datasheet or possibly-predicted compiled values are kept in the note). `GaInSn` (Galinstan)
+  melting point is null because sources conflict (data-sheet -19 C vs DSC melting around 10-11 C with heavy
+  supercooling): chemistry lead to decide. `InBi`/`InSn` melting points are approximate vendor values
+  (~72 C, ~118 C); `BiSn` is a datasheet value (138 C; CALPHAD 138.8 C in alternates). Paywalled primaries
+  worth fetching through a library: Manasijevic 2019 (In-Bi, doi:10.1007/s10973-018-7679-8), Manasijevic
+  2020 (Bi-Sn, doi:10.3139/120.111470), Koh 2019 (Galinstan DSC, doi:10.1016/j.mtla.2019.100512).
 - **Secondary citations:** densities via PubChem/HSDB (CRC, Merck Index) were not checked in the
   original handbook. Salt-hydrate primary papers were not opened; the reviews quoting them were.
 - **Uncertainty null** where the source states none (most latent heats). Literature spread is in
