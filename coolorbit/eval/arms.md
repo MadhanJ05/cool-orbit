@@ -41,9 +41,14 @@ boards/eval/<run_id>/<arm>-r<repeat>/             arm C: one board per repeat ho
 - Score a repeat with `python -m coolorbit.eval.metrics --repeat boards/eval/<run>/<arm>-r<k>` (a board or a
   folder of per-task boards).
 - These are evidence boards: commit them after the run (only `boards/dev-*` is gitignored).
-- **Not a security sandbox:** sessions run as the same user with permissions bypassed (headless). Run them
-  where that is acceptable (the GB10 session decides), and check `run_record.json` `contamination` (transcript
-  mentions of `tasks.json`, the eval code, `CLAUDE.md`, ...) before trusting a run.
+- **Sandbox (required for real runs):** `--sandbox docker` (default). Build the image once with
+  `python -m coolorbit.eval.sandbox build` (python 3.12, nvalchemi-toolkit[cu13,mace,ase]==0.2.0, plotext<6, the
+  ALCHEMI skills, Claude Code, and a self-contained board tool; built from a staged context, so `tasks.json`,
+  `CLAUDE.md` and `.env` are never in it). Each session's container mounts only its work dir (`/work`) and its
+  task board's `artifacts/` (`/board/artifacts`), gets only `ANTHROPIC_API_KEY`, `--gpus all`, runs as your
+  uid with all capabilities dropped, and is `docker kill`ed at the wall-clock limit. No home dir, `~/.ssh`,
+  `~/.config/gh`, `~/.brev`, repo or `.env`. `--sandbox none` additionally needs `--allow-unsandboxed` and is for
+  laptop development only. `run_record.json` still records a transcript contamination scan.
 
 ## 3. Recording contract (all arms)
 

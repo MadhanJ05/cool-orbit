@@ -46,7 +46,7 @@ class FakeExecutor:
     def __init__(self, behavior: dict, transcript_text: str = '{"type": "result"}\n') -> None:
         self.behavior, self.calls, self.transcript_text = behavior, [], transcript_text
 
-    def run(self, prompt, *, cwd, budget, transcript_path):
+    def run(self, prompt, *, cwd, budget, transcript_path, board_root):
         role, attempt = cwd.name.rsplit("-", 1)
         self.calls.append((cwd.parent.name, role, int(attempt)))
         self.behavior[role](cwd, prompt, int(attempt))
@@ -256,7 +256,7 @@ class ClaudeExecutorTest(Base):
         fake = self.fake_claude(f"print(json.dumps({{'type': 'system'}}))\nprint(json.dumps({result!r}))\n")
         sb = prepare_sandbox(self.tmp / "sb", self.tmp / "b", "single_agent", None)
         res = ClaudeCodeExecutor(str(fake)).run("PROMPT TEXT", cwd=sb, budget=Budget(1.5, 30, "some-model"),
-                                                transcript_path=self.tmp / "t.jsonl")
+                                                transcript_path=self.tmp / "t.jsonl", board_root=self.tmp / "b")
         args = json.loads((self.tmp / "args.json").read_text())
         self.assertEqual(args[:2], ["-p", "PROMPT TEXT"])
         for flag in ("--max-budget-usd", "--setting-sources", "--output-format", "--model", "--no-session-persistence"):
@@ -270,14 +270,14 @@ class ClaudeExecutorTest(Base):
     def test_timeout_is_recorded_not_fatal(self) -> None:
         fake = self.fake_claude("time.sleep(30)\n")
         sb = prepare_sandbox(self.tmp / "sb", self.tmp / "b", "single_agent", None)
-        res = ClaudeCodeExecutor(str(fake)).run("p", cwd=sb, budget=Budget(1, 1), transcript_path=self.tmp / "t.jsonl")
+        res = ClaudeCodeExecutor(str(fake)).run("p", cwd=sb, budget=Budget(1, 1), transcript_path=self.tmp / "t.jsonl", board_root=self.tmp / "b")
         self.assertTrue(res.timed_out)
         self.assertIsNone(res.input_tokens)
         self.assertIn("wall-clock", res.error)
 
     def test_missing_binary_is_an_error_not_a_crash(self) -> None:
         sb = prepare_sandbox(self.tmp / "sb", self.tmp / "b", "single_agent", None)
-        res = ClaudeCodeExecutor(str(self.tmp / "nope")).run("p", cwd=sb, budget=BUDGET, transcript_path=self.tmp / "t.jsonl")
+        res = ClaudeCodeExecutor(str(self.tmp / "nope")).run("p", cwd=sb, budget=BUDGET, transcript_path=self.tmp / "t.jsonl", board_root=self.tmp / "b")
         self.assertIn("could not start", res.error)
 
 

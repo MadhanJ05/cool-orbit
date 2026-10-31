@@ -19,10 +19,12 @@ Limits per session: ``--max-budget-usd`` (Claude Code stops itself) and a wall-c
 (the runner kills it). A task is complete once ``run_record.json`` exists; reruns skip complete
 tasks and refuse to touch an incomplete board (delete it yourself if you want to redo it).
 
-**Not a security sandbox.** The agent runs as the same OS user and could read the repo,
-including ``tasks.json`` (references and trap labels). The runner scans every transcript for
-such paths and records hits in ``run_record.json`` (``contamination``); use a container or
-separate user for stronger isolation.
+**Sandbox.** Real runs use ``--sandbox docker`` (the default; see ``coolorbit/eval/sandbox.py``):
+each session is a container that sees only its work dir and its task board's ``artifacts/``, gets
+only ``ANTHROPIC_API_KEY``, and the GPU. No home dir, ssh/gh/brev credentials, repo or ``.env``.
+``--sandbox none --allow-unsandboxed`` runs sessions as you, with all of that in reach: laptop
+development only. Either way the runner scans every transcript for paths such as ``tasks.json``
+and records hits in ``run_record.json`` (``contamination``).
 """
 
 from __future__ import annotations
@@ -45,6 +47,7 @@ from coolorbit.board import Board
 from coolorbit.board._scienceclaw import REPO_ROOT
 from coolorbit.board.schema import NEGATIVE_VERDICTS
 from coolorbit.eval.metrics import COSTS_FILE
+from coolorbit.eval.sandbox import DEFAULT_TAG, DockerSandbox, board_wrapper, container_name
 from coolorbit.eval.tasks import Task, TaskSet, load_tasks, seed_board, task_requests
 
 PROMPTS_DIR = Path(__file__).with_name("prompts")
@@ -98,7 +101,8 @@ class SessionResult:
 
 
 class Executor(Protocol):
-    def run(self, prompt: str, *, cwd: Path, budget: Budget, transcript_path: Path) -> SessionResult: ...
+    def run(self, prompt: str, *, cwd: Path, budget: Budget, transcript_path: Path,
+            board_root: Path) -> SessionResult: ...
 
 
 def _parse_stream(text: str) -> dict:
@@ -138,9 +142,11 @@ def _usage_fields(final: dict) -> dict:
 class ClaudeCodeExecutor:
     """Runs one headless Claude Code session: ``claude -p <prompt>`` in the sandbox."""
 
-    def __init__(self, claude_bin: str = "claude", extra_args: tuple[str, ...] = ()) -> None:
-        self.claude_bin = claude_bin
+    def __init__(self, claude_bin: str = "claude", extra_args: tuple[str, ...] = (),
+                 sandbox: Optional[DockerSandbox] = None) -> None:
+        self.claude_bin = "claude" if sandbox else claude_bin  # inside the image it's on PATH
         self.extra_args = tuple(extra_args)
+        self.sandbox = sandbox
 
     def command(self, prompt: str, budget: Budget) -> list[str]:
         cmd = [self.claude_bin, "-p", prompt, "--output-format", "stream-json", "--verbose",
@@ -152,17 +158,29 @@ class ClaudeCodeExecutor:
             cmd += ["--model", budget.model]
         return cmd + list(self.extra_args)
 
-    def run(self, prompt: str, *, cwd: Path, budget: Budget, transcript_path: Path) -> SessionResult:
+    def full_command(self, prompt: str, budget: Budget, *, cwd: Path, board_root: Path,
+                     name: str) -> list[str]:
+        inner = self.command(prompt, budget)
+        if self.sandbox is None:
+            return inner
+        return self.sandbox.run_command(inner, work_dir=cwd, board_root=board_root, name=name)
+
+    def run(self, prompt: str, *, cwd: Path, budget: Budget, transcript_path: Path,
+            board_root: Path) -> SessionResult:
         transcript_path.parent.mkdir(parents=True, exist_ok=True)
+        name = container_name(Path(board_root).name, Path(cwd).name)
+        cmd = self.full_command(prompt, budget, cwd=cwd, board_root=board_root, name=name)
         start = time.monotonic()
         timed_out, code, error = False, None, None
         with open(transcript_path, "w", encoding="utf-8") as log:
             try:
-                proc = subprocess.run(self.command(prompt, budget), cwd=cwd, stdout=log, stderr=subprocess.STDOUT,
+                proc = subprocess.run(cmd, cwd=cwd, stdout=log, stderr=subprocess.STDOUT,
                                       stdin=subprocess.DEVNULL, timeout=budget.timeout_s, env=os.environ.copy())
                 code = proc.returncode
             except subprocess.TimeoutExpired:
                 timed_out, error = True, f"killed after {budget.timeout_s:g} s wall-clock limit"
+                if self.sandbox is not None:
+                    self.sandbox.kill(name)  # the client dying does not stop the container
             except OSError as exc:
                 error = f"could not start {self.claude_bin}: {exc}"
         wall = time.monotonic() - start
@@ -177,7 +195,8 @@ class ClaudeCodeExecutor:
 # ------------------------------------------------------------------ sandbox + prompts
 
 def prepare_sandbox(work_dir: Path, board_root: Path, agent: str, skills_dir: Optional[Path] = DEFAULT_SKILLS,
-                    python: str = sys.executable) -> Path:
+                    python: str = sys.executable, docker: bool = False) -> Path:
+    """Fresh work dir with a ./board wrapper. ``docker=True``: container paths, skills come from the image."""
     try:
         Path(work_dir).resolve().relative_to(REPO_ROOT)
         inside = True
@@ -188,9 +207,13 @@ def prepare_sandbox(work_dir: Path, board_root: Path, agent: str, skills_dir: Op
     if work_dir.exists():
         raise FileExistsError(f"sandbox {work_dir} already exists; use a fresh --work-root or delete it yourself")
     work_dir.mkdir(parents=True)
+    wrapper = work_dir / "board"
+    if docker:
+        wrapper.write_text(board_wrapper(agent), encoding="utf-8")
+        wrapper.chmod(wrapper.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        return work_dir
     if skills_dir and Path(skills_dir).is_dir():
         shutil.copytree(skills_dir, work_dir / ".claude" / "skills")
-    wrapper = work_dir / "board"
     wrapper.write_text(
         "#!/bin/sh\n"
         f"COOLORBIT_BOARD='{board_root.resolve()}' COOLORBIT_AGENT='{agent}' PYTHONPATH='{REPO_ROOT}' "
@@ -240,7 +263,8 @@ def _log_cost(board_root: Path, task_id: str, agent: str, res: SessionResult) ->
 class ArmRunner:
     def __init__(self, arm: str, run_id: str, repeat: int, executor: Executor, budget: Budget, *,
                  boards_root: Path = DEFAULT_BOARDS_ROOT, work_root: Path = DEFAULT_WORK_ROOT,
-                 skills_dir: Optional[Path] = DEFAULT_SKILLS, log: Callable[[str], None] = print) -> None:
+                 skills_dir: Optional[Path] = DEFAULT_SKILLS, log: Callable[[str], None] = print,
+                 docker: bool = False) -> None:
         if arm not in ("A", "B"):
             raise ValueError("only arms A and B have runners; arm C is the collective itself")
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", run_id):
@@ -249,19 +273,21 @@ class ArmRunner:
         self.executor, self.budget = executor, budget
         self.repeat_dir = Path(boards_root) / run_id / f"{arm}-r{repeat}"
         self.work_dir = Path(work_root) / run_id / f"{arm}-r{repeat}"
-        self.skills_dir, self.log = skills_dir, log
+        self.skills_dir, self.log, self.docker = skills_dir, log, docker
 
     # one session ------------------------------------------------------------------
     def _session(self, task: Task, board_root: Path, role: str, agent: str, prompt_file: str,
                  attempt: int, addendum: str = "", **fields: str) -> tuple[SessionResult, SessionRecord]:
-        sandbox = prepare_sandbox(self.work_dir / task.id / f"{role}-{attempt}", board_root, agent, self.skills_dir)
+        sandbox = prepare_sandbox(self.work_dir / task.id / f"{role}-{attempt}", board_root, agent, self.skills_dir,
+                                  docker=self.docker)
         prompt = render_prompt(prompt_file, task_prompt=task.prompt, board_path="./board (this task's board)", **fields)
         if addendum:
             prompt += "\n" + addendum.strip() + "\n"
         (sandbox / "PROMPT.md").write_text(prompt, encoding="utf-8")  # evidence of exactly what it was told
         transcript = board_root / "transcripts" / f"{role}-{attempt}.jsonl"
         self.log(f"  [{task.id}] {role} attempt {attempt}: running in {sandbox}")
-        res = self.executor.run(prompt, cwd=sandbox, budget=self.budget, transcript_path=transcript)
+        res = self.executor.run(prompt, cwd=sandbox, budget=self.budget, transcript_path=transcript,
+                                board_root=board_root)
         _log_cost(board_root, task.id, agent, res)
         hits = contamination(res.transcript)
         if hits:
@@ -328,13 +354,17 @@ class ArmRunner:
 
         record = {"run": self.run_id, "arm": self.arm, "repeat": self.repeat, "task_id": task.id,
                   "task_request_id": req_id, "started": started, "finished": datetime.now(timezone.utc).isoformat(),
-                  "budget": asdict(self.budget), "sessions": [asdict(s) for s in sessions],
+                  "budget": asdict(self.budget), "sandbox": "docker" if self.docker else "none",
+                  "sessions": [asdict(s) for s in sessions],
                   "contamination": sorted({h for s in sessions for h in s.contamination})}
         record_path.write_text(json.dumps(record, indent=1), encoding="utf-8")
         return record
 
     def run(self, task_set: TaskSet, task_ids: Optional[list[str]] = None) -> list[dict]:
         tasks = task_set.tasks if not task_ids else [task_set.by_id()[t] for t in task_ids]
+        sandbox = getattr(self.executor, "sandbox", None)
+        if sandbox is not None:
+            sandbox.preflight()
         self.log(f"arm {self.arm}, run {self.run_id}, repeat {self.repeat}: {len(tasks)} task(s) -> {self.repeat_dir}")
         return [self.run_task(t) for t in tasks]
 
@@ -353,23 +383,42 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--boards-root", default=str(DEFAULT_BOARDS_ROOT))
     ap.add_argument("--work-root", default=str(DEFAULT_WORK_ROOT), help="sandboxes; must be outside the repo")
     ap.add_argument("--skills", default=str(DEFAULT_SKILLS), help="ALCHEMI skills copied into each sandbox")
-    ap.add_argument("--claude-bin", default="claude")
+    ap.add_argument("--claude-bin", default="claude", help="only for --sandbox none")
+    ap.add_argument("--sandbox", choices=["docker", "none"], default="docker",
+                    help="docker (default, required for real runs) or none (laptop development only)")
+    ap.add_argument("--allow-unsandboxed", action="store_true",
+                    help="required with --sandbox none: sessions then run as you, with your credentials in reach")
+    ap.add_argument("--image", default=DEFAULT_TAG, help="sandbox image tag")
+    ap.add_argument("--no-gpus", action="store_true", help="omit --gpus all (laptop plumbing tests only)")
+    ap.add_argument("--memory", help="container memory limit, e.g. 64g")
     ap.add_argument("--tasks-file", help="task set JSON (default: coolorbit/eval/tasks.json)")
     ap.add_argument("--dry-run", action="store_true", help="print the plan and the first prompt; run nothing")
     args = ap.parse_args(argv)
 
+    if args.sandbox == "none" and not args.allow_unsandboxed:
+        ap.error("--sandbox none lets the agent reach your credentials (gh, brev, .env, ssh); "
+                 "add --allow-unsandboxed only for laptop development")
     task_set = load_tasks(args.tasks_file)
     if not task_set.frozen:
         print("WARNING: the task set is not frozen (not pre-registered). Fine for smoke tests, not for the comparison.")
     budget = Budget(usd=args.budget_usd, timeout_s=args.timeout_min * 60, model=args.model)
-    executor = ClaudeCodeExecutor(args.claude_bin)
+    docker = args.sandbox == "docker"
+    sandbox = DockerSandbox(args.image, gpus=not args.no_gpus, memory=args.memory) if docker else None
+    executor = ClaudeCodeExecutor(args.claude_bin, sandbox=sandbox)
     runner = ArmRunner(args.arm, args.run, args.repeat, executor, budget, boards_root=Path(args.boards_root),
-                       work_root=Path(args.work_root), skills_dir=Path(args.skills) if args.skills else None)
+                       work_root=Path(args.work_root), skills_dir=Path(args.skills) if args.skills else None,
+                       docker=docker)
     if args.dry_run:
         tasks = task_set.tasks if not args.task else [task_set.by_id()[t] for t in args.task]
         prompt_file = "arm_a_single_agent.md" if args.arm == "A" else "arm_b_worker.md"
         print(f"would run {len(tasks)} task(s) into {runner.repeat_dir}, sandboxes under {runner.work_dir}")
-        print("command:", " ".join(executor.command("<prompt>", budget)))
+        print("sandbox:", f"docker image {args.image}" + ("" if sandbox and sandbox.gpus else " (no GPU)")
+              if docker else "NONE (unsandboxed)")
+        cmd = executor.command("<prompt>", budget)
+        if sandbox:
+            cmd = sandbox.run_command(cmd, work_dir=runner.work_dir / "<task>" / "<role>-<n>",
+                                      board_root=runner.repeat_dir / "<task>", name="coolorbit-<...>")
+        print("command:", " ".join(cmd))
         print("\n--- first prompt ---\n" + render_prompt(prompt_file, task_prompt=tasks[0].prompt,
               board_path="./board (this task's board)", task_request_id="<request id>"))
         return
