@@ -332,17 +332,23 @@ class WorkerDispatcher:
 
 
 def claude_code_session_fn(board_root: Path, task: Task, *, work_dir: Path, model: str, effort: Optional[str],
-                           sandbox: str, image: Optional[str], gpus: bool) -> SessionFn:
-    """Real worker sessions through Teammate 2's sandbox + Claude Code executor (coolorbit/eval/runner.py), priced
-    and checked for key exhaustion exactly like arms A/B (price_session, exhaustion_text)."""
+                           sandbox: str, image: Optional[str], gpus: bool, warmup: bool = True,
+                           warmup_timeout_s: float = 900.0, ro_mounts: tuple = (), docker: str = "docker",
+                           env_provider: Optional[Callable[[], dict]] = None) -> SessionFn:
+    """Real worker sessions through Teammate 2's sandbox + Claude Code executor (coolorbit/eval/runner.py), exactly
+    as arms A/B run them: same pricing (price_session), key-exhaustion check (exhaustion_text), in-container MACE
+    warm-up outside the agent's limits, read-only mounts, and board integrity check around every session."""
+    from coolorbit.eval import integrity
     from coolorbit.eval.runner import (Budget, ClaudeCodeExecutor, calibration_path_for, contamination,
                                        exhaustion_text, prepare_sandbox, price_session)
     from coolorbit.eval.sandbox import DEFAULT_TAG, DockerSandbox
 
-    box = DockerSandbox(image or DEFAULT_TAG, gpus=gpus) if sandbox == "docker" else None
+    box = (DockerSandbox(image or DEFAULT_TAG, gpus=gpus, docker=docker, warmup=warmup,
+                         warmup_timeout_s=warmup_timeout_s, ro_mounts=ro_mounts) if sandbox == "docker" else None)
     if box is not None:
         box.preflight()
-    executor = ClaudeCodeExecutor(sandbox=box)  # passes the active shared key (llm_keys.subprocess_env)
+    # Default env: llm_keys.subprocess_env (the active shared key as ANTHROPIC_API_KEY, passed by name to docker).
+    executor = ClaudeCodeExecutor(sandbox=box, env_provider=env_provider)
 
     def run_session(prompt: str, attempt: int, usd: float, timeout_s: float) -> dict:
         work = Path(work_dir) / f"worker-{attempt}"
@@ -351,8 +357,12 @@ def claude_code_session_fn(board_root: Path, task: Task, *, work_dir: Path, mode
         (work / "PROMPT.md").write_text(prompt, encoding="utf-8")  # evidence of exactly what it was told
         rel = Path("transcripts") / f"worker-{attempt}.jsonl"
         key_name = llm_keys.active_key_name()
+        before = integrity.snapshot(board_root / "artifacts")  # nothing else posts while the session runs
         res = executor.run(prompt, cwd=work, budget=Budget(usd=usd, timeout_s=timeout_s, model=model, effort=effort),
                            transcript_path=board_root / rel, board_root=board_root)
+        violations = integrity.check(before, board_root / "artifacts", WORKER)
+        if violations:
+            integrity.save_evidence(before, board_root, f"worker-{attempt}", violations)
         res.key_name = key_name
         price_session(res, model, cap_usd=usd)  # charged = Claude Code's total_cost_usd, or the cap if no report
         infra = llm_keys.is_credit_exhausted(exhaustion_text(res))
@@ -369,7 +379,8 @@ def claude_code_session_fn(board_root: Path, task: Task, *, work_dir: Path, mode
         data = asdict(res) if is_dataclass(res) else dict(res)
         data.pop("transcript", None)
         return {"role": "worker", "agent": WORKER, "attempt": attempt, "sandbox": sandbox, "transcript": str(rel),
-                "result": data, "contamination": contamination(res.transcript), "infra_failure": infra}
+                "result": data, "contamination": contamination(res.transcript), "integrity": violations,
+                "infra_failure": infra}
 
     return run_session
 
@@ -456,6 +467,8 @@ def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd
               "budget": {"usd": budget_usd, "timeout_s": timeout_min * 60, "model": model, "worker_usd": worker_usd},
               "sandbox": sandbox, "sessions": sessions,
               "contamination": sorted({c for s in sessions for c in s.get("contamination", [])}),
+              "integrity_violations": [f"worker-{s.get('attempt')}: {v}" for s in sessions for v in s.get("integrity", [])],
+              "warmup": [(s.get("result") or {}).get("warmup") for s in sessions],
               "infra_failure": any(s.get("infra_failure") for s in sessions),
               "agents": [getattr(a, "name", type(a).__name__) for a in agents], "rounds": rounds,
               "stopped": stopped, "agent_errors": errors, "gpu_jobs": gpu_jobs,
@@ -516,6 +529,10 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--work-root", default=str(DEFAULT_WORK_ROOT))
     ap.add_argument("--image", help="sandbox image tag (default: the runner's)")
     ap.add_argument("--no-gpus", action="store_true")
+    ap.add_argument("--no-warmup", action="store_true", help="skip the in-container MACE warm-up (as arms A/B)")
+    ap.add_argument("--warmup-timeout-min", type=float, default=15.0, help="warm-up limit (not the agent's time)")
+    ap.add_argument("--ro-mount", action="append", default=[], metavar="HOST:CONTAINER",
+                    help="extra read-only mount, same as arms A/B (e.g. a MACE weights cache)")
     ap.add_argument("--sandbox", choices=["docker", "none"], default="docker")
     ap.add_argument("--allow-unsandboxed", action="store_true")
     ap.add_argument("--allow-known-contamination", action="store_true", help="development only: not a valid run")
@@ -551,7 +568,10 @@ def main(argv: Optional[list[str]] = None) -> None:
 
             def factory(root: Path, t: Task = t, work: Path = work) -> SessionFn:
                 return claude_code_session_fn(root, t, work_dir=work, model=args.model, effort=args.effort,
-                                              sandbox=args.sandbox, image=args.image, gpus=not args.no_gpus)
+                                              sandbox=args.sandbox, image=args.image, gpus=not args.no_gpus,
+                                              warmup=not args.no_warmup,
+                                              warmup_timeout_s=args.warmup_timeout_min * 60,
+                                              ro_mounts=tuple(tuple(m.split(":", 1)) for m in args.ro_mount))
             try:
                 rec = run_task(t, run=args.run, repeat=args.repeat, boards_root=Path(args.boards_root),
                                budget_usd=args.budget_usd, timeout_min=args.timeout_min, preset=args.preset,

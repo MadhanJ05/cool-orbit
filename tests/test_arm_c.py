@@ -6,11 +6,13 @@ import importlib.util
 import json
 import os
 import re
+import sys
 import tempfile
 import time
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 from coolorbit import llm_roles
 from coolorbit.board import Board
@@ -222,6 +224,36 @@ class PiecesTest(unittest.TestCase):
 
     def test_merged_agents_pass_the_fairness_gate(self) -> None:
         self.assertEqual(arm_c.known_contamination(), [])
+
+
+class WorkerSessionPathTest(unittest.TestCase):
+    """claude_code_session_fn end to end with a FAKE docker binary: no container, no Claude Code, no spend."""
+
+    def test_session_is_run_like_arms_a_b(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            argv_file, docker = tmp / "argv.json", tmp / "docker"
+            docker.write_text(
+                f"#!{sys.executable}\nimport json, sys\n"
+                "if sys.argv[1:3] == ['image', 'inspect']: sys.exit(0)\n"
+                "if sys.argv[1] == 'kill': sys.exit(0)\n"
+                f"open({str(argv_file)!r}, 'w').write(json.dumps(sys.argv))\n"
+                "print('COOLORBIT_WARMUP ' + json.dumps({'ok': True, 'seconds': 0.1}), flush=True)\n"
+                "print(json.dumps({'type': 'result', 'is_error': False, 'total_cost_usd': 0.12, 'num_turns': 3}))\n")
+            docker.chmod(0o755)
+            board_root = Board(tmp / "board").root
+            with mock.patch.object(arm_c.llm_keys, "active_key_name", return_value="ANTHROPIC_API_KEY_PRIMARY"):
+                fn = arm_c.claude_code_session_fn(board_root, LI_LIQUID, work_dir=tmp / "work", model="claude-opus-5-5",
+                                                  effort="high", sandbox="docker", image="img", gpus=False,
+                                                  docker=str(docker), env_provider=lambda: dict(os.environ))
+                rec = fn(f"use {arm_c.CAL_TOKEN}", 1, 0.5, 60)
+            argv = json.loads(argv_file.read_text())
+            self.assertEqual(argv[argv.index("--effort") + 1], "high")           # same effort as arms A/B
+            self.assertTrue(any("warmup.py" in a for a in argv))                  # same warm-up as arms A/B
+            self.assertIn("/data/calibration/tier1.json", (tmp / "work" / "worker-1" / "PROMPT.md").read_text())
+            self.assertEqual((rec["integrity"], rec["result"]["warmup"]), ([], {"ok": True, "seconds": 0.1}))
+            row = json.loads((board_root / "costs.jsonl").read_text().splitlines()[-1])
+            self.assertEqual((row["agent"], row["usd"], row["usd_source"]), ("worker_cc", 0.12, "reported"))
 
 
 if __name__ == "__main__":
