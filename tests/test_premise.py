@@ -44,21 +44,24 @@ CONTROLS = {
 
 
 class FakeClient:
-    """Mimics client.beta.messages.create; records calls."""
+    """Mimics premise.roles_llm(role, **request) -> (response, cost_usd); records calls.
+    ``replies`` may be a dict per role (e.g. premise_checker uncertain, adjudicator decides)."""
 
-    def __init__(self, reply=None, stop_reason="end_turn", exc=None):
+    def __init__(self, reply=None, stop_reason="end_turn", exc=None, replies=None):
         self.calls = []
-        self.reply, self.stop_reason, self.exc = reply, stop_reason, exc
-        self.beta = SimpleNamespace(messages=SimpleNamespace(create=self._create))
+        self.reply, self.stop_reason, self.exc, self.replies = reply, stop_reason, exc, replies or {}
 
-    def _create(self, **kw):
-        self.calls.append(kw)
+    def __call__(self, role, **request):
+        self.calls.append({"role": role, **request})
         if self.exc:
             raise self.exc
-        text = self.reply if isinstance(self.reply, str) else json.dumps(self.reply)
-        return SimpleNamespace(stop_reason=self.stop_reason, model=kw["model"],
-                               content=[SimpleNamespace(type="thinking", thinking=""), SimpleNamespace(type="text", text=text)],
-                               usage=SimpleNamespace(input_tokens=900, output_tokens=120))
+        reply = self.replies.get(role, self.reply)
+        text = reply if isinstance(reply, str) else json.dumps(reply)
+        response = SimpleNamespace(stop_reason=self.stop_reason, model=f"model-for-{role}",
+                                   content=[SimpleNamespace(type="thinking", thinking=""),
+                                            SimpleNamespace(type="text", text=text)],
+                                   usage=SimpleNamespace(input_tokens=900, output_tokens=120))
+        return response, 0.01
 
 
 WELL = {"verdict": "well_posed", "flags": [], "reasoning": "fine", "suggested_fix": ""}
@@ -114,7 +117,7 @@ class Rules(unittest.TestCase):
         task = {"material": "erythritol", "property": "thermal_conductivity", "method": {"engine": "ALCHEMI"}}
         v = check_premise(task, client=None)
         self.assertEqual(v.verdict, "inconclusive")
-        self.assertTrue(any("no LLM credentials" in r for r in v.reasons))
+        self.assertTrue(any("no usable LLM key" in r for r in v.reasons))
 
 
 class Llm(unittest.TestCase):
@@ -126,10 +129,12 @@ class Llm(unittest.TestCase):
         self.assertEqual((v.verdict, v.source), ("fail", "rules+llm"))
         self.assertEqual(len(client.calls), 1)
         call = client.calls[0]
-        self.assertEqual(call["model"], "claude-opus-5-5")
+        self.assertEqual(call["role"], "premise_checker")  # model chosen in configs/llm_roles.json, not here
         self.assertEqual(call["output_config"]["format"]["type"], "json_schema")
-        self.assertEqual(call["fallbacks"], "default")
-        self.assertEqual(v.usage["input_tokens"], 900)
+        from coolorbit import llm_roles
+        self.assertEqual(call["output_config"]["effort"], llm_roles.role("premise_checker")["effort"])  # kept
+        self.assertNotIn("model", call)
+        self.assertEqual((v.usage["calls"][0]["input_tokens"], v.usage["cost_usd"]), (900, 0.01))
         check_premise(CONTROLS["Si equation of state"], client=client)
         self.assertEqual(len(client.calls), 1)  # rules decided: no call
 
@@ -158,48 +163,50 @@ class Llm(unittest.TestCase):
         self.assertEqual(check_premise(CONTROLS["Si equation of state"], client=down, llm_mode="always").verdict, "pass")
 
 
-class SharedKeyFailover(unittest.TestCase):
-    """The premise LLM call goes through coolorbit.llm_keys.call_with_failover (fake keys and client)."""
+class Adjudicator(unittest.TestCase):
+    UNKNOWN = Llm.UNKNOWN
+    UNCERTAIN = {"verdict": "uncertain", "flags": [], "reasoning": "not enough information", "suggested_fix": ""}
 
-    def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        d = Path(self._tmp.name)
-        self.env, self.state = d / ".env", d / "llm_key_state.json"
-        self.env.write_text("ANTHROPIC_API_KEY_PRIMARY=test-primary-not-a-key\n"
-                            "ANTHROPIC_API_KEY_BACKUP=test-backup-not-a-key\n")
+    def test_escalates_only_when_premise_checker_is_undecided(self):
+        client = FakeClient(replies={"premise_checker": self.UNCERTAIN, "adjudicator": ILL})
+        v = check_premise(self.UNKNOWN, client=client)
+        self.assertEqual([c["role"] for c in client.calls], ["premise_checker", "adjudicator"])
+        self.assertEqual((v.verdict, v.source), ("fail", "rules+llm+adjudicator"))
+        self.assertEqual(v.usage["cost_usd"], 0.02)  # both calls counted
+        self.assertIn("The premise checker said", client.calls[1]["messages"][0]["content"])
 
-    def tearDown(self):
-        self._tmp.cleanup()
-
-    def test_switches_to_backup_when_primary_is_out_of_credit(self):
-        from coolorbit import llm_keys
-        from coolorbit.agents.premise import SharedKeys
-
-        made = []
-
-        def make_client():  # the first client hits the out-of-credit error, the second works
-            c = FakeClient(ILL, exc=Exception("Your credit balance is too low to access the Anthropic API")
-                           if not made else None)
-            made.append(llm_keys.active_key_name(self.env, self.state))
-            return c
-
-        keys = SharedKeys(make_client=make_client, env_path=self.env, state_path=self.state)
-        v = check_premise(Llm.UNKNOWN, client=keys)
-        self.assertEqual(v.verdict, "fail")  # answered by the backup
-        self.assertEqual(made, [llm_keys.PRIMARY, llm_keys.BACKUP])
-        self.assertTrue(llm_keys.primary_exhausted(self.state))
-        self.assertNotIn("test-primary-not-a-key", self.state.read_text())  # keys never written
+    def test_no_adjudicator_when_decided_or_failed(self):
+        decided = FakeClient(WELL)
+        check_premise(self.UNKNOWN, client=decided)
+        self.assertEqual([c["role"] for c in decided.calls], ["premise_checker"])
+        refused = FakeClient(WELL, stop_reason="refusal")  # declined is not "undecided": no expensive retry
+        v = check_premise(self.UNKNOWN, client=refused)
+        self.assertEqual((v.verdict, len(refused.calls)), ("inconclusive", 1))
+        ruled = FakeClient(replies={"premise_checker": self.UNCERTAIN})  # rules decided: LLM only in "always"
+        v = check_premise(CONTROLS["Si equation of state"], client=ruled, llm_mode="always")
+        self.assertEqual((v.verdict, [c["role"] for c in ruled.calls]), ("pass", ["premise_checker"]))
 
     def test_no_usable_key_is_inconclusive(self):
-        from coolorbit import llm_keys
-        from coolorbit.agents.premise import SharedKeys
+        class NoUsableKey(RuntimeError):  # same class name as coolorbit.llm_keys.NoUsableKey
+            pass
 
-        llm_keys.mark_primary_exhausted("test", self.state)
-        self.env.write_text("ANTHROPIC_API_KEY_PRIMARY=test-primary-not-a-key\n")  # no backup
-        keys = SharedKeys(make_client=lambda: FakeClient(WELL), env_path=self.env, state_path=self.state)
-        v = check_premise(Llm.UNKNOWN, client=keys)
+        v = check_premise(self.UNKNOWN, client=FakeClient(exc=NoUsableKey("no key")))
         self.assertEqual(v.verdict, "inconclusive")
         self.assertIn("no usable Anthropic key", v.reasons[-1])
+
+    def test_make_client_never_reads_keys(self):
+        from unittest import mock
+
+        from coolorbit import llm_keys
+        from coolorbit.agents import premise
+        with mock.patch.object(llm_keys, "active_key_name", side_effect=llm_keys.NoUsableKey("none")), \
+                mock.patch.object(llm_keys, "active_key", side_effect=AssertionError("must not read a key")):
+            self.assertIsNone(premise.make_client())
+        with mock.patch.object(llm_keys, "active_key_name", return_value=llm_keys.PRIMARY), \
+                mock.patch.object(llm_keys, "active_key", side_effect=AssertionError("must not read a key")):
+            client = premise.make_client()
+            if client is not None:  # None only when the anthropic SDK isn't installed
+                self.assertIs(client, premise.roles_llm)
 
 
 class BoardAgent(unittest.TestCase):

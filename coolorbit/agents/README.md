@@ -34,8 +34,9 @@ Placeholders awaiting team decisions (each file says so, and outputs carry a war
 
 Premise checks without the board (e.g. for the eval harness):
 `python -m coolorbit.agents.premise --task '{"material": "LiF", "property": "self_diffusion", "description": "pristine crystalline LiF"}'`
-or `--tasks file.json`. The LLM layer needs `pip install anthropic` and the team's shared keys in `.env`
-(`ANTHROPIC_API_KEY_PRIMARY` / `_BACKUP`, handled by `coolorbit/llm_keys.py`: primary until it runs out, then
-backup for every agent). Without a usable key, undecided tasks are reported `inconclusive`, never passed.
+or `--tasks file.json`. LLM calls go through `coolorbit/llm_roles.py` (role `premise_checker`, escalating to
+`adjudicator` only when it is undecided); models and effort live in `configs/llm_roles.json`, keys in `.env`
+(`ANTHROPIC_API_KEY_PRIMARY` / `_BACKUP`, failover by `coolorbit/llm_keys.py`). Needs `pip install anthropic`.
+Without a usable key, undecided tasks are reported `inconclusive`, never passed.
 
 Not done yet: the LLM method-audit referee (needs the API key), periodic structures in `data/structures/` for gallium, indium, salt hydrates and the organics.
