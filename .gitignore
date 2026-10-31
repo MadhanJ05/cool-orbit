@@ -10,8 +10,9 @@ __pycache__/
 .env
 .env.*
 
-# Upstream ALCHEMI clone (has its own git history; see README for setup)
+# Upstream clones (have their own git history; see README for setup)
 nvalchemi-toolkit/
+scienceclaw/
 
 # Large simulation outputs (keep small JSON/CSV/log results)
 *.zarr/

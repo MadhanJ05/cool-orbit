@@ -1,0 +1,13 @@
+{
+  "frozen": false,
+  "_note": "PLACEHOLDER tolerances, pending the computational chemistry lead. Set real values, set frozen=true and commit BEFORE any comparison run (pre-registration). 'agree' = independent method vs result; 'tier1' = result vs sourced measured value. A value agrees if |delta| <= max(abs, rel * |reference|).",
+  "independent_check_types": ["second_mlip", "classical_md"],
+  "rejection_min_referees": 2,
+  "properties": {
+    "melting_point":          {"units": ["K"],     "agree": {"abs": 20.0}, "tier1": {"abs": 25.0}},
+    "transition_temperature": {"units": ["K"],     "agree": {"abs": 20.0}, "tier1": {"abs": 25.0}},
+    "latent_heat":            {"units": ["J/kg"],  "agree": {"rel": 0.15}, "tier1": {"rel": 0.20}},
+    "density":                {"units": ["g/cm3"], "agree": {"rel": 0.03}, "tier1": {"rel": 0.05}},
+    "conductivity":           {"units": ["W/m/K"], "agree": {"rel": 0.30}, "tier1": {"rel": 0.30}}
+  }
+}
