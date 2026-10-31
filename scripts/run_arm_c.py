@@ -1,7 +1,7 @@
 """Arm C runner: our decentralized collective on the comparison tasks (CLAUDE.md section 13).
 
 Same board layout, budget and records as arms A/B (Teammate 2's coolorbit/eval/runner.py), so
-``python -m coolorbit.eval.metrics --board boards/eval/<run>/C-r<k>/<task_id>`` scores all arms identically:
+``python -m coolorbit.eval.metrics --repeat boards/eval/<run>/C-r<k>`` scores all arms identically:
 
     boards/eval/<run>/C-r<k>/<task_id>/        one fresh board per task, seeded with seed_board()
         costs.jsonl  run_record.json  transcripts/  logs/
@@ -9,16 +9,18 @@ Same board layout, budget and records as arms A/B (Teammate 2's coolorbit/eval/r
 Who works (no boss: every agent only reads the board, claims needs and posts):
   premise checker, Scouts (eval-only), rule referee, Librarian      Teammate 1's agents
   Simulator (melting point / latent heat, real ALCHEMI on the GPU)   coolorbit/sim/simulator_agent.py
-  worker_cc: the SAME sandboxed Claude Code worker arm A uses (same model, tools, NVIDIA guidance). It takes
-             what no specialist owns: requested properties the Simulator doesn't compute (EOS, adsorption,
-             diffusion, classical-MD reroutes), jobs the Simulator can't set up (no structure on file), tasks no
-             Scout could turn into a request, and reruns of its own results when a referee fails them.
+  worker_cc: the SAME sandboxed Claude Code worker arm A uses (same model, effort, tools, NVIDIA guidance,
+             measured-reference file). It takes what no specialist owns: requested properties the Simulator
+             doesn't compute (EOS, adsorption, diffusion, classical-MD reroutes), jobs the Simulator can't set
+             up (no structure on file), tasks no Scout could turn into a request, and reruns of its own results
+             when a referee fails them. It never starts work the premise checker refused.
 So arm C = arm A's worker + a decentralized checking team; the comparison isolates what the team adds.
 
 Borrowed from Karpathy's autoresearch: a fixed budget per experiment (here per task: $ of LLM spend across all
 agents, enforced through coolorbit/llm_roles.py, plus the same wall clock as the other arms), an append-only
 results.tsv to read in the morning, and an unattended, resumable loop that never deletes a board (a task is
-done once run_record.json exists).
+done once run_record.json exists). Like arms A/B, an attempt that dies because the shared key ran out of credit
+is moved to ``_infra_failed/`` (kept, not scored) and the task reruns once on the backup key.
 
     python scripts/run_arm_c.py --run 2026-11-01a --repeat 1 [--task ID ...] [--timeout-min 60] [--dry-run]
 """
@@ -26,17 +28,17 @@ done once run_record.json exists).
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
+import shutil
 import sys
 import time
 import traceback
-from contextlib import contextmanager
 from dataclasses import asdict, is_dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from types import SimpleNamespace
-from typing import Callable, Iterator, Optional
+from typing import Any, Callable, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -56,6 +58,7 @@ WORKER = "worker_cc"
 PREMISE_AGENT = "referee_premise"
 MAX_WORKER_RERUNS = 2      # same lineage limit the rule referee applies to Simulator reruns
 MIN_SESSION_USD = 0.05     # below this a Claude Code session can't do anything useful
+CAL_TOKEN = "<<CALIBRATION_PATH>>"  # filled per session (container path or the sandbox copy)
 PROMPT_FILE = REPO_ROOT / "scripts" / "prompts" / "arm_c_worker.md"
 AGENTS_DIR = REPO_ROOT / "coolorbit" / "agents"
 DEFAULT_BOARDS_ROOT = REPO_ROOT / "boards" / "eval"
@@ -70,42 +73,37 @@ def utc() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+# --------------------------------------------------------------------------- fairness gate
+
+
+def reads_eval_tasks(src: str) -> bool:
+    """True if Python code (not its docstrings or comments) imports the eval package or loads the task set."""
+    tree = ast.parse(src)
+    docstrings = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and node.body:
+            first = node.body[0]
+            if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) and isinstance(first.value.value, str):
+                docstrings.add(id(first.value))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("coolorbit.eval"):
+            return True
+        if isinstance(node, ast.Import) and any(a.name.startswith("coolorbit.eval") for a in node.names):
+            return True
+        if (isinstance(node, ast.Name) and node.id == "load_tasks") or (
+                isinstance(node, ast.Attribute) and node.attr == "load_tasks"):
+            return True
+        if (isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docstrings
+                and any(s in node.value for s in ("tasks.json", "coolorbit.eval", "coolorbit/eval"))):
+            return True
+    return False
+
+
 def known_contamination(agents_dir: Path = AGENTS_DIR) -> list[str]:
-    """Fairness problems in arm C's own agents that would invalidate a real comparison run (read from source)."""
-    issues = []
-    for path in sorted(Path(agents_dir).glob("*.py")):
-        src = path.read_text(encoding="utf-8")
-        if "load_tasks" in src or "coolorbit.eval" in src or "eval/tasks.json" in src:
-            issues.append(f"coolorbit/agents/{path.name} reads the eval task set (coolorbit/eval/tasks.json); "
-                          "arms A and B only see the task prompt")
-    return issues
-
-
-class RolesClient:
-    """Looks like ``anthropic.Anthropic`` to the premise checker; every call goes through ``llm_roles.create``
-    (shared-key failover, per-task cost log and budget), so the collective's LLM spend counts like the arms'."""
-
-    def __init__(self, role: str, agent: str) -> None:
-        self.role, self.agent = role, agent
-        self.beta = SimpleNamespace(messages=SimpleNamespace(create=self._create))
-
-    def _create(self, **kwargs):
-        response, _ = llm_roles.create(self.role, agent=self.agent, **kwargs)
-        return response
-
-
-@contextmanager
-def session_key_env() -> Iterator[None]:
-    """ANTHROPIC_API_KEY = the active shared key, for one child session only."""
-    old = os.environ.get("ANTHROPIC_API_KEY")
-    os.environ["ANTHROPIC_API_KEY"] = llm_keys.active_key()
-    try:
-        yield
-    finally:
-        if old is None:
-            os.environ.pop("ANTHROPIC_API_KEY", None)
-        else:
-            os.environ["ANTHROPIC_API_KEY"] = old
+    """Fairness problems in arm C's own agents that would invalidate a real comparison run (read from code)."""
+    return [f"coolorbit/agents/{p.name} reads the eval task set (coolorbit/eval/tasks.json); arms A and B only "
+            "see the task prompt" for p in sorted(Path(agents_dir).glob("*.py"))
+            if reads_eval_tasks(p.read_text(encoding="utf-8"))]
 
 
 # --------------------------------------------------------------------------- the specialist Simulator
@@ -147,17 +145,22 @@ def bounded_runner(inner: Callable, deadline: float, jobs: list[dict]) -> Callab
 # --------------------------------------------------------------------------- the generalist worker
 
 
-def nearest(snap: BoardSnapshot, art: Artifact, artifact_type: str) -> Optional[Artifact]:
+def ancestor(snap: BoardSnapshot, art: Artifact, keep: Callable[[Artifact], bool]) -> Optional[Artifact]:
+    """The nearest artifact (itself included) on the lineage that satisfies ``keep``."""
     queue, seen = [art], {art.artifact_id}
     while queue:
         cur = queue.pop(0)
-        if cur.artifact_type == artifact_type:
+        if keep(cur):
             return cur
         for pid in cur.parent_artifact_ids:
             if pid in snap.artifacts and pid not in seen:
                 seen.add(pid)
                 queue.append(snap.artifacts[pid])
     return None
+
+
+def nearest(snap: BoardSnapshot, art: Artifact, artifact_type: str) -> Optional[Artifact]:
+    return ancestor(snap, art, lambda a: a.artifact_type == artifact_type)
 
 
 def premise_verdict(snap: BoardSnapshot, art: Artifact, need_index: int) -> Optional[str]:
@@ -196,7 +199,28 @@ class WorkerDispatcher:
         with open(self.log_path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps({"ts": utc(), "agent": WORKER, "event": event, **data}, default=str) + "\n")
 
+    def _premise(self, snap: BoardSnapshot, art: Artifact, need_index: Optional[int] = None) -> Optional[bool]:
+        """None = wait for the premise checker; False = it refused (task or request); True = go."""
+        if not self.wait_for_premise:
+            return True
+        req = ancestor(snap, art, lambda a: a.artifact_type == "request" and a.producer_agent == HARNESS_AGENT)
+        gates = ([(req, 0)] if req is not None else []) + ([(art, need_index)] if need_index is not None else [])
+        for target, idx in gates:
+            verdict = premise_verdict(snap, target, idx)
+            if verdict is None:
+                return None
+            if verdict in NEGATIVE_VERDICTS:
+                return False
+        return True
+
     # ---------------------------------------------------------------- what to do next
+
+    def _gate(self, snap: BoardSnapshot, key: tuple, art: Artifact, need_index: Optional[int] = None) -> bool:
+        ok = self._premise(snap, art, need_index)
+        if ok is False:
+            self.done.add(key)
+            self.log("decision", item=str(key), action="declined: the premise checker refused this task/request")
+        return bool(ok)
 
     def _from_needs(self, snap: BoardSnapshot):
         for on in self.board.open_needs(include_claimed=False):
@@ -205,14 +229,8 @@ class WorkerDispatcher:
                 continue
             if self.sim is not None and self.sim.owns(snap, on):
                 continue
-            if self.wait_for_premise:
-                verdict = premise_verdict(snap, on.artifact, on.index)
-                if verdict is None:
-                    continue  # the premise checker hasn't looked yet; next round
-                if verdict in NEGATIVE_VERDICTS:
-                    self.done.add(key)
-                    self.log("decision", need=on.artifact.artifact_id[:8], action="declined: premise check failed")
-                    continue
+            if not self._gate(snap, key, on.artifact, on.index):
+                continue
             cand = nearest(snap, on.artifact, "candidate")
             prop = on.need.get("property", self.task.property)
             flawed = find_rerun_target(snap, on.artifact, prop)
@@ -258,8 +276,8 @@ class WorkerDispatcher:
         return None
 
     def _orphans(self, snap: BoardSnapshot):
-        """Task candidates a Scout posted without any request (no structure or no literature value to start
-        from): nobody else will act, so the generalist tries."""
+        """Task candidates a Scout posted without any request (material outside every family, no structure or no
+        literature value to start from): nobody else will act, so the generalist tries."""
         for cand in snap.of_type("candidate"):
             key = ("orphan", cand.artifact_id)
             if key in self.done or cand.needs:
@@ -269,6 +287,8 @@ class WorkerDispatcher:
                 continue
             if any(k.artifact_type in ("property_result", "run_report", "request")
                    for k in snap.children.get(cand.artifact_id, [])):
+                continue
+            if not self._gate(snap, key, cand):
                 continue
             text = (f"No specialist on the team could set this task up for candidate `{cand.artifact_id}` "
                     f"({cand.payload['name']}). Compute `{self.task.property}` ({self.task.units}) yourself, or "
@@ -284,7 +304,7 @@ class WorkerDispatcher:
             post_args += f" --fulfills {fulfills[0]}:{fulfills[1]}"
         text = PROMPT_FILE.read_text(encoding="utf-8").format(
             task_prompt=self.task.prompt, assignment=assignment, post_args=post_args.strip(),
-            task_request_id=self.request_id)
+            task_request_id=self.request_id, calibration_path=CAL_TOKEN)
         return text + board_tool_help(self.request_id)
 
     def step(self) -> bool:
@@ -311,38 +331,41 @@ class WorkerDispatcher:
         return True
 
 
-def claude_code_session_fn(board_root: Path, task: Task, *, work_root: Path, run: str, repeat: int, model: str,
+def claude_code_session_fn(board_root: Path, task: Task, *, work_dir: Path, model: str, effort: Optional[str],
                            sandbox: str, image: Optional[str], gpus: bool) -> SessionFn:
-    """Real worker sessions through Teammate 2's sandbox + Claude Code executor (coolorbit/eval/runner.py)."""
-    from coolorbit.eval.runner import Budget, ClaudeCodeExecutor, _parse_stream, contamination, prepare_sandbox
+    """Real worker sessions through Teammate 2's sandbox + Claude Code executor (coolorbit/eval/runner.py), priced
+    and checked for key exhaustion exactly like arms A/B (price_session, exhaustion_text)."""
+    from coolorbit.eval.runner import (Budget, ClaudeCodeExecutor, calibration_path_for, contamination,
+                                       exhaustion_text, prepare_sandbox, price_session)
     from coolorbit.eval.sandbox import DEFAULT_TAG, DockerSandbox
 
     box = DockerSandbox(image or DEFAULT_TAG, gpus=gpus) if sandbox == "docker" else None
     if box is not None:
         box.preflight()
-    executor = ClaudeCodeExecutor(sandbox=box)
+    executor = ClaudeCodeExecutor(sandbox=box)  # passes the active shared key (llm_keys.subprocess_env)
 
     def run_session(prompt: str, attempt: int, usd: float, timeout_s: float) -> dict:
-        work = Path(work_root) / run / f"{ARM}-r{repeat}" / task.id / f"worker-{attempt}"
+        work = Path(work_dir) / f"worker-{attempt}"
         prepare_sandbox(work, board_root, WORKER, docker=box is not None)
+        prompt = prompt.replace(CAL_TOKEN, calibration_path_for(work, box is not None))
         (work / "PROMPT.md").write_text(prompt, encoding="utf-8")  # evidence of exactly what it was told
         rel = Path("transcripts") / f"worker-{attempt}.jsonl"
-        with session_key_env():
-            res = executor.run(prompt, cwd=work, budget=Budget(usd=usd, timeout_s=timeout_s, model=model),
-                               transcript_path=board_root / rel, board_root=board_root)
-        final = _parse_stream(res.transcript or "")
-        infra = bool(final.get("is_error")) and llm_keys.is_credit_exhausted(final.get("result", ""))
-        if infra:
+        key_name = llm_keys.active_key_name()
+        res = executor.run(prompt, cwd=work, budget=Budget(usd=usd, timeout_s=timeout_s, model=model, effort=effort),
+                           transcript_path=board_root / rel, board_root=board_root)
+        res.key_name = key_name
+        price_session(res, model, cap_usd=usd)  # charged = Claude Code's total_cost_usd, or the cap if no report
+        infra = llm_keys.is_credit_exhausted(exhaustion_text(res))
+        if infra and key_name == llm_keys.PRIMARY:
             llm_keys.mark_primary_exhausted("arm C worker session ran out of credit")
-        # Claude Code's own total_cost_usd prices cache writes; llm_roles.cost_usd has no cache-write price.
         llm_roles._append_cost(board_root / COSTS_FILE, {
-            "agent": WORKER, "task_id": task.id, "kind": "llm", "model": res.model or model,
+            "agent": WORKER, "task_id": task.id, "kind": "llm", "model": res.model or model, "key_name": key_name,
             "input_tokens": res.input_tokens, "output_tokens": res.output_tokens,
             "cache_read_input_tokens": res.cache_read_input_tokens,
             "cache_creation_input_tokens": res.cache_creation_input_tokens, "gpu_hours": None,
-            "usd": res.usd if res.usd is not None else usd, "wall_s": round(res.wall_s, 3),
-            "timed_out": res.timed_out,
-            "note": f"attempt {attempt}" + ("" if res.usd is not None else "; cost unknown, charged the cap")})
+            "usd": res.usd, "usd_source": res.usd_source, "usd_reported": res.usd_reported,
+            "usd_check_cost_usd": res.usd_check, "wall_s": round(res.wall_s, 3), "timed_out": res.timed_out,
+            "note": f"attempt {attempt}"})
         data = asdict(res) if is_dataclass(res) else dict(res)
         data.pop("transcript", None)
         return {"role": "worker", "agent": WORKER, "attempt": attempt, "sandbox": sandbox, "transcript": str(rel),
@@ -357,8 +380,8 @@ def claude_code_session_fn(board_root: Path, task: Task, *, work_root: Path, run
 def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd: float, timeout_min: float,
              preset: str, llm_mode: str, worker_usd: float, model: str,
              session_fn_factory: Callable[[Path], SessionFn], sim_runner: Callable = subprocess_runner,
-             seeds: Optional[dict] = None, runs_root: Path = REPO_ROOT / "runs" / "arm_c",
-             max_rounds: int = 500, sandbox: str = "docker") -> dict:
+             premise_client: Any = "auto", seeds: Optional[dict] = None,
+             runs_root: Path = REPO_ROOT / "runs" / "arm_c", max_rounds: int = 500, sandbox: str = "docker") -> dict:
     from coolorbit.agents.librarian import LibrarianAgent
     from coolorbit.agents.premise import PremiseChecker
     from coolorbit.agents.referee_rules import RuleReferee
@@ -376,6 +399,8 @@ def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd
     deadline = t0 + timeout_min * 60
     costs = board_root / COSTS_FILE
     costs.touch()
+    # Every llm_roles.create call (premise checker, adjudicator) is logged to this task's costs.jsonl and refused
+    # once the task's spend reaches the budget.
     env = {llm_roles.COSTS_ENV: str(costs), llm_roles.TASK_ENV: task.id, llm_roles.BUDGET_ENV: str(budget_usd)}
     saved = {k: os.environ.get(k) for k in env}
     os.environ.update(env)
@@ -389,8 +414,8 @@ def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd
         dispatcher = WorkerDispatcher(board, task, req_id, session_fn_factory(board_root), sim=sim,
                                       deadline=deadline, worker_usd=worker_usd,
                                       usd_left=lambda: budget_usd - llm_roles.spent_usd(costs, task.id))
-        premise_client = None if llm_mode == "never" else RolesClient("premise_checker", PREMISE_AGENT)
-        agents = ([PremiseChecker(board, client=premise_client, llm_mode=llm_mode, verbose=False)]
+        agents = ([PremiseChecker(board, client=None if llm_mode == "never" else premise_client, llm_mode=llm_mode,
+                                  verbose=False)]
                   + [Scout(board, s, seeds=seeds, preset=preset, eval_only=True, verbose=False) for s in seeds]
                   + [RuleReferee(board, verbose=False), LibrarianAgent(board), sim, dispatcher])
         while rounds < max_rounds:
@@ -441,6 +466,18 @@ def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd
     return record
 
 
+def set_aside_infra_failure(record: dict, try_no: int) -> Path:
+    """Move an attempt killed by an out-of-credit key out of the scored folder (kept as evidence, not scored)."""
+    board = Path(record["board"])
+    failed = board.parent / "_infra_failed" / f"{board.name}.try{try_no}"
+    failed.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(board), str(failed))
+    (failed / "INFRA_FAILURE.json").write_text(json.dumps({
+        "task_id": record["task_id"], "reason": "shared Anthropic key out of credit mid-task; not scored",
+        "at": utc()}, indent=1), encoding="utf-8")
+    return failed
+
+
 def log_result(path: Path, record: dict) -> None:
     """Append-only, human-readable log of every task run (autoresearch's results.tsv)."""
     snap = Board(record["board"]).snapshot()
@@ -461,6 +498,7 @@ def log_result(path: Path, record: dict) -> None:
 
 def main(argv: Optional[list[str]] = None) -> None:
     roles = llm_roles.load()
+    baseline = llm_roles.role("arm_baseline")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--run", required=True)
     ap.add_argument("--repeat", type=int, required=True)
@@ -469,7 +507,8 @@ def main(argv: Optional[list[str]] = None) -> None:
                     help="LLM $ per task across ALL agents (same as arms A/B)")
     ap.add_argument("--worker-usd", type=float, default=1.0, help="cap for one worker session (within the budget)")
     ap.add_argument("--timeout-min", type=float, default=60.0, help="wall clock per task (same as arms A/B)")
-    ap.add_argument("--model", default=llm_roles.role("arm_baseline")["model"], help="worker model (= arms A/B)")
+    ap.add_argument("--model", default=baseline["model"], help="worker model (= arms A/B)")
+    ap.add_argument("--effort", default=baseline["effort"], help="worker effort (= arms A/B)")
     ap.add_argument("--preset", choices=["quick", "production"], default="production")
     ap.add_argument("--llm", choices=["inconclusive", "always", "never"], default="inconclusive",
                     help="when the premise checker asks Claude")
@@ -485,15 +524,16 @@ def main(argv: Optional[list[str]] = None) -> None:
 
     if args.sandbox == "none" and not args.allow_unsandboxed:
         ap.error("--sandbox none lets the worker reach your credentials; add --allow-unsandboxed (development only)")
-    if args.model != llm_roles.role("arm_baseline")["model"]:
-        print("WARNING: worker model differs from the arm_baseline role; arms are no longer comparable")
+    if (args.model, args.effort) != (baseline["model"], baseline["effort"]):
+        print("WARNING: worker model/effort differ from the arm_baseline role; arms are no longer comparable")
     task_set = load_tasks()
     tasks = [t for t in task_set.tasks if not args.task or t.id in args.task]
     if args.dry_run:
         for t in tasks:
             print(f"{t.id:42s} {t.kind:10s} {t.property:22s} -> {args.boards_root}/{args.run}/{ARM}-r{args.repeat}/{t.id}")
         print(f"{len(tasks)} task(s); ${args.budget_usd}/task (worker session <= ${args.worker_usd}), "
-              f"{args.timeout_min} min/task, preset {args.preset}, worker {args.model}, sandbox {args.sandbox}")
+              f"{args.timeout_min} min/task, preset {args.preset}, worker {args.model} effort {args.effort}, "
+              f"sandbox {args.sandbox}")
         for issue in known_contamination():
             print(f"NOT VALID FOR THE COMPARISON YET: {issue}")
         return
@@ -506,25 +546,32 @@ def main(argv: Optional[list[str]] = None) -> None:
         raise SystemExit("arm C's worker uses Teammate 2's sandbox and Claude Code executor (PR #5); merge it first")
     log_path = REPO_ROOT / "runs" / "arm_c" / args.run / "results.tsv"
     for t in tasks:
-        def factory(root: Path, t: Task = t) -> SessionFn:
-            return claude_code_session_fn(root, t, work_root=Path(args.work_root), run=args.run, repeat=args.repeat,
-                                          model=args.model, sandbox=args.sandbox, image=args.image,
-                                          gpus=not args.no_gpus)
-        try:
-            rec = run_task(t, run=args.run, repeat=args.repeat, boards_root=Path(args.boards_root),
-                           budget_usd=args.budget_usd, timeout_min=args.timeout_min, preset=args.preset,
-                           llm_mode=args.llm, worker_usd=args.worker_usd, model=args.model, session_fn_factory=factory,
-                           sandbox=args.sandbox)
-        except FileExistsError as exc:
-            print(f"SKIP {t.id}: {exc}")
-            continue
-        if rec.get("skipped"):
-            print(f"skip {t.id}: {rec['skipped']}")
-            continue
-        log_result(log_path, rec)
-        print(f"done {t.id}: stopped={rec['stopped']} sessions={len(rec['sessions'])} llm=${rec['llm_usd']:.2f} "
-              f"wall={rec['wall_s'] / 60:.1f} min" + ("  INFRA FAILURE (key ran out): rerun this task" if
-                                                       rec["infra_failure"] else ""))
+        for try_no in (1, 2):
+            work = Path(args.work_root) / args.run / f"{ARM}-r{args.repeat}" / (t.id if try_no == 1 else f"{t.id}.try{try_no}")
+
+            def factory(root: Path, t: Task = t, work: Path = work) -> SessionFn:
+                return claude_code_session_fn(root, t, work_dir=work, model=args.model, effort=args.effort,
+                                              sandbox=args.sandbox, image=args.image, gpus=not args.no_gpus)
+            try:
+                rec = run_task(t, run=args.run, repeat=args.repeat, boards_root=Path(args.boards_root),
+                               budget_usd=args.budget_usd, timeout_min=args.timeout_min, preset=args.preset,
+                               llm_mode=args.llm, worker_usd=args.worker_usd, model=args.model,
+                               session_fn_factory=factory, sandbox=args.sandbox)
+            except FileExistsError as exc:
+                print(f"SKIP {t.id}: {exc}")
+                break
+            if rec.get("skipped"):
+                print(f"skip {t.id}: {rec['skipped']}")
+                break
+            if not rec["infra_failure"]:
+                log_result(log_path, rec)
+                print(f"done {t.id}: stopped={rec['stopped']} sessions={len(rec['sessions'])} "
+                      f"llm=${rec['llm_usd']:.2f} wall={rec['wall_s'] / 60:.1f} min")
+                break
+            failed = set_aside_infra_failure(rec, try_no)
+            print(f"INFRA {t.id}: the shared key ran out of credit; attempt kept in {failed}, not scored")
+            if try_no == 2 or llm_keys.active_key_name() != llm_keys.BACKUP:
+                raise SystemExit("out of credit and no fresh key to rerun on; stopping the run")
     print(f"log: {log_path}")
 
 

@@ -11,7 +11,6 @@ import time
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest import mock
 
 from coolorbit import llm_roles
 from coolorbit.board import Board
@@ -128,9 +127,18 @@ class ArmCRunTest(unittest.TestCase):
         self.assertTrue(out.confident)
 
     def test_out_of_budget_stops_the_task(self) -> None:
-        rec = self.run_task(LI_LIQUID, budget_usd=0.0, llm_mode="always")  # premise LLM call refused pre-network
+        # The premise checker's LLM caller is llm_roles.create: with $0 left it refuses before any network call.
+        rec = self.run_task(LI_LIQUID, budget_usd=0.0, llm_mode="always",
+                            premise_client=lambda role, **req: llm_roles.create(role, **req))
         self.assertEqual(rec["stopped"], "budget")
         self.assertEqual(rec["sessions"], [])
+
+    def test_infra_failure_is_set_aside_unscored(self) -> None:
+        rec = self.run_task(LIF_PRISTINE)
+        failed = arm_c.set_aside_infra_failure(rec, 1)
+        self.assertFalse(Path(rec["board"]).exists())
+        self.assertTrue((failed / "INFRA_FAILURE.json").exists())
+        self.assertEqual(failed.parent.name, "_infra_failed")
 
     def test_resume_skips_done_tasks_and_refuses_interrupted_boards(self) -> None:
         self.run_task(LIF_PRISTINE)
@@ -202,19 +210,18 @@ class PiecesTest(unittest.TestCase):
         self.assertLessEqual(seen[0], 30)
         self.assertEqual(jobs[0]["status"], "ok")
 
-    def test_premise_llm_calls_go_through_llm_roles(self) -> None:
-        with mock.patch.object(arm_c.llm_roles, "create", return_value=("resp", 0.1)) as create:
-            client = arm_c.RolesClient("premise_checker", "referee_premise")
-            self.assertEqual(client.beta.messages.create(model="m", messages=[]), "resp")
-        create.assert_called_once_with("premise_checker", agent="referee_premise", model="m", messages=[])
-
-    def test_known_contamination_reads_agent_sources(self) -> None:
+    def test_known_contamination_reads_code_not_docs(self) -> None:
         agents = Path(self.tmp.name) / "agents"
         agents.mkdir()
-        (agents / "clean.py").write_text("x = 1\n")
+        (agents / "clean.py").write_text('"""We never read coolorbit/eval/tasks.json."""\n'
+                                         'def f():\n    """--tasks tasks.json is a CLI example."""\n    return 1\n')
         self.assertEqual(arm_c.known_contamination(agents), [])
         (agents / "leaky.py").write_text("from coolorbit.eval.tasks import load_tasks\n")
-        self.assertEqual(len(arm_c.known_contamination(agents)), 1)
+        (agents / "sneaky.py").write_text("import json\nDATA = json.load(open('coolorbit/eval/tasks.json'))\n")
+        self.assertEqual(len(arm_c.known_contamination(agents)), 2)
+
+    def test_merged_agents_pass_the_fairness_gate(self) -> None:
+        self.assertEqual(arm_c.known_contamination(), [])
 
 
 if __name__ == "__main__":
