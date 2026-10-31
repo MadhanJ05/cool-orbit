@@ -1019,7 +1019,10 @@
       "uncertainty": 0.03,
       "source": "ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint",
       "quote": "the freezing point of copper at 1357.77(3) K",
-      "note": "ITS-90 freezing point"
+      "note": "ITS-90 freezing point",
+      "aliases": [
+        "Cu"
+      ]
     },
     {
       "candidate": "copper",
@@ -1031,7 +1034,10 @@
       "uncertainty": null,
       "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt",
       "quote": "1358.000 ... 29.660 CRYSTAL <--> LIQUID / 1358.000 ... 42.798 TRANSITION",
-      "note": "H-H(Tr) jump: 42.798 - 29.660 = 13.138 kJ/mol; x 1e6 / 63.546 g/mol"
+      "note": "H-H(Tr) jump: 42.798 - 29.660 = 13.138 kJ/mol; x 1e6 / 63.546 g/mol",
+      "aliases": [
+        "Cu"
+      ]
     },
     {
       "candidate": "copper",
@@ -1045,7 +1051,10 @@
       "phase": "solid",
       "temperature_K": 300.0,
       "quote": "300 4.01 (W/cm/K)",
-      "note": "+/-2% near room temperature per HPL; liquid at 1357.6 K: 166 W/m/K"
+      "note": "+/-2% near room temperature per HPL; liquid at 1357.6 K: 166 W/m/K",
+      "aliases": [
+        "Cu"
+      ]
     },
     {
       "candidate": "copper",
@@ -1056,7 +1065,10 @@
       "units": "g/cm3",
       "uncertainty": null,
       "source": null,
-      "note": "NOT FOUND: not looked up (low priority)"
+      "note": "NOT FOUND: not looked up (low priority)",
+      "aliases": [
+        "Cu"
+      ]
     },
     {
       "candidate": "aluminum",
@@ -1074,6 +1086,10 @@
           "value": 933.473,
           "source": "ITS-90 via https://its-90.com/fixed-points (unofficial)"
         }
+      ],
+      "aliases": [
+        "Al",
+        "aluminium"
       ]
     },
     {
@@ -1086,7 +1102,11 @@
       "uncertainty": null,
       "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
       "quote": "933.450 ... 17.982 CRYSTAL <--> LIQUID / 933.450 ... 28.693 TRANSITION",
-      "note": "H-H(Tr) jump: 28.693 - 17.982 = 10.711 kJ/mol; x 1e6 / 26.9815386 g/mol"
+      "note": "H-H(Tr) jump: 28.693 - 17.982 = 10.711 kJ/mol; x 1e6 / 26.9815386 g/mol",
+      "aliases": [
+        "Al",
+        "aluminium"
+      ]
     },
     {
       "candidate": "aluminum",
@@ -1100,7 +1120,11 @@
       "phase": "solid",
       "temperature_K": 300.0,
       "quote": "300 2.37 (W/cm/K)",
-      "note": "+/-2-3% per HPL; 208 W/m/K at 933.52 K (solid)"
+      "note": "+/-2-3% per HPL; 208 W/m/K at 933.52 K (solid)",
+      "aliases": [
+        "Al",
+        "aluminium"
+      ]
     },
     {
       "candidate": "aluminum",
@@ -1111,7 +1135,11 @@
       "units": "g/cm3",
       "uncertainty": null,
       "source": null,
-      "note": "NOT FOUND: not looked up (low priority)"
+      "note": "NOT FOUND: not looked up (low priority)",
+      "aliases": [
+        "Al",
+        "aluminium"
+      ]
     },
     {
       "candidate": "gallium",
@@ -1123,7 +1151,10 @@
       "uncertainty": 0.004,
       "source": "NIST Chemistry WebBook, https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440553&Mask=4",
       "quote": "302.92 K ... Uncertainty assigned by TRC = 0.004 K; recommended as calibration standard",
-      "note": "ITS-90 melting point 302.9146 K"
+      "note": "ITS-90 melting point 302.9146 K",
+      "aliases": [
+        "Ga"
+      ]
     },
     {
       "candidate": "gallium",
@@ -1135,7 +1166,10 @@
       "uncertainty": null,
       "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Ga-001.txt",
       "quote": "302.920 ... 0.124 CRYSTAL <--> LIQUID / 302.920 ... 5.714 TRANSITION",
-      "note": "H-H(Tr) jump: 5.714 - 0.124 = 5.590 kJ/mol; x 1e6 / 69.723 g/mol"
+      "note": "H-H(Tr) jump: 5.714 - 0.124 = 5.590 kJ/mol; x 1e6 / 69.723 g/mol",
+      "aliases": [
+        "Ga"
+      ]
     },
     {
       "candidate": "gallium",
@@ -1149,7 +1183,10 @@
       "phase": "liquid",
       "temperature_K": 302.914,
       "quote": "Gallium 303-1500 6077 0.611 302.914 (Ref. 73) 0.4",
-      "note": "rho = c1 at Tref; 0.4% (2 sigma)"
+      "note": "rho = c1 at Tref; 0.4% (2 sigma)",
+      "aliases": [
+        "Ga"
+      ]
     },
     {
       "candidate": "gallium",
@@ -1163,7 +1200,10 @@
       "phase": "liquid",
       "temperature_K": 302.93,
       "quote": "302.93 0.281 (W/cm/K)",
-      "note": "+/-10% near the melting point per HPL. Solid is anisotropic: a 40.6, b 88.3, c 15.9 W/m/K at 302.93 K"
+      "note": "+/-10% near the melting point per HPL. Solid is anisotropic: a 40.6, b 88.3, c 15.9 W/m/K at 302.93 K",
+      "aliases": [
+        "Ga"
+      ]
     },
     {
       "candidate": "indium",
@@ -1175,7 +1215,10 @@
       "uncertainty": null,
       "source": "Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90",
       "quote": "Indium 430-1100 7022 0.762 429.748 (Ref. 73) 0.5",
-      "note": "ITS-90 freezing point 429.7485 K"
+      "note": "ITS-90 freezing point 429.7485 K",
+      "aliases": [
+        "In"
+      ]
     },
     {
       "candidate": "indium",
@@ -1187,7 +1230,10 @@
       "uncertainty": 7.6,
       "source": "Archer & Rudtsch, J. Chem. Eng. Data 48(5) (2003), NIST certified reference material; https://www.nist.gov/publications/enthalpy-fusion-indium-certified-reference-material-differential-scanning-calorimetry",
       "quote": "delta_fusH = (28.6624 +/- 0.0076) J g-1",
-      "note": "adiabatic calorimetry; 95% CI"
+      "note": "adiabatic calorimetry; 95% CI",
+      "aliases": [
+        "In"
+      ]
     },
     {
       "candidate": "indium",
@@ -1201,7 +1247,10 @@
       "phase": "liquid",
       "temperature_K": 429.748,
       "quote": "Indium 430-1100 7022 0.762 429.748",
-      "note": "0.5% (2 sigma)"
+      "note": "0.5% (2 sigma)",
+      "aliases": [
+        "In"
+      ]
     },
     {
       "candidate": "indium",
@@ -1215,7 +1264,10 @@
       "phase": "solid",
       "temperature_K": 298.2,
       "quote": "298.2 0.818 (W/cm/K)",
-      "note": "+/-5% per HPL; liquid at 429.784 K: 38.2 W/m/K (provisional, +/-15%)"
+      "note": "+/-5% per HPL; liquid at 429.784 K: 38.2 W/m/K (provisional, +/-15%)",
+      "aliases": [
+        "In"
+      ]
     },
     {
       "candidate": "field's metal",

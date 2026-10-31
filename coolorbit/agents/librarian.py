@@ -13,6 +13,11 @@ Usage:
     python -m coolorbit.agents.librarian --board boards/dev-<name>            # post all records
     python -m coolorbit.agents.librarian --board boards/dev-<name> --only n-eicosane copper
     python -m coolorbit.agents.librarian --check                              # validate the dataset only
+    python -m coolorbit.agents.librarian --board boards/<id> --serve [--once] # answer reference_value needs
+
+Names: the board matches references by candidate name, so a record can list ``aliases`` (e.g. copper ->
+"Cu"). Bulk posting posts the canonical name and every alias; serving a need posts the reference under
+the exact name the result uses.
 """
 
 from __future__ import annotations
@@ -24,7 +29,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Iterable, Optional
 
-from coolorbit.board import Board
+from coolorbit.agents.base import Agent, candidate_of, norm as _norm
+from coolorbit.board import Board, OpenNeed
 from coolorbit.board.schema import ReferenceValue
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -42,16 +48,11 @@ PROPERTY_UNITS = {
     "conductivity": "W/m/K",
 }
 REQUIRED_KEYS = ("candidate", "family", "property", "value", "units", "source")
-OPTIONAL_KEYS = ("formula", "uncertainty", "note", "phase", "temperature_K", "quote", "alternates")
+OPTIONAL_KEYS = ("formula", "uncertainty", "note", "phase", "temperature_K", "quote", "alternates", "aliases")
 
 
 class CalibrationError(ValueError):
     pass
-
-
-def _norm(text: object) -> str:
-    # Same normalisation as coolorbit.board.status, so uniqueness here means uniqueness there.
-    return " ".join(str(text or "").lower().split())
 
 
 def validate_record(rec: dict, where: str = "record") -> None:
@@ -75,6 +76,9 @@ def validate_record(rec: dict, where: str = "record") -> None:
             raise CalibrationError(f"{where}: value must be positive (absolute units), got {value}")
         if not (isinstance(source, str) and source.strip()):
             raise CalibrationError(f"{where}: a value needs a source; record value=null if none was found")
+    aliases = rec.get("aliases", [])
+    if not (isinstance(aliases, list) and all(isinstance(a, str) and a.strip() for a in aliases)):
+        raise CalibrationError(f"{where}: aliases must be a list of non-empty names")
     if prop == "density" and value is not None and rec.get("phase") not in ("solid", "liquid"):
         raise CalibrationError(f"{where}: density needs phase 'solid' or 'liquid'")
     try:
@@ -86,7 +90,7 @@ def validate_record(rec: dict, where: str = "record") -> None:
 def validate_dataset(records: list[dict]) -> None:
     for i, rec in enumerate(records):
         validate_record(rec, f"record {i} ({rec.get('candidate')}/{rec.get('property')})")
-    counts = Counter((_norm(r["candidate"]), r["property"]) for r in records)
+    counts = Counter((_norm(n), r["property"]) for r in records for n in names_of(r))
     dupes = sorted(k for k, n in counts.items() if n > 1)
     if dupes:
         raise CalibrationError(
@@ -104,8 +108,26 @@ def load_calibration(path: str | Path = DEFAULT_DATA) -> list[dict]:
     return records
 
 
-def to_reference_payload(rec: dict) -> dict:
-    """Map a dataset record onto the board's ReferenceValue schema (validated)."""
+def names_of(rec: dict) -> list[str]:
+    """Canonical name plus aliases (deduplicated after normalisation)."""
+    out, seen = [], set()
+    for n in [rec["candidate"], *rec.get("aliases", [])]:
+        if _norm(n) not in seen:
+            seen.add(_norm(n))
+            out.append(n)
+    return out
+
+
+def index_records(records: Iterable[dict]) -> dict[tuple[str, str], dict]:
+    """(normalised name or alias, property) -> record."""
+    return {(_norm(n), r["property"]): r for r in records for n in names_of(r)}
+
+
+def to_reference_payload(rec: dict, name: Optional[str] = None) -> dict:
+    """Map a dataset record onto the board's ReferenceValue schema (validated).
+
+    ``name`` overrides the candidate name (used to post under an alias or the result's exact name).
+    """
     note_parts = [rec.get("note", "")]
     if rec.get("phase"):
         note_parts.append(f"phase: {rec['phase']}")
@@ -114,7 +136,7 @@ def to_reference_payload(rec: dict) -> dict:
     if rec.get("formula"):
         note_parts.append(f"formula: {rec['formula']}")
     payload = {
-        "candidate": rec["candidate"],
+        "candidate": name or rec["candidate"],
         "property": rec["property"],
         "value": rec["value"],
         "units": rec["units"],
@@ -127,8 +149,8 @@ def to_reference_payload(rec: dict) -> dict:
 
 def post_references(board: Board, records: Iterable[dict], *, agent: str = AGENT_NAME,
                     only: Optional[Iterable[str]] = None) -> dict:
-    """Post one reference_value per record. Idempotent: identical references already on the board
-    are skipped. If a candidate artifact with the same name exists, it becomes the parent (lineage).
+    """Post one reference_value per record and per alias. Idempotent: identical references already on
+    the board are skipped. If a candidate artifact with the same name exists, it becomes the parent.
 
     Returns counts {"posted", "skipped_existing", "null_values"} plus the posted artifact ids.
     """
@@ -141,22 +163,81 @@ def post_references(board: Board, records: Iterable[dict], *, agent: str = AGENT
     candidates = {_norm(a.payload["name"]): a.artifact_id for a in snap.of_type("candidate")}
     out = {"posted": 0, "skipped_existing": 0, "null_values": 0, "artifact_ids": []}
     for rec in records:
-        name = _norm(rec["candidate"])
-        if wanted is not None and name not in wanted:
+        names = names_of(rec)
+        if wanted is not None and not wanted & {_norm(n) for n in names}:
             continue
-        payload = to_reference_payload(rec)
-        key = (name, payload["property"], payload["value"], payload["source"])
-        if key in existing:
-            out["skipped_existing"] += 1
-            continue
-        parents = [candidates[name]] if name in candidates else []
-        art = board.post(agent, "reference_value", payload, parents=parents,
-                         skill="coolorbit.librarian.tier1")
-        existing.add(key)
-        out["posted"] += 1
-        out["null_values"] += payload["value"] is None
-        out["artifact_ids"].append(art.artifact_id)
+        for display in names:
+            name = _norm(display)
+            payload = to_reference_payload(rec, display)
+            key = (name, payload["property"], payload["value"], payload["source"])
+            if key in existing:
+                out["skipped_existing"] += 1
+                continue
+            parents = [candidates[name]] if name in candidates else []
+            art = board.post(agent, "reference_value", payload, parents=parents,
+                             skill="coolorbit.librarian.tier1")
+            existing.add(key)
+            out["posted"] += 1
+            out["null_values"] += payload["value"] is None
+            out["artifact_ids"].append(art.artifact_id)
     return out
+
+
+class LibrarianAgent(Agent):
+    """Answers ``reference_value`` needs (the Simulator broadcasts one for every trust-tier result).
+
+    It looks the (candidate, property) up in the curated dataset, by name or alias, and posts the
+    reference under the exact name the result uses, fulfilling the need. If the dataset has nothing,
+    it says so with a null reference instead of leaving the need hanging or guessing.
+    """
+
+    role = "librarian"
+
+    def __init__(self, board: Board, name: str = AGENT_NAME, *, records: Optional[list[dict]] = None,
+                 data_path: str | Path = DEFAULT_DATA, **kw) -> None:
+        super().__init__(board, name, **kw)
+        self.records = records if records is not None else load_calibration(data_path)
+        self.index = index_records(self.records)
+
+    @staticmethod
+    def _wants(on: OpenNeed) -> bool:
+        return on.need.get("artifact_type") == "reference_value"
+
+    def _subject(self, on: OpenNeed) -> tuple[Optional[str], Optional[str]]:
+        """(candidate name, property) the need is about."""
+        p = on.artifact.payload
+        if on.artifact.artifact_type == "property_result":
+            return p.get("candidate"), on.need.get("property") or p.get("property")
+        cand = candidate_of(self.board.snapshot(), on.artifact)
+        return (cand.payload["name"] if cand else None), on.need.get("property")
+
+    def step(self) -> bool:
+        for on in self.open_needs(self._wants):
+            name, prop = self._subject(on)
+            if not name or not prop:
+                self.log("skip", target=on.artifact.artifact_id[:8], reason="cannot tell which candidate/property")
+                continue
+            if not self.claim(on, ttl_minutes=10):
+                continue
+            rec = self.index.get((_norm(name), prop))
+            if rec is not None:
+                payload = to_reference_payload(rec, name)
+                why = "found in curated dataset" if rec["value"] is not None else "dataset records it as not found"
+            else:
+                payload = to_reference_payload(
+                    {"candidate": name, "property": prop, "value": None, "units": PROPERTY_UNITS.get(prop, "unknown"),
+                     "source": None,
+                     "note": f"NOT FOUND: no measured {prop} for {name!r} in data/calibration/tier1.json; "
+                             "the Librarian only serves curated, sourced values"}) if prop in PROPERTY_UNITS else None
+                why = "not in curated dataset"
+            if payload is None:
+                self.log("decline", target=on.artifact.artifact_id[:8], reason=f"unknown property {prop!r}")
+                continue
+            self.post("reference_value", payload, fulfills=(on.artifact.artifact_id, on.index),
+                      skill="coolorbit.librarian.tier1")
+            self.log("decision", candidate=name, property=prop, value=payload["value"], reason=why)
+            return True
+        return False
 
 
 def main(argv: Optional[list[str]] = None) -> int:
@@ -166,6 +247,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     ap.add_argument("--only", nargs="*", help="post only these candidate names")
     ap.add_argument("--agent", default=AGENT_NAME)
     ap.add_argument("--check", action="store_true", help="validate the dataset and exit")
+    ap.add_argument("--serve", action="store_true", help="run as an agent that answers reference_value needs")
+    ap.add_argument("--once", action="store_true", help="with --serve: answer what is open now, then exit")
+    ap.add_argument("--poll", type=float, default=30.0)
     args = ap.parse_args(argv)
 
     try:
@@ -177,6 +261,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     print(f"{len(records)} records ({len(records) - n_null} sourced values, {n_null} null/not found) "
           f"for {len({_norm(r['candidate']) for r in records})} materials")
     if args.check or not args.board:
+        return 0
+    if args.serve:
+        LibrarianAgent(Board(args.board), args.agent, records=records).run(once=args.once, poll_s=args.poll)
         return 0
     out = post_references(Board(args.board), records, agent=args.agent, only=args.only)
     print(f"posted {out['posted']} reference_value artifacts ({out['null_values']} null), "

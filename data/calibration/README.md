@@ -23,6 +23,8 @@ python -m coolorbit.agents.librarian --board boards/<run> --only copper aluminum
 - **Candidate names must match** the `name` of the `candidate` artifact the simulator uses (case and
   extra spaces are ignored). Use the names in `tier1.json` (e.g. `copper`, `n-eicosane`,
   `neopentyl glycol`, `calcium chloride hexahydrate`).
+  Metals also list `aliases` (copper -> `Cu`, aluminum -> `Al`, ...): bulk posting posts every alias,
+  and the Librarian agent answers a need under the exact name the result uses.
 - **Units are the board's**: K, J/kg, g/cm3, W/m/K. Density and conductivity state `phase`.
 - `quote` is the verbatim text or table row the value was read from. `note` shows any conversion
   arithmetic and the literature spread.
@@ -30,7 +32,7 @@ python -m coolorbit.agents.librarian --board boards/<run> --only copper aluminum
 ## Fields
 
 `candidate, family, formula, property, value, units, uncertainty, source` (required), plus optional
-`phase, temperature_K, quote, note, alternates`.
+`phase, temperature_K, quote, note, alternates, aliases`.
 
 Properties: `melting_point`, `latent_heat` (fusion), `density`, `conductivity`, and for solid-solid
 PCMs `transition_temperature` and `transition_latent_heat`. `transition_latent_heat` has no rule in
