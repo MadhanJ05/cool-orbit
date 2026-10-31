@@ -56,6 +56,8 @@ from nvalchemi.dynamics.hooks._utils import kinetic_energy_per_graph
 from nvalchemi.hooks import NeighborListHook, WrapPeriodicHook
 
 from coolorbit.hooks import SuperheatingDetectorHook
+from coolorbit.sim.alloys import (composition_label, element_crystal, mean_atomic_mass, mixed_alloy_box,
+                                  parse_composition)
 
 KB_EV = 8.617333262e-5  # eV/K
 EV_TO_J = 1.602176634e-19
@@ -88,6 +90,8 @@ class Settings:
     jump_threshold: float
     seed: int
     liquid_expansion: float = 0.05
+    composition: str | None = None
+    solid_atoms: int = 300
 
 
 MELT_TARGET_FRACTION = 0.8  # share of the melting half that must have moved > 1.5 A
@@ -122,9 +126,20 @@ def load_model(name: str):
 def build_atoms(args) -> Atoms:
     if args.structure_file:
         atoms = ase_read(args.structure_file)
+    elif args.structure == "ref":
+        atoms = element_crystal(args.element)  # correct crystal for Ga, In, beta-Sn, Bi, Cu, Al
     else:
         atoms = bulk(args.element, args.structure, a=args.a, cubic=True)
     return atoms.repeat(tuple(args.reps))
+
+
+def solid_reps(atoms: Atoms, target: int, min_length: float = 13.0) -> tuple[int, int, int]:
+    """Supercell repeats with every box length >= min_length (above 2x the MACE cutoff) and >= target atoms."""
+    lengths = atoms.cell.lengths()
+    reps = np.array([max(1, math.ceil(min_length / L)) for L in lengths])
+    while len(atoms) * reps.prod() < target:
+        reps[np.argmin(lengths * reps)] += 1  # grow the shortest side
+    return tuple(int(r) for r in reps)
 
 
 def domain_flags(atoms: Atoms, dt_fs: float) -> list[str]:
@@ -435,6 +450,87 @@ def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batc
     return result, batch
 
 
+def run_alloy_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batch]:
+    """Latent heat of an alloy: H(liquid alloy) - sum_i x_i H(solid element i), all at the alloy's melting T.
+
+    Assumes the alloy's solid is a mixture of the pure elements (true for e.g. Ga-In; intermetallics such as
+    BiIn2 in Field's metal would lower the real latent heat). Flagged in every result.
+    """
+    fractions = parse_composition(s.composition)
+    t = s.temps[0]
+    print(f"Alloy latent heat: {composition_label(fractions)} (at%) at T={t:g} K; "
+          f"melting the mixed box at {s.t_melt:g} K", flush=True)
+    rec = Recorder("prep_liquid_alloy_nvt", s.record_every, [s.t_melt])
+    liq = Batch.from_data_list([make_data(atoms, s.t_melt, s.seed + 1)], device="cuda")
+    liq = run_stage(nvt(model, s, s.t_melt, s.melt_steps, s.seed + 2), liq, model, rec)
+    rows += rec.rows
+
+    elements = sorted(fractions)
+    solids = []
+    for el in elements:
+        cell = element_crystal(el)
+        solids.append(cell.repeat(solid_reps(cell, s.solid_atoms)))
+    systems = [batch_to_atoms(liq)[0]] + solids
+    names = ["liquid_alloy"] + [f"solid_{el}" for el in elements]
+    data = [make_data(a, t, s.seed + 3 + i) for i, a in enumerate(systems)]
+    batch = Batch.from_data_list(data, device="cuda")
+    pos0 = batch.positions.detach().clone()
+    rec = Recorder("alloy_latent_npt", s.record_every, [t] * len(systems))
+    batch = run_stage(npt(model, s, [t] * len(systems), s.prod_steps, "isotropic"), batch, model, rec)
+    rows += rec.rows
+
+    sizes = batch.num_nodes_per_graph.tolist()
+    offsets = np.cumsum([0] + sizes)
+    phases = {}
+    for i, name in enumerate(names):
+        pe = production_series(rows, "alloy_latent_npt", i, "pe_per_atom_eV")
+        temp = production_series(rows, "alloy_latent_npt", i, "T_K")
+        hb = block_means(pe + 1.5 * KB_EV * temp)
+        sl = slice(offsets[i], offsets[i + 1])
+        moved = displaced_fraction(pos0[sl], batch.positions[sl], batch.cell[i],
+                                   torch.ones(sizes[i], dtype=torch.bool, device=batch.cell.device))
+        phases[name] = {"n_atoms": sizes[i], "H_eV_per_atom": float(hb.mean()),
+                        "H_sem": float(hb.std(ddof=1) / math.sqrt(len(hb))), "T_measured_K": float(temp.mean()),
+                        "volume_per_atom_A3": float(production_series(rows, "alloy_latent_npt", i,
+                                                                      "volume_per_atom_A3").mean()),
+                        "moved_fraction": moved}
+
+    h_solid = sum(fractions[el] * phases[f"solid_{el}"]["H_eV_per_atom"] for el in elements)
+    dh = phases["liquid_alloy"]["H_eV_per_atom"] - h_solid
+    dh_err = math.sqrt(phases["liquid_alloy"]["H_sem"] ** 2
+                       + sum((fractions[el] * phases[f"solid_{el}"]["H_sem"]) ** 2 for el in elements))
+    mass = mean_atomic_mass(fractions)
+    v_solid = sum(fractions[el] * phases[f"solid_{el}"]["volume_per_atom_A3"] for el in elements)
+    rho_solid = mass / v_solid * AMU_PER_A3_TO_G_PER_CM3
+    rho_liquid = mass / phases["liquid_alloy"]["volume_per_atom_A3"] * AMU_PER_A3_TO_G_PER_CM3
+    to_j_per_kg = EV_TO_J * N_A / (mass / 1000.0)
+    l_kg = dh * to_j_per_kg
+    result = {"mode": "alloy-latent", "composition_at": fractions, "composition_spec": s.composition,
+              "phases": phases, "delta_H_eV_per_atom": dh, "density_g_cm3": {"solid_mixture": rho_solid,
+                                                                             "liquid": rho_liquid},
+              "latent_heat_J_per_L_solid": l_kg * rho_solid,  # (J/kg) x (g/cm3 = kg/L)
+              "flags": ["eutectic_solid_assumed_pure_elements"]}
+    problems = []
+    if phases["liquid_alloy"]["moved_fraction"] < 0.5:
+        problems.append("liquid alloy may have crystallized or never melted (few atoms diffused)")
+    for el in elements:
+        if phases[f"solid_{el}"]["moved_fraction"] > 0.2:
+            problems.append(f"solid {el} may have melted at {t:g} K")
+    if dh <= 0:
+        problems.append("non-positive enthalpy difference")
+    if problems:
+        result.update(status="failed", failure="phase_check", reason="; ".join(problems))
+    else:
+        result.update(status="ok", property="latent_heat", units="J/kg", value=round(l_kg),
+                      uncertainty=round(dh_err * to_j_per_kg))
+    print(f"  dH = {dh:.4f} +/- {dh_err:.4f} eV/atom = {l_kg / 1000:.1f} kJ/kg = {l_kg * rho_solid / 1e6:.0f} MJ/m3; "
+          f"density solid mix {rho_solid:.2f}, liquid {rho_liquid:.2f} g/cm3", flush=True)
+    for name, p in phases.items():
+        print(f"    {name:<14} {p['n_atoms']:4d} atoms  H = {p['H_eV_per_atom']:.4f} eV/atom  "
+              f"moved {p['moved_fraction']:.0%}", flush=True)
+    return result, batch
+
+
 # --------------------------------------------------------------------------- output
 
 
@@ -453,10 +549,15 @@ def post_to_board(args, result: dict, s: Settings, n_atoms: int, run_dir: Path) 
 
 def main() -> None:
     ap = argparse.ArgumentParser(prog="python -m coolorbit.sim.melting", description=__doc__.splitlines()[0])
-    ap.add_argument("mode", choices=["coexistence", "heating", "latent"])
+    ap.add_argument("mode", choices=["coexistence", "heating", "latent", "alloy-latent"])
     g = ap.add_argument_group("structure")
     g.add_argument("--element", help="element symbol for an ASE bulk crystal, e.g. Cu")
-    g.add_argument("--structure", default="fcc", help="ASE bulk structure (fcc, bcc, hcp, diamond, ...)")
+    g.add_argument("--structure", default="fcc",
+                   help="ASE bulk structure (fcc, bcc, hcp, diamond, ...) or 'ref' for the element's real crystal "
+                        "(Ga, In, beta-Sn, Bi, Cu, Al; see coolorbit/sim/alloys.py)")
+    g.add_argument("--composition", help="alloy-latent: e.g. wt:Bi32.5In51Sn16.5 or at:Ga86In14")
+    g.add_argument("--liquid-atoms", type=int, default=500, help="alloy-latent: atoms in the liquid alloy box")
+    g.add_argument("--solid-atoms", type=int, default=300, help="alloy-latent: minimum atoms per element solid")
     g.add_argument("--a", type=float, help="starting lattice constant (A); NPT relaxes it")
     g.add_argument("--structure-file", help="any ASE-readable periodic unit cell instead of --element")
     g.add_argument("--reps", type=int, nargs=3, default=[4, 4, 8], help="supercell repeats; coexistence uses z")
@@ -486,9 +587,14 @@ def main() -> None:
     ap.add_argument("--out", default="runs/melting")
     args = ap.parse_args()
 
-    if not (args.element or args.structure_file) or (args.element and args.a is None):
-        ap.error("give --element with --a, or --structure-file")
-    temps = [args.temperature] if args.mode == "latent" else args.temps
+    if args.mode == "alloy-latent":
+        if not args.composition:
+            ap.error("alloy-latent needs --composition (e.g. wt:Bi32.5In51Sn16.5)")
+    elif not (args.element or args.structure_file):
+        ap.error("give --element (with --a, or --structure ref) or --structure-file")
+    elif args.element and args.structure != "ref" and args.a is None:
+        ap.error("--element needs --a unless --structure ref")
+    temps = [args.temperature] if args.mode in ("latent", "alloy-latent") else args.temps
     if not temps or any(t is None for t in temps):
         ap.error("coexistence/heating need --temps; latent needs --temperature")
     if args.board and not (args.agent and args.candidate_id):
@@ -502,14 +608,21 @@ def main() -> None:
     args.prod_steps = args.prod_steps or (2500 if q else 25000)
 
     t_prep = args.t_prep or float(np.mean(temps))
-    s = Settings(mode=args.mode, label=args.label or (args.element or Path(args.structure_file).stem),
+    default_label = (composition_label(parse_composition(args.composition)) if args.mode == "alloy-latent"
+                     else args.element or Path(args.structure_file).stem)
+    s = Settings(mode=args.mode, label=args.label or default_label,
                  model=args.model, dt_fs=args.dt, temps=[float(t) for t in temps], t_prep=t_prep,
                  t_melt=args.t_melt or 1.6 * t_prep, equil_steps=args.equil_steps, melt_steps=args.melt_steps,
                  quench_steps=args.quench_steps, prod_steps=args.prod_steps, record_every=args.record_every,
                  friction_per_fs=0.01, thermostat_fs=100.0, barostat_fs=1000.0, pe_threshold=args.pe_threshold,
-                 jump_threshold=args.jump_threshold, seed=args.seed, liquid_expansion=args.liquid_expansion)
+                 jump_threshold=args.jump_threshold, seed=args.seed, liquid_expansion=args.liquid_expansion,
+                 composition=args.composition, solid_atoms=args.solid_atoms)
 
-    atoms = build_atoms(args)
+    if s.mode == "alloy-latent":
+        atoms = mixed_alloy_box(parse_composition(args.composition), n_atoms=args.liquid_atoms,
+                                expansion=args.liquid_expansion, seed=args.seed)
+    else:
+        atoms = build_atoms(args)
     flags = domain_flags(atoms, s.dt_fs)
     if s.mode == "coexistence" and args.reps[2] < 2 * max(args.reps[:2]):
         print("WARNING: coexistence works best with the box ~2x longer along z than x/y")
@@ -517,7 +630,9 @@ def main() -> None:
     m = len(s.temps)
     atom_steps = {"coexistence": n * (s.equil_steps + s.melt_steps + s.quench_steps) + m * n * s.prod_steps,
                   "heating": m * n * s.prod_steps,
-                  "latent": n * s.melt_steps + 2 * n * s.prod_steps}[s.mode]
+                  "latent": n * s.melt_steps + 2 * n * s.prod_steps,
+                  "alloy-latent": n * s.melt_steps + (n + (len(parse_composition(s.composition)) * s.solid_atoms
+                                                           if s.composition else 0)) * s.prod_steps}[s.mode]
     print(f"{s.mode}: {n} atoms x {m} system(s); ~{atom_steps / GB10_ATOM_STEPS_PER_S / 60:.0f} min "
           f"at the measured GB10 rate. Flags: {flags or 'none'}", flush=True)
 
@@ -532,7 +647,8 @@ def main() -> None:
     model = load_model(s.model)
     rows: list[dict] = []
     t0 = time.perf_counter()
-    runner = {"coexistence": run_coexistence, "heating": run_heating, "latent": run_latent}[s.mode]
+    runner = {"coexistence": run_coexistence, "heating": run_heating, "latent": run_latent,
+              "alloy-latent": run_alloy_latent}[s.mode]
     result, final = runner(atoms, model, s, rows)
     result["wall_s"] = round(time.perf_counter() - t0, 1)
     result["flags"] = sorted(set(result.get("flags", [])) | set(flags))

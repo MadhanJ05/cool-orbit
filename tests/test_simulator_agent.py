@@ -199,6 +199,91 @@ class SimulatorAgentTest(unittest.TestCase):
         self.assertNotIn(melt.artifact_id, latent.parent_artifact_ids)
         self.assertEqual(derive_status(snap, melt, RULES).superseded_by, [])
 
+    def test_alloy_latent_heat_request_becomes_an_alloy_job(self) -> None:
+        self.board.post("scout_alloys", "candidate",
+                        {"name": "Field's metal", "family": "low-melting alloy", "tier": "trust",
+                         "structure_source": "alloy:wt:Bi32.5In51Sn16.5"},
+                        needs=[{"artifact_type": "property_result", "property": "latent_heat",
+                                "query": "latent_heat of Field's metal", "rationale": "unmeasured-ish alloy latent heat",
+                                "temperature_K": 335.0, "preset": "quick"}])
+        latent_ok = {"status": "ok", "property": "latent_heat", "value": 3.0e4, "uncertainty": 2.0e3, "units": "J/kg"}
+        runner = FakeRunner(latent_ok)
+        self.assertTrue(self.agent(runner).step())
+        job = runner.jobs[0]
+        args = job.cli_args(Path("x"))
+        self.assertEqual(job.mode, "alloy-latent")
+        self.assertEqual(args[:3], ["alloy-latent", "--composition", "wt:Bi32.5In51Sn16.5"])
+        self.assertIn("--temperature", args)
+        (res,) = self.board.snapshot().of_type("property_result")
+        self.assertEqual(res.payload["method"]["protocol"], "NPT enthalpy difference (liquid alloy vs pure-element solids)")
+
+    def test_alloy_melting_point_is_refused_honestly(self) -> None:
+        self.board.post("scout_alloys", "candidate",
+                        {"name": "EGaIn", "family": "low-melting alloy", "tier": "trust",
+                         "structure_source": "alloy:wt:Ga75.5In24.5"},
+                        needs=[{**REQUEST, "query": "melting_point of EGaIn"}])
+        runner = FakeRunner()
+        self.assertTrue(self.agent(runner).step())
+        self.assertEqual(runner.jobs, [])
+        (report,) = self.board.snapshot().of_type("run_report")
+        self.assertEqual(report.payload["status"], "refused")
+        self.assertIn("phase-diagram", report.payload["reason"])
+
+    def test_reference_crystal_source(self) -> None:
+        self.candidate(source="ref:Ga", need={**REQUEST, "temps_K": [280, 295, 310, 325]})
+        runner = FakeRunner(OK)
+        self.assertTrue(self.agent(runner).step())
+        args = runner.jobs[0].cli_args(Path("x"))
+        self.assertIn("ref", args)
+        self.assertEqual(args[args.index("--element") + 1], "Ga")
+
+    def test_brev_runner_runs_the_pushed_commit_and_copies_results_back(self) -> None:
+        """Fake `git` and `brev` (no network, no cost): checks the remote command and the result round trip."""
+        import json
+        from types import SimpleNamespace
+
+        from coolorbit.sim.simulator_agent import REPO_ROOT, BrevRunner
+
+        calls = []
+
+        def fake_run(argv, **kw):
+            calls.append(argv)
+            if argv[0] == "git" and "status" in argv:
+                return SimpleNamespace(stdout="", stderr="", returncode=0)
+            if argv[0] == "git" and "rev-parse" in argv:
+                return SimpleNamespace(stdout="abc123\n", stderr="", returncode=0)
+            if argv[1] == "exec":
+                return SimpleNamespace(stdout="REMOTE_EXIT=0 REMOTE_DIR=/root/cool-orbit/runs/remote/x\n",
+                                       stderr="", returncode=0)
+            if argv[1] == "copy":  # pretend the remote run dir arrived locally
+                run_dir = Path(argv[3]) / "x" / "20261031T000000Z_Cu_coexistence"
+                run_dir.mkdir(parents=True)
+                (run_dir / "result.json").write_text(json.dumps(OK))
+                (run_dir / "settings.json").write_text(json.dumps({"settings": {}, "n_atoms": 512}))
+                return SimpleNamespace(stdout="", stderr="", returncode=0)
+            raise AssertionError(argv)
+
+        from coolorbit.sim.simulator_agent import build_job
+
+        self.candidate()
+        (on,) = self.board.open_needs()
+        job = build_job(self.board.snapshot(), on)
+        # As a file: structure would be: a local absolute path that must become repo-relative on the instance.
+        job.structure_args = ["--structure-file", str(REPO_ROOT / "data" / "structures" / "x.cif")]
+        result, settings, run_dir = BrevRunner("h100-test", brev="brev", run=fake_run)(
+            job, Path(self._tmp.name) / "out", 60)
+        exec_cmd = next(c for c in calls if c[1] == "exec")[3]
+        self.assertIn("git checkout -q --detach abc123", exec_cmd)
+        self.assertNotIn(str(REPO_ROOT) + "/", exec_cmd)  # no local absolute paths sent to the instance
+        self.assertEqual(result["value"], OK["value"])
+        self.assertEqual(settings["settings"]["remote"], {"instance": "h100-test", "commit": "abc123"})
+
+    def test_job_size_window_splits_work_between_agents(self) -> None:
+        self.candidate()  # quick Cu job, ~5 GB10-minutes
+        big_only = SimulatorAgent(self.board, "simulator_brev", runner=FakeRunner(), min_minutes=30)
+        self.assertEqual(big_only.pending(), [])
+        self.assertEqual(len(self.agent(FakeRunner()).pending()), 1)
+
     def test_organics_are_out_of_domain(self) -> None:
         self.assertIsNotNone(ood_reason({"C", "H"}))
         self.assertIsNotNone(ood_reason({"C", "H", "O"}))

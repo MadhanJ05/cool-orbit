@@ -25,6 +25,7 @@ import argparse
 import json
 import math
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -104,7 +105,7 @@ class Job:
     def cli_args(self, out_dir: Path) -> list[str]:
         args = [self.mode, *self.structure_args, "--reps", *map(str, self.reps), "--dt", f"{self.dt_fs:g}",
                 "--out", str(out_dir), "--label", self.label()]
-        if self.mode == "latent":
+        if self.mode in ("latent", "alloy-latent"):
             args += ["--temperature", f"{self.temps[0]:g}"]
         else:
             args += ["--temps", *(f"{t:g}" for t in self.temps)]
@@ -155,10 +156,30 @@ def find_rerun_target(snap: BoardSnapshot, art: Artifact, prop: str) -> Optional
 
 
 def parse_structure(source: Optional[str]):
-    """``ase:<El>:<structure>:<a>`` or ``file:<repo-relative path>`` -> (melting CLI args, unit cell Atoms)."""
+    """Structure source -> (melting CLI args, Atoms, kind).
+
+    ``ase:<El>:<structure>:<a>``, ``ref:<El>`` (real crystal of Ga, In, beta-Sn, Bi, Cu, Al),
+    ``alloy:wt:Bi32.5In51Sn16.5`` / ``alloy:at:...`` (Atoms = the mixed liquid-start box), or
+    ``file:<repo-relative path>``.
+    """
     if not source:
         raise JobError("the candidate has no structure_source")
     kind, _, rest = source.partition(":")
+    if kind == "ref":
+        from coolorbit.sim.alloys import element_crystal
+
+        try:
+            return ["--element", rest, "--structure", "ref"], element_crystal(rest), kind
+        except KeyError as exc:
+            raise JobError(str(exc)) from exc
+    if kind == "alloy":
+        from coolorbit.sim.alloys import mixed_alloy_box, parse_composition
+
+        try:
+            fractions = parse_composition(rest)
+        except ValueError as exc:
+            raise JobError(str(exc)) from exc
+        return ["--composition", rest], mixed_alloy_box(fractions, n_atoms=500), kind
     if kind == "ase":
         parts = rest.split(":")
         if len(parts) != 3:
@@ -170,15 +191,16 @@ def parse_structure(source: Optional[str]):
             atoms = bulk(el, structure, a=float(a), cubic=True)
         except Exception as exc:  # unknown element/structure, non-numeric a
             raise JobError(f"ASE could not build {source!r}: {exc}") from exc
-        return ["--element", el, "--structure", structure, "--a", a], atoms
+        return ["--element", el, "--structure", structure, "--a", a], atoms, kind
     if kind == "file":
         path = (REPO_ROOT / rest).resolve()
         if not path.is_relative_to(REPO_ROOT) or not path.is_file():
             raise JobError(f"structure file {rest!r} not found inside the repo (commit it under data/structures/)")
         from ase.io import read
 
-        return ["--structure-file", str(path)], read(path)
-    raise JobError(f"unsupported structure_source {source!r}; use ase:<El>:<structure>:<a> or file:<repo path>")
+        return ["--structure-file", str(path)], read(path), kind
+    raise JobError(f"unsupported structure_source {source!r}; use ase:<El>:<structure>:<a>, ref:<El>, "
+                   "alloy:wt:<composition> or file:<repo path>")
 
 
 def ood_reason(elements: set[str]) -> Optional[str]:
@@ -199,8 +221,20 @@ def build_job(snap: BoardSnapshot, on: OpenNeed) -> Optional[Job]:
     cand = find_candidate(snap, on.artifact)
     if cand is None:
         raise JobError("could not find the candidate this request is about")
-    structure_args, unit = parse_structure(cand.payload.get("structure_source"))
+    structure_args, unit, kind = parse_structure(cand.payload.get("structure_source"))
     elements = set(unit.get_chemical_symbols())
+    if kind == "alloy":
+        if prop != "latent_heat":
+            raise JobError("alloy melting temperatures are not computed here (that needs phase-diagram methods); "
+                           "request latent_heat at the alloy's measured melting temperature instead")
+        if need.get("temperature_K") is None:
+            raise JobError("an alloy latent_heat request needs temperature_K (the measured melting temperature)")
+        n_solid = 300 * len(elements)
+        return Job(target=on.artifact, need_index=on.index, need=need, candidate=cand, property=prop,
+                   mode="alloy-latent", temps=[float(need["temperature_K"])], reps=[1, 1, 1],
+                   dt_fs=float(need.get("dt_fs") or 2.0), preset=need.get("preset", "production"),
+                   prod_steps=need.get("prod_steps"), attempt=int(need.get("attempt", 1)),
+                   structure_args=structure_args, n_atoms=len(unit) + n_solid, elements=elements)
     reason = ood_reason(elements)
     if reason:
         alt = {k: v for k, v in need.items() if k not in ("attempt",)}
@@ -307,13 +341,67 @@ def subprocess_runner(job: Job, out_dir: Path, timeout_s: float) -> tuple[dict, 
     return result, settings, run_dir
 
 
+class BrevRunner:
+    """Run a job on an existing Brev GPU instance at the exact local commit; copy results back.
+
+    Never creates, stops or deletes instances (those cost money and are manual, approved steps). The instance
+    must have been prepared with scripts/brev/setup_remote.sh, and the local commit must be pushed (the
+    instance checks it out by hash, so the remote run is reproducible). ``run`` is injectable for tests.
+    """
+
+    def __init__(self, instance: str, brev: str = str(Path.home() / ".local/bin/brev"),
+                 remote_dir: str = "~/cool-orbit", run: Callable = subprocess.run) -> None:
+        self.instance, self.brev, self.remote_dir, self._run = instance, brev, remote_dir, run
+
+    def _exec(self, command: str, timeout_s: float):
+        return self._run([self.brev, "exec", self.instance, command], capture_output=True, text=True,
+                         timeout=timeout_s)
+
+    def __call__(self, job: Job, out_dir: Path, timeout_s: float) -> tuple[dict, dict, Path]:
+        dirty = self._run(["git", "-C", str(REPO_ROOT), "status", "--porcelain", "coolorbit"],
+                          capture_output=True, text=True).stdout.strip()
+        if dirty:
+            raise RuntimeError("coolorbit/ has uncommitted changes; commit and push before running on Brev")
+        sha = self._run(["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"], capture_output=True,
+                        text=True).stdout.strip()
+        remote_out = f"runs/remote/{out_dir.name}"
+        # Repo-relative paths only: a local absolute path (file: structures) means nothing on the instance.
+        args = [a.replace(str(REPO_ROOT) + "/", "") for a in job.cli_args(Path(remote_out))]
+        cmd = (f"cd {self.remote_dir} && git fetch -q origin && git checkout -q --detach {sha} && mkdir -p "
+               f"{remote_out} && .venv/bin/python -m coolorbit.sim.melting {shlex.join(args)} "
+               f"> {remote_out}/agent_job.log 2>&1; echo REMOTE_EXIT=$? REMOTE_DIR=$(pwd)/{remote_out}")
+        proc = self._exec(cmd, timeout_s)
+        tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
+        fields = dict(f.split("=", 1) for f in tail[0].split() if "=" in f)
+        if "REMOTE_DIR" not in fields:
+            raise RuntimeError(f"brev exec on {self.instance} failed: {(proc.stderr or proc.stdout)[-300:]}")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        copy = self._run([self.brev, "copy", f"{self.instance}:{fields['REMOTE_DIR']}/", str(out_dir)],
+                         capture_output=True, text=True, timeout=600)
+        if copy.returncode != 0:
+            raise RuntimeError(f"brev copy failed: {(copy.stderr or copy.stdout)[-300:]}")
+        runs = sorted(p for p in out_dir.rglob("result.json"))
+        if fields.get("REMOTE_EXIT") != "0" or not runs:
+            raise RuntimeError(f"remote melting run exited {fields.get('REMOTE_EXIT')}; see {out_dir}/agent_job.log")
+        run_dir = runs[-1].parent
+        result = json.loads((run_dir / "result.json").read_text())
+        settings = json.loads((run_dir / "settings.json").read_text())
+        result.setdefault("flags", [])
+        settings["settings"]["remote"] = {"instance": self.instance, "commit": sha}
+        return result, settings, run_dir
+
+
 class SimulatorAgent:
     def __init__(self, board: Board, name: str = "simulator_gb10", runner: Runner = subprocess_runner,
-                 runs_root: Optional[Path] = None) -> None:
+                 runs_root: Optional[Path] = None, min_minutes: float = 0.0,
+                 max_minutes: float = float("inf")) -> None:
         self.board = board
         self.name = name
         self.runner = runner
         self.runs_root = runs_root or REPO_ROOT / "runs" / "agent" / board.root.name
+        # Job-size window (GB10-equivalent minutes): lets a GB10 agent and a Brev agent split the queue,
+        # coordinating only through claims on the board.
+        self.min_minutes, self.max_minutes = min_minutes, max_minutes
 
     def pending(self) -> list[tuple[OpenNeed, "Job | JobError"]]:
         """Unclaimed needs addressed to us, parsed (no claims, no side effects)."""
@@ -325,7 +413,7 @@ class SimulatorAgent:
             except JobError as err:
                 out.append((on, err))
                 continue
-            if job is not None:
+            if job is not None and self.min_minutes <= job.estimate_minutes() < self.max_minutes:
                 out.append((on, job))
         return out
 
@@ -398,8 +486,13 @@ def main() -> None:
     ap.add_argument("--once", action="store_true", help="handle at most one request, then exit")
     ap.add_argument("--dry-run", action="store_true", help="list the requests it would take; claim nothing")
     ap.add_argument("--poll", type=float, default=30.0, help="seconds between board scans when idle")
+    ap.add_argument("--brev-instance", help="run jobs on this existing, prepared Brev instance (never created here)")
+    ap.add_argument("--min-minutes", type=float, default=0.0, help="only take jobs estimated >= this (GB10 minutes)")
+    ap.add_argument("--max-minutes", type=float, default=float("inf"), help="only take jobs estimated < this")
     args = ap.parse_args()
-    agent = SimulatorAgent(Board(args.board), args.agent)
+    runner = BrevRunner(args.brev_instance) if args.brev_instance else subprocess_runner
+    agent = SimulatorAgent(Board(args.board), args.agent, runner=runner,
+                           min_minutes=args.min_minutes, max_minutes=args.max_minutes)
 
     if args.dry_run:
         pending = agent.pending()
