@@ -397,6 +397,16 @@ class EvalTaskTest(BoardCase):
         self.assertIn(cands[lat.artifact_id].artifact_id, asked[0].parent_artifact_ids)
         self.assertEqual(asked[0].needs[0]["temperature_K"], 331.0)
 
+    def test_sentence_initial_symbol_is_not_the_material(self):
+        from coolorbit.agents.scout import load_seeds
+        seeds = load_seeds()
+        t = self.task("t_cu", "self_diffusion",
+                      "In a perfect copper crystal, compute the self-diffusion coefficient at 800 K.")
+        s = Scout(self.board, "scout_metals", seeds=seeds, calibration=CAL, rules=TRUST, eval_only=True, **self.kw)
+        self.assertEqual(s.drain(), 1)
+        [c] = [c for c in self.board.snapshot().of_type("candidate") if t.artifact_id in c.parent_artifact_ids]
+        self.assertEqual(c.payload["name"], "Cu")  # copper, not indium
+
     def test_discovery_budget_ignores_eval_answers(self):
         self.task("t1", "melting_point", "melting point of testium")
         s = Scout(self.board, "scout_test", seeds=self.SEEDS, calibration=CAL, rules=TRUST, **self.kw)
@@ -419,6 +429,17 @@ class FairnessTest(unittest.TestCase):
         self.assertIsNotNone(mentions("Find the melting point of Aluminum", "aluminum"))
         self.assertEqual(material_from_text("Compute the self-diffusion coefficient of liquid lithium at 800 K."), "Li")
         self.assertEqual(material_from_text("Li-ion diffusion in pristine crystalline LiF"), "LiF")
+        # Sentence-initial element symbols that are English words ("In", "As", "At", ...) are the word.
+        self.assertEqual(material_from_text("In a perfect copper crystal, compute the self-diffusion of Cu."), "Cu")
+        self.assertEqual(material_from_text("In a perfect copper crystal, compute the vacancy diffusion."), "Cu")
+        self.assertEqual(material_from_text("At 800 K, compute the diffusion of liquid lithium."), "Li")
+        self.assertEqual(material_from_text("As a control, find the lattice constant of silicon. I expect 5.43 A."), "Si")
+        self.assertEqual(material_from_text("Find the melting point of In."), "In")       # not sentence-initial
+        self.assertEqual(material_from_text("Task 2: In a box of Ga, melt it."), "Ga")
+        self.assertEqual(material_from_text("In melting point, two-phase coexistence."), "In")  # nothing else named
+        self.assertIsNone(mentions("In a perfect copper crystal", "In"))
+        self.assertEqual(mentions("In a perfect copper crystal", "In", allow_weak=True), 0)
+        self.assertEqual(mentions("In a melt of In and Ga", "In"), 13)
 
 
 class LibrarianPropertyTest(BoardCase):

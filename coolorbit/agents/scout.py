@@ -48,11 +48,26 @@ def seed_names(seed: dict) -> set[str]:
     return {norm(n) for n in [seed["name"], *seed.get("aliases", [])]}
 
 
-def mentions(text: str, name: str) -> Optional[int]:
-    """Position of ``name`` as a whole word in ``text`` (symbols/formulas case-sensitive), else None."""
+# Element symbols that are also English words. Capitalised at the start of a sentence ("In a perfect copper
+# crystal...", "As the box grows...", "At 800 K...") they are almost always the word, and "I" is the pronoun
+# anywhere, so these matches count only when the text names nothing else.
+WORD_SYMBOLS = {"In", "As", "At", "Be", "He", "No", "Am", "I", "U"}
+_SENTENCE_START_RE = re.compile(r"(?:^|[.!?:;\n])[\s\"'(\[]*$")
+
+
+def weak_match(text: str, token: str, pos: int) -> bool:
+    """True if ``token`` at ``pos`` is probably an English word rather than an element symbol."""
+    return token in WORD_SYMBOLS and (token == "I" or bool(_SENTENCE_START_RE.search(text[:pos])))
+
+
+def mentions(text: str, name: str, allow_weak: bool = False) -> Optional[int]:
+    """Position of ``name`` as a whole word in ``text`` (symbols/formulas case-sensitive), else None.
+    A symbol that is probably an English word there (``weak_match``) is skipped unless ``allow_weak``."""
     flags = 0 if SYMBOL_RE.match(name) else re.IGNORECASE
-    m = re.search(r"(?<!\w)" + re.escape(name) + r"(?!\w)", text, flags)
-    return m.start() if m else None
+    for m in re.finditer(r"(?<!\w)" + re.escape(name) + r"(?!\w)", text, flags):
+        if allow_weak or not weak_match(text, m.group(0), m.start()):
+            return m.start()
+    return None
 
 
 def periodic_table() -> tuple[set[str], dict[str, str]]:
@@ -69,14 +84,15 @@ def material_from_text(text: str) -> Optional[str]:
     else an element name (silicon -> Si). Generic parsing only; None if nothing is recognised."""
     symbols, names = periodic_table()
     text = re.sub(r"\d+(?:\.\d+)?\s*(?:K|°C|C|eV|GPa|ps|ns|fs)\b", " ", text)  # "800 K" is a temperature
-    valid = [t for t in FORMULA_TOKEN_RE.findall(text)
-             if len(t) <= 12 and all(e in symbols for e in re.findall(r"[A-Z][a-z]?", t))]
+    tokens = [(m.group(1), m.start()) for m in FORMULA_TOKEN_RE.finditer(text)
+              if len(m.group(1)) <= 12 and all(e in symbols for e in re.findall(r"[A-Z][a-z]?", m.group(1)))]
+    valid = [(t, pos) for t, pos in tokens if not weak_match(text, t, pos)]
     if valid:
-        return max(valid, key=lambda t: (len(re.findall(r"[A-Z]", t)), -text.find(t)))
+        return max(valid, key=lambda tp: (len(re.findall(r"[A-Z]", tp[0])), -tp[1]))[0]
     for word in re.findall(r"[a-z]+", text.lower()):
         if word in names:
             return names[word]
-    return None
+    return tokens[0][0] if tokens else None  # only a sentence-initial "In ..." etc.: take it as the element
 
 
 def state_from_text(text: str) -> Optional[str]:
@@ -147,16 +163,19 @@ class Scout(Agent):
 
     def _owner(self, text: str) -> Optional[tuple[str, dict]]:
         """(scout name, seed) of the enabled family Scout whose seed is named earliest in the task text."""
-        best = None
-        for scout, cfg in self.all_seeds.items():
-            if cfg.get("general") or not cfg.get("enabled", True):
-                continue
-            for seed in cfg["candidates"]:
-                for n in [seed["name"], *seed.get("aliases", [])]:
-                    pos = mentions(text, n)
-                    if pos is not None and (best is None or pos < best[0]):
-                        best = (pos, scout, seed)
-        return (best[1], best[2]) if best else None
+        for allow_weak in (False, True):  # "In a perfect copper crystal": copper, not indium
+            best = None
+            for scout, cfg in self.all_seeds.items():
+                if cfg.get("general") or not cfg.get("enabled", True):
+                    continue
+                for seed in cfg["candidates"]:
+                    for n in [seed["name"], *seed.get("aliases", [])]:
+                        pos = mentions(text, n, allow_weak)
+                        if pos is not None and (best is None or pos < best[0]):
+                            best = (pos, scout, seed)
+            if best:
+                return best[1], best[2]
+        return None
 
     # ------------------------------------------------------------------ work
 
