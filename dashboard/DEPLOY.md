@@ -6,15 +6,14 @@ project `scienceclaw26bos-3013`, region `us-east1`, bucket `gs://coolorbit-dash-
 
 **What the event's GCP setup allowed (and what we did):** the org blocks service-account key creation
 (`constraints/iam.disableServiceAccountKeyCreation`), and the lab account can't grant impersonation on a
-service account (`iam.serviceAccounts.setIamPolicy` denied). So the GB10 pushes **as the team lab account**
-(`gcloud auth login --no-browser`), with `push_exports --via gcloud`; least privilege then rests on the lab
-account's own (event-restricted) roles. The `dashboard-push` service account exists, has no keys, and is unused.
-Cloud Run reads with `dashboard-run` (objectViewer on this bucket only), as designed.
+service account (`iam.serviceAccounts.setIamPolicy` denied). Bucket-level IAM does work, so the GB10 pushes as
+**Madhan's own lab account `devstar3007@gcplab.me`, which has `roles/storage.objectAdmin` on this bucket only** (no
+project roles in `scienceclaw26bos-3013`), with `push_exports --via gcloud`. The `dashboard-push` service account
+exists, has no keys, and is unused. Cloud Run reads with `dashboard-run` (objectViewer on this bucket only).
 
 ## GB10, as actually set up
 ```bash
-gcloud auth login --no-browser          # team lab account; credentials stay in ~/.config/gcloud on the GB10
-gcloud config set project scienceclaw26bos-3013
+gcloud auth login --no-browser          # devstar3007@gcplab.me (bucket-only write access)
 python -m dashboard.push_exports --bucket coolorbit-dash-scienceclaw26bos-3013 \
     --board boards/science-1 --board boards/eval/<run> --every 180
 ```
