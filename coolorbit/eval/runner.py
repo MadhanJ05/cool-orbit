@@ -47,6 +47,7 @@ from coolorbit import llm_keys, llm_roles
 from coolorbit.board import Board
 from coolorbit.board._scienceclaw import REPO_ROOT
 from coolorbit.board.schema import NEGATIVE_VERDICTS
+from coolorbit.eval import integrity
 from coolorbit.eval.metrics import COSTS_FILE
 from coolorbit.eval.sandbox import (CALIBRATION_FILE, CONTAINER_CALIBRATION, DEFAULT_TAG, DockerSandbox,
                                     board_wrapper, container_name)
@@ -132,6 +133,7 @@ class SessionResult:
     unpriced_models: Optional[list] = None      # models without a price in llm_roles.json (cross-check only)
     usd_check: Optional[float] = None           # llm_roles.cost_usd per model: cross-check, never charged
     usd_source: Optional[str] = None            # what `usd` (the charged figure) is: reported | session_cap
+    warmup: Optional[dict] = None               # COOLORBIT_WARMUP report (docker warm-up), outside the limits
 
 
 class Executor(Protocol):
@@ -249,7 +251,8 @@ class ClaudeCodeExecutor:
         inner = self.command(prompt, budget)
         if self.sandbox is None:
             return inner
-        return self.sandbox.run_command(inner, work_dir=cwd, board_root=board_root, name=name)
+        return self.sandbox.run_command(inner, work_dir=cwd, board_root=board_root, name=name,
+                                        session_timeout_s=budget.timeout_s)
 
     def run(self, prompt: str, *, cwd: Path, budget: Budget, transcript_path: Path,
             board_root: Path) -> SessionResult:
@@ -258,13 +261,16 @@ class ClaudeCodeExecutor:
         cmd = self.full_command(prompt, budget, cwd=cwd, board_root=board_root, name=name)
         start = time.monotonic()
         timed_out, code, error = False, None, None
+        # In docker mode the agent's limit is enforced inside the container (after any warm-up); the client
+        # timeout is only a backstop that also covers the warm-up.
+        outer = self.sandbox.outer_timeout_s(budget.timeout_s) if self.sandbox is not None else budget.timeout_s
         with open(transcript_path, "w", encoding="utf-8") as log:
             try:
                 proc = subprocess.run(cmd, cwd=cwd, stdout=log, stderr=subprocess.STDOUT,
-                                      stdin=subprocess.DEVNULL, timeout=budget.timeout_s, env=self.env_provider())
+                                      stdin=subprocess.DEVNULL, timeout=outer, env=self.env_provider())
                 code = proc.returncode
             except subprocess.TimeoutExpired:
-                timed_out, error = True, f"killed after {budget.timeout_s:g} s wall-clock limit"
+                timed_out, error = True, f"killed after {outer:g} s wall-clock limit"
                 if self.sandbox is not None:
                     self.sandbox.kill(name)  # the client dying does not stop the container
             except OSError as exc:
@@ -274,8 +280,24 @@ class ClaudeCodeExecutor:
         final = _parse_stream(text)
         if final.get("is_error") and not error:
             error = str(final.get("subtype") or "session reported an error")
+        if not final and code in (124, 137) and self.sandbox is not None and not timed_out:
+            timed_out, error = True, f"killed at the {budget.timeout_s:g} s session limit (inside the container)"
+        warm = parse_warmup(text)
+        if warm and warm.get("seconds") is not None:
+            wall = max(0.0, wall - float(warm["seconds"]))  # the agent's own time excludes the warm-up
         return SessionResult(exit_code=code, timed_out=timed_out, wall_s=wall, error=error, transcript=text,
-                             **_usage_fields(final))
+                             warmup=warm, **_usage_fields(final))
+
+
+def parse_warmup(text: str) -> Optional[dict]:
+    """The ``COOLORBIT_WARMUP {json}`` line warmup.py prints inside the container, if any."""
+    for line in text.splitlines():
+        if line.startswith("COOLORBIT_WARMUP "):
+            try:
+                return json.loads(line[len("COOLORBIT_WARMUP "):])
+            except json.JSONDecodeError:
+                return {"ok": False, "error": "unparseable warm-up report"}
+    return None
 
 
 # ------------------------------------------------------------------ sandbox + prompts
@@ -368,6 +390,7 @@ class SessionRecord:
     transcript: str
     result: dict
     contamination: list[str] = field(default_factory=list)
+    integrity: list[str] = field(default_factory=list)   # board append-only violations (coolorbit/eval/integrity.py)
 
 
 def _log_cost(board_root: Path, task_id: str, agent: str, res: SessionResult) -> None:
@@ -422,8 +445,13 @@ class ArmRunner:
         session_budget = self._next_session_budget()
         self.log(f"  [{task.id}] {role}: cap ${session_budget.usd:.3f} of ${self._remaining():.3f} left "
                  f"(task budget ${self.budget.usd:g})")
+        before = integrity.snapshot(board_root / "artifacts")
         res = self.executor.run(prompt, cwd=sandbox, budget=session_budget, transcript_path=transcript,
                                 board_root=board_root)
+        violations = integrity.check(before, board_root / "artifacts", agent)
+        if violations:
+            where = integrity.save_evidence(before, board_root, f"try{self._try}-{role}-{attempt}", violations)
+            self.log(f"  [{task.id}] BOARD INTEGRITY: {len(violations)} violation(s) by {agent}; evidence in {where}")
         res.key_name = key_name
         price_session(res, self.budget.model, cap_usd=session_budget.usd)
         self._spent += res.usd or 0.0  # Claude Code's total_cost_usd, or the session cap if it left no report
@@ -435,7 +463,8 @@ class ArmRunner:
             self.log(f"  [{task.id}] WARNING: transcript mentions {hits} (possible contamination)")
         data = asdict(res)
         data.pop("transcript")
-        return res, SessionRecord(role, agent, str(sandbox), str(transcript.relative_to(board_root)), data, hits)
+        return res, SessionRecord(role, agent, str(sandbox), str(transcript.relative_to(board_root)), data, hits,
+                                  violations)
 
     def _remaining(self) -> float:
         return max(0.0, self.budget.usd - self._spent)
@@ -541,6 +570,8 @@ class ArmRunner:
                   "sandbox": "docker" if self.docker else "none",
                   "sessions": [asdict(s) for s in sessions],
                   "infra_failed_attempts": list(infra_failed),
+                  "integrity_violations": [f"{s.role}: {v}" for s in sessions for v in s.integrity],
+                  "warmup": [s.result.get("warmup") for s in sessions],
                   "contamination": sorted({h for s in sessions for h in s.contamination})}
         record_path.write_text(json.dumps(record, indent=1), encoding="utf-8")
         return record
@@ -581,6 +612,11 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--image", default=DEFAULT_TAG, help="sandbox image tag")
     ap.add_argument("--no-gpus", action="store_true", help="omit --gpus all (laptop plumbing tests only)")
     ap.add_argument("--memory", help="container memory limit, e.g. 64g")
+    ap.add_argument("--no-warmup", action="store_true",
+                    help="skip the in-container MACE warm-up (weights + kernels) before each docker session")
+    ap.add_argument("--warmup-timeout-min", type=float, default=15.0, help="limit for the warm-up (not the agent's time)")
+    ap.add_argument("--ro-mount", action="append", default=[], metavar="HOST:CONTAINER",
+                    help="extra read-only mount, e.g. a MACE weights cache (repeatable)")
     ap.add_argument("--tasks-file", help="task set JSON (default: coolorbit/eval/tasks.json)")
     ap.add_argument("--dry-run", action="store_true", help="print the plan and the first prompt; run nothing")
     args = ap.parse_args(argv)
@@ -601,7 +637,11 @@ def main(argv: Optional[list[str]] = None) -> None:
                     timeout_s=args.timeout_min * 60, model=args.model or cfg["model"],
                     effort=args.effort or cfg["effort"])
     docker = args.sandbox == "docker"
-    sandbox = DockerSandbox(args.image, gpus=not args.no_gpus, memory=args.memory) if docker else None
+    ro = [tuple(m.split(":", 1)) for m in args.ro_mount]
+    if any(len(m) != 2 for m in ro):
+        ap.error("--ro-mount must be HOST:CONTAINER")
+    sandbox = DockerSandbox(args.image, gpus=not args.no_gpus, memory=args.memory, warmup=not args.no_warmup,
+                            warmup_timeout_s=args.warmup_timeout_min * 60, ro_mounts=ro) if docker else None
     executor = ClaudeCodeExecutor(args.claude_bin, sandbox=sandbox)
     runner = ArmRunner(args.arm, args.run, args.repeat, executor, budget, boards_root=Path(args.boards_root),
                        work_root=Path(args.work_root), skills_dir=Path(args.skills) if args.skills else None,
@@ -623,7 +663,8 @@ def main(argv: Optional[list[str]] = None) -> None:
                                                   model=budget.model, effort=budget.effort))
         if sandbox:
             cmd = sandbox.run_command(cmd, work_dir=runner.work_dir / "<task>" / "<role>-<n>",
-                                      board_root=runner.repeat_dir / "<task>", name="coolorbit-<...>")
+                                      board_root=runner.repeat_dir / "<task>", name="coolorbit-<...>",
+                                      session_timeout_s=budget.timeout_s)
         print("command:", " ".join(cmd))
         print("\n--- first prompt ---\n" + render_prompt(prompt_file, task_prompt=tasks[0].prompt,
               calibration_path=CONTAINER_CALIBRATION if docker else "<sandbox>/calibration/tier1.json",

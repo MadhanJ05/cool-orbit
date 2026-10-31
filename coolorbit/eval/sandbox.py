@@ -31,7 +31,7 @@ import sys
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 
 from coolorbit.board._scienceclaw import REPO_ROOT, SCIENCECLAW_DIR
 
@@ -59,6 +59,7 @@ def stage_context(dest: Path, skills_dir: Path = DEFAULT_SKILLS) -> Path:
         shutil.copy2(REPO_ROOT / rel, tool / rel)
     shutil.copy2(Path(__file__).with_name("board_tool.py"), tool / "board_tool.py")
     shutil.copy2(DOCKER_DIR / "entrypoint.sh", tool / "entrypoint.sh")
+    shutil.copy2(DOCKER_DIR / "warmup.py", tool / "warmup.py")
     sc = tool / "scienceclaw" / "artifacts"
     sc.mkdir(parents=True)
     shutil.copy2(SCIENCECLAW_DIR / "artifacts" / "artifact.py", sc / "artifact.py")
@@ -122,9 +123,26 @@ class DockerSandbox:
 
     def __init__(self, tag: str = DEFAULT_TAG, *, gpus: bool = True, docker: str = "docker",
                  memory: Optional[str] = None, network: str = "bridge",
-                 calibration: Optional[Path] = CALIBRATION_FILE) -> None:
+                 calibration: Optional[Path] = CALIBRATION_FILE, warmup: bool = False,
+                 warmup_timeout_s: float = 900.0, ro_mounts: Iterable[tuple[str | Path, str]] = ()) -> None:
+        """``warmup``: run warmup.py (MACE weights + kernels) inside the container before the agent, outside its
+        time limit; ``ro_mounts``: extra read-only (host, container) mounts, e.g. a model-weights cache."""
         self.tag, self.gpus, self.docker, self.memory, self.network = tag, gpus, docker, memory, network
         self.calibration = Path(calibration) if calibration else None
+        self.warmup, self.warmup_timeout_s = warmup, float(warmup_timeout_s)
+        self.ro_mounts = [(Path(h), str(c)) for h, c in ro_mounts]
+        for host, target in self.ro_mounts:
+            why = _forbidden_mount(host)
+            if why:
+                raise ValueError(f"refusing read-only mount {host}: {why}")
+            if not target.startswith("/") or any(target == t or target.startswith(t + "/") or t.startswith(target + "/")
+                                                 for t in ("/work", "/board", "/data/calibration", TOOL_DIR)):
+                raise ValueError(f"read-only mount target {target!r} must be absolute and not overlap the "
+                                 "work dir, board, calibration file or board tool")
+
+    def outer_timeout_s(self, session_timeout_s: float) -> float:
+        """Backstop for the docker client: warm-up limit + session limit + grace."""
+        return session_timeout_s + (self.warmup_timeout_s + 30.0 if self.warmup else 0.0)
 
     def preflight(self) -> None:
         from coolorbit import llm_keys  # the key itself comes from llm_keys.subprocess_env() at run time
@@ -138,7 +156,9 @@ class DockerSandbox:
             raise RuntimeError(f"docker image {self.tag} not found; build it with "
                                f"'python -m coolorbit.eval.sandbox build --tag {self.tag}'")
 
-    def run_command(self, inner: list[str], *, work_dir: Path, board_root: Path, name: str) -> list[str]:
+    def run_command(self, inner: list[str], *, work_dir: Path, board_root: Path, name: str,
+                    session_timeout_s: Optional[float] = None) -> list[str]:
+        """``session_timeout_s``: enforce the agent's limit inside the container (after any warm-up)."""
         artifacts = (Path(board_root) / "artifacts").resolve()
         for p in (Path(work_dir), artifacts):
             why = _forbidden_mount(p)
@@ -154,12 +174,21 @@ class DockerSandbox:
                "-v", f"{artifacts}:/board/artifacts:rw"]
         if self.calibration is not None:  # one file, read-only: the measured references every arm gets
             cmd += ["-v", f"{self.calibration.resolve()}:{CONTAINER_CALIBRATION}:ro"]
+        for host, target in self.ro_mounts:
+            cmd += ["-v", f"{host.resolve()}:{target}:ro"]
         cmd += ["-w", "/work",
                "-e", API_KEY_ENV]
         if self.gpus:
             cmd += ["--gpus", "all"]
         if self.memory:
             cmd += ["--memory", self.memory]
+        if self.warmup or session_timeout_s:
+            script = ""
+            if self.warmup:
+                script += (f"timeout -k 10 {self.warmup_timeout_s:g}s python3 {TOOL_DIR}/warmup.py "
+                           "|| echo 'COOLORBIT_WARMUP {\"ok\": false, \"error\": \"warm-up killed or crashed\"}'; ")
+            script += (f'exec timeout -k 10 {session_timeout_s:g}s "$@"' if session_timeout_s else 'exec "$@"')
+            inner = ["sh", "-c", script, "sh", *inner]
         return cmd + [self.tag] + inner
 
     def kill(self, name: str) -> None:
