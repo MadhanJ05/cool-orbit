@@ -64,6 +64,41 @@ class AuditRules(unittest.TestCase):
     def test_good_coexistence_run_passes(self):
         self.assertEqual(self.flags(result(), {"family": "test_metal", "formula": "Cu"}), [])
 
+    # Static properties (no MD): small cells are correct, MD fields are absent.
+    STATIC = {"engine": "ALCHEMI", "model": "MACE-MPA-0", "protocol": "E(V) fit after FIRE2 relaxation",
+              "n_atoms": 8, "fmax_eV_per_A": 0.01, "n_eos_points": 9}
+
+    def test_static_properties_match_premise(self):
+        from coolorbit.agents.premise import STATIC_PROPERTIES
+        self.assertEqual(set(self.rules["static_properties"]), STATIC_PROPERTIES)
+
+    def test_valid_static_results_pass(self):
+        si = {"family": "eval", "formula": "Si"}
+        for prop, value, units in (("lattice_constant", 5.43, "A"), ("bulk_modulus", 98.0, "GPa"),
+                                   ("equation_of_state", 98.0, "GPa")):
+            self.assertEqual(self.flags(result(prop=prop, value=value, units=units, method=self.STATIC,
+                                               family="eval", cand="Si"), si), [], prop)
+        slab = {"engine": "ALCHEMI", "model": "MACE-MPA-0", "protocol": "FIRE2 relaxation, slab + adsorbate",
+                "n_atoms": 37, "slab_layers": 4, "vacuum_A": 15.0, "fmax_eV_per_A": 0.03}
+        self.assertEqual(self.flags(result(prop="adsorption_energy", value=-4.5, units="eV", method=slab,
+                                           family="eval", cand="O/Cu(111)"), {"formula": "CuO"}), [])
+        # The bare minimum (engine, model, protocol) also passes: the optional fields are checked only when present.
+        bare = {k: self.STATIC[k] for k in ("engine", "model", "protocol")}
+        self.assertEqual(self.flags(result(prop="lattice_constant", value=5.43, units="A", method=bare)), [])
+
+    def test_static_checks(self):
+        def f(prop, **m):
+            return self.flags(result(prop=prop, value=1.0, units="eV", method={**self.STATIC, **m}))
+        self.assertEqual(f("lattice_constant", model=None), ["missing_method_metadata"])
+        self.assertEqual(f("lattice_constant", fmax_eV_per_A=0.3), ["relaxation_not_converged"])
+        self.assertEqual(f("bulk_modulus", n_eos_points=3), ["too_few_eos_points"])
+        self.assertEqual(f("adsorption_energy", slab_layers=2), ["slab_too_thin"])
+        self.assertEqual(f("adsorption_energy", vacuum_A=5.0), ["vacuum_too_small"])
+        self.assertEqual(f("adsorption_energy", engine="VASP DFT"), ["missing_kpoints"])
+        self.assertEqual(f("adsorption_energy", engine="VASP DFT", kpoints=[4, 4, 1]), [])
+        # MD rules still apply to MD properties
+        self.assertIn("system_too_small", self.flags(result(method={**GOOD, "n_atoms": 8})))
+
     def test_single_phase_heating(self):
         self.assertIn("single_phase_heating", self.flags(result(method={**GOOD, "protocol": "single-phase heating"})))
 

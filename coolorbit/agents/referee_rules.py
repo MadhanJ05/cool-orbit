@@ -9,6 +9,9 @@ result's ``method_audit`` need when it can claim it. Checks (thresholds in ``aud
 * hydrogen present with a timestep above the limit                   -> ``timestep_too_large_for_hydrogen``
 * too few atoms / too short a run for the protocol                   -> ``system_too_small`` / ``run_too_short``
 * method metadata missing                                             -> ``missing_method_metadata``
+* static properties (lattice constant, EOS, adsorption energy...) run no MD, so the MD-field and atom-count
+  rules are skipped; they need engine/model/protocol, and fields the producer records are checked:
+  unconverged relaxation, too few EOS points, a thin slab or small vacuum, DFT without k-points
 * blocking flags the producer itself raised (superheating hook, quick settings, ...)
 
 Verdict ``fail`` if any rule fires, else ``pass``. It never checks its own results.
@@ -80,22 +83,49 @@ def audit(result: dict, rules: dict, candidate: Optional[dict] = None) -> tuple[
         fire("timestep_too_large_for_hydrogen",
              f"timestep {dt} fs with hydrogen present (limit {rules['max_timestep_fs_with_hydrogen']} fs)")
 
-    missing = [f for f in rules["required_method_fields"] if m.get(f) in (None, "")]
-    if missing:
-        fire("missing_method_metadata", f"method metadata missing: {', '.join(missing)}; cannot audit size/length/ensemble")
-    n_atoms, length = m.get("n_atoms"), m.get("sim_length_ps")
-    min_atoms = _lookup(rules["min_atoms"], protocol)
-    min_len = _lookup(rules["min_sim_length_ps"], protocol)
-    if n_atoms is not None and n_atoms < min_atoms:
-        fire("system_too_small", f"{n_atoms} atoms < {min_atoms} required for '{m.get('protocol')}'")
-    if length is not None and length < min_len:
-        fire("run_too_short", f"{length} ps production < {min_len} ps required for '{m.get('protocol')}'")
+    if prop in rules.get("static_properties", ()):
+        _audit_static(prop, m, rules, fire)
+    else:
+        missing = [f for f in rules["required_method_fields"] if m.get(f) in (None, "")]
+        if missing:
+            fire("missing_method_metadata", f"method metadata missing: {', '.join(missing)}; cannot audit size/length/ensemble")
+        n_atoms, length = m.get("n_atoms"), m.get("sim_length_ps")
+        min_atoms = _lookup(rules["min_atoms"], protocol)
+        min_len = _lookup(rules["min_sim_length_ps"], protocol)
+        if n_atoms is not None and n_atoms < min_atoms:
+            fire("system_too_small", f"{n_atoms} atoms < {min_atoms} required for '{m.get('protocol')}'")
+        if length is not None and length < min_len:
+            fire("run_too_short", f"{length} ps production < {min_len} ps required for '{m.get('protocol')}'")
 
     for flag in result.get("flags", []):
         why = rules["blocking_producer_flags"].get(flag)
         if why:
             fire(flag, f"producer flag '{flag}': {why}")
     return flags, reasons
+
+
+def _audit_static(prop: str, m: dict, rules: dict, fire) -> None:
+    """Static (relaxation / energy) results: no MD fields, no MD atom-count minimum."""
+    missing = [f for f in rules["static_required_method_fields"] if m.get(f) in (None, "")]
+    if missing:
+        fire("missing_method_metadata", f"method metadata missing: {', '.join(missing)}; cannot audit a static result")
+    c = rules["static_checks"]
+    fmax = m.get("fmax_eV_per_A")
+    if fmax is not None and fmax > c["max_fmax_eV_per_A"]:
+        fire("relaxation_not_converged", f"residual force {fmax} eV/A > {c['max_fmax_eV_per_A']} eV/A")
+    points = m.get("n_eos_points")
+    if prop in ("equation_of_state", "bulk_modulus", "energy_volume_curve") and points is not None \
+            and points < c["min_eos_points"]:
+        fire("too_few_eos_points", f"{points} volumes in the E(V) fit < {c['min_eos_points']}")
+    if prop in c["slab_properties"]:
+        layers, vacuum = m.get("slab_layers"), m.get("vacuum_A")
+        if layers is not None and layers < c["min_slab_layers"]:
+            fire("slab_too_thin", f"{layers} slab layers < {c['min_slab_layers']}")
+        if vacuum is not None and vacuum < c["min_vacuum_A"]:
+            fire("vacuum_too_small", f"{vacuum} A vacuum < {c['min_vacuum_A']} A (periodic images interact)")
+    engine = str(m.get("engine", "")).lower()
+    if any(p in engine for p in c["dft_engine_patterns"]) and m.get("kpoints") in (None, "", []):
+        fire("missing_kpoints", "DFT result without a k-point mesh (kpoints)")
 
 
 SINGLE_PHASE_FLAGS = {"single_phase_heating", "superheating_risk", "superheating_observed"}
@@ -147,7 +177,9 @@ def rerun_need(result: dict, flags: list[str], rules: dict, origin: Optional[dic
     m = result.get("method") or {}
     fl = set(flags)
     protocol = str(m.get("protocol", "")).lower()
-    single_phase = any(p in protocol for p in rules["single_phase_protocols"])
+    # A referee's single_phase_heating flag says the run was single-phase even when the protocol text is
+    # unusual (e.g. "temperature ramp", caught by the LLM referee and upheld by the adjudicator).
+    single_phase = any(p in protocol for p in rules["single_phase_protocols"]) or "single_phase_heating" in fl
     temps = list(m.get("temperatures_K") or [])
     production = "quick_settings_not_production" not in fl
     need = {"artifact_type": "property_result", "property": prop}

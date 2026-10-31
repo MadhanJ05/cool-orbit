@@ -12,6 +12,18 @@
   "min_atoms": {"default": 200, "two-phase coexistence": 500},
   "min_sim_length_ps": {"default": 10.0, "two-phase coexistence": 20.0},
   "required_method_fields": ["ensemble", "timestep_fs", "n_atoms", "sim_length_ps"],
+  "_static_note": "Static (relaxation / energy) properties run no MD: the MD rules (ensemble, timestep, atom count, run length) do not apply, and small cells are correct (Si: 8 atoms). Keep static_properties equal to premise.STATIC_PROPERTIES (a test checks). The optional checks below fire only when the producer records the field.",
+  "static_properties": ["equation_of_state", "bulk_modulus", "lattice_constant", "energy_volume_curve",
+                        "adsorption_energy", "binding_energy", "formation_energy", "surface_energy"],
+  "static_required_method_fields": ["engine", "model", "protocol"],
+  "static_checks": {
+    "max_fmax_eV_per_A": 0.05,
+    "min_eos_points": 5,
+    "slab_properties": ["adsorption_energy", "surface_energy"],
+    "min_slab_layers": 3,
+    "min_vacuum_A": 10.0,
+    "dft_engine_patterns": ["dft", "vasp", "quantum espresso", "quantum_espresso", "gpaw", "cp2k", "castep"]
+  },
   "blocking_producer_flags": {
     "single_phase_heating": "melting point from single-phase heating (superheating)",
     "superheating_risk": "producer reports a superheating risk",
