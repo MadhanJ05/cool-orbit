@@ -5,13 +5,13 @@ needs as the GB10 Simulator, but instead of running MD it fabricates a plausible
 result it posts is marked ``"note": "SYNTHETIC test data ..."`` and flagged ``synthetic_test_data``, and
 it refuses to touch any board whose directory name does not start with ``dev-`` (real boards are evidence).
 
-Traps: ``traps={"copper": "single_phase_heating"}`` makes it answer like a naive single agent would:
+Traps: ``traps={"Cu": "single_phase_heating"}`` makes it answer like a naive single agent would:
 single-phase heating with a superheated value. ``"silent_heating"`` does the same without raising any
 producer flag, so only a referee reading the protocol can catch it.
 
 Needs ASE (``pip install ase``) because the real Simulator parses structures with it.
 
-    python -m coolorbit.agents.fake_simulator --board boards/dev-<name> [--trap copper=silent_heating] [--once]
+    python -m coolorbit.agents.fake_simulator --board boards/dev-<name> [--trap Cu=silent_heating] [--once]
 """
 
 from __future__ import annotations

@@ -130,7 +130,7 @@ class RealDataset(unittest.TestCase):
             self.skipTest("data/calibration/tier1.json not created yet")
         have = {(r["candidate"], r["property"]) for r in json.loads(DEFAULT_DATA.read_text())["records"]
                 if r["value"] is not None}
-        for metal in ("copper", "aluminum"):
+        for metal in ("Cu", "Al"):
             self.assertIn((metal, "melting_point"), have)
             self.assertIn((metal, "latent_heat"), have)
 

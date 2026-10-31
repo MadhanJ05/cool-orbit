@@ -9,7 +9,7 @@ Load it onto a board with the Librarian:
 ```bash
 python -m coolorbit.agents.librarian --check                         # validate only
 python -m coolorbit.agents.librarian --board boards/dev-<name>       # post reference_value artifacts
-python -m coolorbit.agents.librarian --board boards/<run> --only copper aluminum
+python -m coolorbit.agents.librarian --board boards/<run> --only Cu Al
 ```
 
 ## Rules
@@ -21,9 +21,9 @@ python -m coolorbit.agents.librarian --board boards/<run> --only copper aluminum
   sourced reference for that pair and flags on any mismatch, so other measurements go in
   `alternates` (kept here, never posted).
 - **Candidate names must match** the `name` of the `candidate` artifact the simulator uses (case and
-  extra spaces are ignored). Use the names in `tier1.json` (e.g. `copper`, `n-eicosane`,
+  extra spaces are ignored). Use the names in `tier1.json` (e.g. `Cu`, `Al`, `n-eicosane`,
   `neopentyl glycol`, `calcium chloride hexahydrate`).
-  Metals also list `aliases` (copper -> `Cu`, aluminum -> `Al`, ...): bulk posting posts every alias,
+  Elements are named by their symbol (what GB10 runs and the eval harness use) and list the words as `aliases` (`Cu` -> copper, `Al` -> aluminum/aluminium, ...): bulk posting posts every alias,
   and the Librarian agent answers a need under the exact name the result uses.
 - **Units are the board's**: K, J/kg, g/cm3, W/m/K. Density and conductivity state `phase`.
 - `quote` is the verbatim text or table row the value was read from. `note` shows any conversion
@@ -64,7 +64,8 @@ review tables ("as compiled in") > handbook values quoted by PubChem/HSDB (marke
 - **Conductivity null** for all paraffins and fatty acids, D-mannitol, pentaerythritol,
   Na2SO4.10H2O, Na2HPO4.12H2O, sodium acetate trihydrate, Mg(NO3)2.6H2O and Field's metal.
 - **Density null** where the only value was measured at the melting point (phase ambiguous):
-  n-octadecane, myristic and palmitic acid; and for n-eicosane (implausible value), Cu, Al, Field's metal.
+  myristic and palmitic acid; and for Cu, Al, Field's metal. (n-octadecane and n-eicosane solid densities
+  come from Hirschey 2018 Table 3, citing Shlosinger & Bentilla 1965; temperature not stated.)
 - **Low confidence:** Mg(NO3)2.6H2O (single secondary compilation; primary paper Sadovska 2015 could
   not be opened). Sodium acetate trihydrate latent heat has a wide spread (226-289 kJ/kg); the DSC
   value used is the top of the range. CaCl2.6H2O melting point spans 25.2-30 C.

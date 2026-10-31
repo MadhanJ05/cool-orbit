@@ -12,6 +12,13 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from coolorbit.agents.premise import PremiseChecker, check_premise, premise_rules
+
+try:  # only the API-error test needs the real SDK; everything else uses FakeClient
+    import anthropic
+    import httpx2
+    HAVE_ANTHROPIC = True
+except ImportError:
+    HAVE_ANTHROPIC = False
 from coolorbit.board import Board, derive_status
 
 # NVIDIA's ill-posed probe (ALCHEMI agents blog): Li-ion diffusion in pristine crystalline LiF.
@@ -28,10 +35,10 @@ CONTROLS = {
                              "method": {"engine": "ALCHEMI", "model": "MACE-MPA-0", "protocol": "FIRE2 relaxation"}},
     "O on Cu(111) adsorption": {"material": "O/Cu(111)", "formula": "CuO", "property": "adsorption_energy",
                                 "method": {"engine": "ALCHEMI", "model": "MACE-MPA-0", "protocol": "slab relaxation"}},
-    "Cu melting (coexistence)": {"material": "copper", "formula": "Cu", "property": "melting_point",
+    "Cu melting (coexistence)": {"material": "Cu", "formula": "Cu", "property": "melting_point",
                                  "method": {"engine": "ALCHEMI", "model": "MACE-MPA-0",
                                             "protocol": "two-phase coexistence", "ensemble": "NPT"}},
-    "Cu latent heat": {"material": "copper", "formula": "Cu", "property": "latent_heat", "temperature_K": 1357,
+    "Cu latent heat": {"material": "Cu", "formula": "Cu", "property": "latent_heat", "temperature_K": 1357,
                        "method": {"engine": "ALCHEMI", "model": "MACE-MPA-0", "protocol": "NPT enthalpy difference"}},
 }
 
@@ -119,20 +126,25 @@ class Llm(unittest.TestCase):
         v = check_premise(LIF, client=FakeClient(WELL), llm_mode="always")
         self.assertEqual(v.verdict, "fail")
 
-    def test_failures_become_inconclusive(self):
-        import anthropic
-        import httpx2 as httpx
-
-        req = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
-        cases = [FakeClient(exc=anthropic.APIConnectionError(request=req)),
-                 FakeClient(WELL, stop_reason="refusal"),
-                 FakeClient(WELL, stop_reason="max_tokens"),
-                 FakeClient("not json")]
-        for c in cases:
+    def test_bad_answers_become_inconclusive(self):
+        for c in (FakeClient(WELL, stop_reason="refusal"), FakeClient(WELL, stop_reason="max_tokens"),
+                  FakeClient("not json")):
             with self.subTest(c=c.stop_reason):
                 self.assertEqual(check_premise(self.UNKNOWN, client=c).verdict, "inconclusive")
+
+    def test_non_api_errors_are_not_swallowed(self):
+        with self.assertRaises(ZeroDivisionError):
+            check_premise(self.UNKNOWN, client=FakeClient(exc=ZeroDivisionError()))
+
+    @unittest.skipUnless(HAVE_ANTHROPIC, "needs the anthropic SDK")
+    def test_api_errors_become_inconclusive(self):
+        req = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+        down = FakeClient(exc=anthropic.APIConnectionError(request=req))
+        v = check_premise(self.UNKNOWN, client=down)
+        self.assertEqual(v.verdict, "inconclusive")
+        self.assertIn("connection error", v.reasons[-1])
         # a rule pass survives an LLM outage in "always" mode
-        self.assertEqual(check_premise(CONTROLS["Si equation of state"], client=cases[0], llm_mode="always").verdict, "pass")
+        self.assertEqual(check_premise(CONTROLS["Si equation of state"], client=down, llm_mode="always").verdict, "pass")
 
 
 class BoardAgent(unittest.TestCase):
@@ -152,10 +164,10 @@ class BoardAgent(unittest.TestCase):
                               needs=[{"artifact_type": "property_result", "property": "self_diffusion",
                                       "query": "Li-ion self-diffusion in pristine crystalline LiF at 300 K",
                                       "rationale": "blind task from another team", "temperature_K": 300}])
-        cu = self.board.post("scout_x", "candidate", {"name": "copper", "family": "validation_metal", "tier": "trust",
+        cu = self.board.post("scout_x", "candidate", {"name": "Cu", "family": "validation_metal", "tier": "trust",
                                                       "formula": "Cu", "structure_source": "ase:Cu:fcc:3.61"},
                              needs=[{"artifact_type": "property_result", "property": "melting_point",
-                                     "query": "melting_point of copper", "rationale": "validate the method",
+                                     "query": "melting_point of Cu", "rationale": "validate the method",
                                      "t_guess_K": 1358}])
         pc = PremiseChecker(self.board, client=None, calibration=[], verbose=False)
         self.assertEqual(pc.drain(), 2)
@@ -165,7 +177,7 @@ class BoardAgent(unittest.TestCase):
                     for c in snap.of_type("check")}
         self.assertEqual(verdicts["LiF"]["verdict"], "fail")
         self.assertTrue(verdicts["LiF"]["note"].startswith("[need 0]"))
-        self.assertEqual(verdicts["copper"]["verdict"], "pass")
+        self.assertEqual(verdicts["Cu"]["verdict"], "pass")
         self.assertEqual(len(self.board.open_needs()), 2)  # advisory: the premise checker never claims
 
         # Someone runs the ill-posed request anyway: the result inherits the fail and is flagged.

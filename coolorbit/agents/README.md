@@ -18,7 +18,7 @@ The real Simulator (`coolorbit/sim/simulator_agent.py`) runs on the GB10; reques
 
 ```bash
 # laptop: whole pipeline on a dev board, with a silent superheating trap the referee must catch
-python -m coolorbit.agents --board boards/dev-<name> --fake-sim --trap aluminum=silent_heating
+python -m coolorbit.agents --board boards/dev-<name> --fake-sim --trap Al=silent_heating
 python -m coolorbit.board show --board boards/dev-<name> -v
 
 # production: one process per agent

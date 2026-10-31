@@ -177,22 +177,40 @@
       "family": "paraffin",
       "formula": "C18H38",
       "property": "density",
-      "value": null,
+      "value": 0.814,
       "units": "g/cm3",
       "uncertainty": null,
-      "source": null,
-      "note": "NOT FOUND: only CRC (via PubChem) 0.7768 g/cm3 at 28 C, which is AT the melting point, so the phase is ambiguous"
+      "source": "Shlosinger & Bentilla (1965), as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, Table 3 'Solid density of PCMs', https://www.osti.gov/servlets/purl/1468092",
+      "phase": "solid",
+      "quote": "n-Octadecane 0.814 55.0 +/- 0.06 Shlosinger and Bentilla (1965)",
+      "note": "solid (Table 3 lists solid-phase densities); temperature not stated; primary 1965 report not opened",
+      "alternates": [
+        {
+          "value": 0.7768,
+          "phase": "ambiguous (at Tm, 28 C)",
+          "source": "CRC 95th ed. via PubChem HSDB"
+        }
+      ]
     },
     {
       "candidate": "n-eicosane",
       "family": "paraffin",
       "formula": "C20H42",
       "property": "density",
-      "value": null,
+      "value": 0.856,
       "units": "g/cm3",
       "uncertainty": null,
-      "source": null,
-      "note": "NOT FOUND: only CRC (via PubChem) 0.7886 g/cm3 at 20 C with no phase stated; too low for a solid alkane, possibly supercooled liquid"
+      "source": "Shlosinger & Bentilla (1965), as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, Table 3 'Solid density of PCMs', https://www.osti.gov/servlets/purl/1468092",
+      "phase": "solid",
+      "quote": "n-Eicosane 0.856 58.7 +/- 0.03 Shlosinger and Bentilla (1965)",
+      "note": "solid (Table 3 lists solid-phase densities); temperature not stated; primary 1965 report not opened",
+      "alternates": [
+        {
+          "value": 0.7886,
+          "phase": "not stated (20 C; implausibly low for a solid)",
+          "source": "CRC 95th ed. via PubChem HSDB"
+        }
+      ]
     },
     {
       "candidate": "lauric acid",
@@ -1010,7 +1028,7 @@
       "note": "NOT FOUND: Xie 2017 values (1.81 / 0.669) look column-swapped with cp"
     },
     {
-      "candidate": "copper",
+      "candidate": "Cu",
       "family": "validation_metal",
       "formula": "Cu",
       "property": "melting_point",
@@ -1021,11 +1039,11 @@
       "quote": "the freezing point of copper at 1357.77(3) K",
       "note": "ITS-90 freezing point",
       "aliases": [
-        "Cu"
+        "copper"
       ]
     },
     {
-      "candidate": "copper",
+      "candidate": "Cu",
       "family": "validation_metal",
       "formula": "Cu",
       "property": "latent_heat",
@@ -1036,11 +1054,11 @@
       "quote": "1358.000 ... 29.660 CRYSTAL <--> LIQUID / 1358.000 ... 42.798 TRANSITION",
       "note": "H-H(Tr) jump: 42.798 - 29.660 = 13.138 kJ/mol; x 1e6 / 63.546 g/mol",
       "aliases": [
-        "Cu"
+        "copper"
       ]
     },
     {
-      "candidate": "copper",
+      "candidate": "Cu",
       "family": "validation_metal",
       "formula": "Cu",
       "property": "conductivity",
@@ -1053,11 +1071,11 @@
       "quote": "300 4.01 (W/cm/K)",
       "note": "+/-2% near room temperature per HPL; liquid at 1357.6 K: 166 W/m/K",
       "aliases": [
-        "Cu"
+        "copper"
       ]
     },
     {
-      "candidate": "copper",
+      "candidate": "Cu",
       "family": "validation_metal",
       "formula": "Cu",
       "property": "density",
@@ -1067,11 +1085,11 @@
       "source": null,
       "note": "NOT FOUND: not looked up (low priority)",
       "aliases": [
-        "Cu"
+        "copper"
       ]
     },
     {
-      "candidate": "aluminum",
+      "candidate": "Al",
       "family": "validation_metal",
       "formula": "Al",
       "property": "melting_point",
@@ -1088,12 +1106,12 @@
         }
       ],
       "aliases": [
-        "Al",
+        "aluminum",
         "aluminium"
       ]
     },
     {
-      "candidate": "aluminum",
+      "candidate": "Al",
       "family": "validation_metal",
       "formula": "Al",
       "property": "latent_heat",
@@ -1104,12 +1122,12 @@
       "quote": "933.450 ... 17.982 CRYSTAL <--> LIQUID / 933.450 ... 28.693 TRANSITION",
       "note": "H-H(Tr) jump: 28.693 - 17.982 = 10.711 kJ/mol; x 1e6 / 26.9815386 g/mol",
       "aliases": [
-        "Al",
+        "aluminum",
         "aluminium"
       ]
     },
     {
-      "candidate": "aluminum",
+      "candidate": "Al",
       "family": "validation_metal",
       "formula": "Al",
       "property": "conductivity",
@@ -1122,12 +1140,12 @@
       "quote": "300 2.37 (W/cm/K)",
       "note": "+/-2-3% per HPL; 208 W/m/K at 933.52 K (solid)",
       "aliases": [
-        "Al",
+        "aluminum",
         "aluminium"
       ]
     },
     {
-      "candidate": "aluminum",
+      "candidate": "Al",
       "family": "validation_metal",
       "formula": "Al",
       "property": "density",
@@ -1137,12 +1155,12 @@
       "source": null,
       "note": "NOT FOUND: not looked up (low priority)",
       "aliases": [
-        "Al",
+        "aluminum",
         "aluminium"
       ]
     },
     {
-      "candidate": "gallium",
+      "candidate": "Ga",
       "family": "low_melting_metal",
       "formula": "Ga",
       "property": "melting_point",
@@ -1153,11 +1171,11 @@
       "quote": "302.92 K ... Uncertainty assigned by TRC = 0.004 K; recommended as calibration standard",
       "note": "ITS-90 melting point 302.9146 K",
       "aliases": [
-        "Ga"
+        "gallium"
       ]
     },
     {
-      "candidate": "gallium",
+      "candidate": "Ga",
       "family": "low_melting_metal",
       "formula": "Ga",
       "property": "latent_heat",
@@ -1168,11 +1186,11 @@
       "quote": "302.920 ... 0.124 CRYSTAL <--> LIQUID / 302.920 ... 5.714 TRANSITION",
       "note": "H-H(Tr) jump: 5.714 - 0.124 = 5.590 kJ/mol; x 1e6 / 69.723 g/mol",
       "aliases": [
-        "Ga"
+        "gallium"
       ]
     },
     {
-      "candidate": "gallium",
+      "candidate": "Ga",
       "family": "low_melting_metal",
       "formula": "Ga",
       "property": "density",
@@ -1185,11 +1203,11 @@
       "quote": "Gallium 303-1500 6077 0.611 302.914 (Ref. 73) 0.4",
       "note": "rho = c1 at Tref; 0.4% (2 sigma)",
       "aliases": [
-        "Ga"
+        "gallium"
       ]
     },
     {
-      "candidate": "gallium",
+      "candidate": "Ga",
       "family": "low_melting_metal",
       "formula": "Ga",
       "property": "conductivity",
@@ -1202,11 +1220,11 @@
       "quote": "302.93 0.281 (W/cm/K)",
       "note": "+/-10% near the melting point per HPL. Solid is anisotropic: a 40.6, b 88.3, c 15.9 W/m/K at 302.93 K",
       "aliases": [
-        "Ga"
+        "gallium"
       ]
     },
     {
-      "candidate": "indium",
+      "candidate": "In",
       "family": "low_melting_metal",
       "formula": "In",
       "property": "melting_point",
@@ -1217,11 +1235,11 @@
       "quote": "Indium 430-1100 7022 0.762 429.748 (Ref. 73) 0.5",
       "note": "ITS-90 freezing point 429.7485 K",
       "aliases": [
-        "In"
+        "indium"
       ]
     },
     {
-      "candidate": "indium",
+      "candidate": "In",
       "family": "low_melting_metal",
       "formula": "In",
       "property": "latent_heat",
@@ -1232,11 +1250,11 @@
       "quote": "delta_fusH = (28.6624 +/- 0.0076) J g-1",
       "note": "adiabatic calorimetry; 95% CI",
       "aliases": [
-        "In"
+        "indium"
       ]
     },
     {
-      "candidate": "indium",
+      "candidate": "In",
       "family": "low_melting_metal",
       "formula": "In",
       "property": "density",
@@ -1249,11 +1267,11 @@
       "quote": "Indium 430-1100 7022 0.762 429.748",
       "note": "0.5% (2 sigma)",
       "aliases": [
-        "In"
+        "indium"
       ]
     },
     {
-      "candidate": "indium",
+      "candidate": "In",
       "family": "low_melting_metal",
       "formula": "In",
       "property": "conductivity",
@@ -1266,7 +1284,7 @@
       "quote": "298.2 0.818 (W/cm/K)",
       "note": "+/-5% per HPL; liquid at 429.784 K: 38.2 W/m/K (provisional, +/-15%)",
       "aliases": [
-        "In"
+        "indium"
       ]
     },
     {

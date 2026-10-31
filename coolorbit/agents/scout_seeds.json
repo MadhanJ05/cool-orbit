@@ -4,19 +4,19 @@
     "scout_metals": {
       "budget": 6,
       "candidates": [
-        {"name": "copper", "family": "validation_metal", "tier": "trust", "formula": "Cu",
+        {"name": "Cu", "family": "validation_metal", "tier": "trust", "formula": "Cu",
          "structure_source": "ase:Cu:fcc:3.61", "route": "ALCHEMI",
          "rationale": "method validation: well-measured metal, MACE-MPA-0 in domain",
          "requests": ["melting_point", "latent_heat"]},
-        {"name": "aluminum", "family": "validation_metal", "tier": "trust", "formula": "Al",
+        {"name": "Al", "family": "validation_metal", "tier": "trust", "formula": "Al",
          "structure_source": "ase:Al:fcc:4.05", "route": "ALCHEMI",
          "rationale": "method validation: second well-measured fcc metal",
          "requests": ["melting_point", "latent_heat"]},
-        {"name": "gallium", "family": "low_melting_metal", "tier": "trust", "formula": "Ga",
+        {"name": "Ga", "family": "low_melting_metal", "tier": "trust", "formula": "Ga",
          "structure_source": null, "route": null,
          "rationale": "low-melting metal PCM candidate (melts near 303 K); needs a periodic alpha-Ga cell in data/structures/",
          "requests": []},
-        {"name": "indium", "family": "low_melting_metal", "tier": "trust", "formula": "In",
+        {"name": "In", "family": "low_melting_metal", "tier": "trust", "formula": "In",
          "structure_source": null, "route": null,
          "rationale": "low-melting metal, high conductivity; needs a periodic tetragonal In cell in data/structures/",
          "requests": []}

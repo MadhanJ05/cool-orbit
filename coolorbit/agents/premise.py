@@ -235,11 +235,32 @@ def make_client():
     return anthropic.Anthropic()
 
 
+def _api_failure(exc: Exception) -> PremiseVerdict:
+    """Map an anthropic SDK error to an inconclusive verdict, most specific first; re-raise anything else."""
+    names = [c.__name__ for c in type(exc).__mro__]
+    if "APIError" not in names:
+        raise exc
+    if "AuthenticationError" in names:
+        why = "authentication failed"
+    elif "RateLimitError" in names:
+        why = "rate limited"
+    elif "APIStatusError" in names:
+        why = f"API error {getattr(exc, 'status_code', '?')}"
+    elif "APIConnectionError" in names:  # includes timeouts
+        why = "connection error"
+    else:
+        why = type(exc).__name__
+    return PremiseVerdict("inconclusive", reasons=[f"LLM unavailable: {why}"], source="llm")
+
+
 def llm_premise(task: dict, client: Any, rule_view: Optional[PremiseVerdict] = None,
                 model: str = LLM_MODEL, effort: str = LLM_EFFORT) -> PremiseVerdict:
-    """Ask Claude for a structured premise verdict. Never raises: API problems become ``inconclusive``."""
-    import anthropic
+    """Ask Claude for a structured premise verdict. API problems become ``inconclusive``.
 
+    Does not import ``anthropic`` itself (only ``make_client`` does), so tests can pass a fake client on a
+    machine without the SDK. SDK errors are recognised by their class hierarchy (``anthropic.APIError``);
+    anything else is a bug and is re-raised.
+    """
     user = ("Task to premise-check (JSON):\n" + json.dumps(task, indent=2, default=str)
             + ("\n\nThe rule-based layer said: " + rule_view.note() if rule_view else ""))
     try:
@@ -252,14 +273,8 @@ def llm_premise(task: dict, client: Any, rule_view: Optional[PremiseVerdict] = N
             betas=[FALLBACK_BETA],
             fallbacks="default",  # on a safety decline, the API retries on a fallback model in the same call
         )
-    except anthropic.AuthenticationError:
-        return PremiseVerdict("inconclusive", reasons=["LLM unavailable: authentication failed"], source="llm")
-    except anthropic.RateLimitError:
-        return PremiseVerdict("inconclusive", reasons=["LLM unavailable: rate limited"], source="llm")
-    except anthropic.APIStatusError as exc:
-        return PremiseVerdict("inconclusive", reasons=[f"LLM unavailable: API error {exc.status_code}"], source="llm")
-    except anthropic.APIConnectionError:
-        return PremiseVerdict("inconclusive", reasons=["LLM unavailable: connection error"], source="llm")
+    except Exception as exc:  # noqa: BLE001 - narrowed below to the SDK's own error classes
+        return _api_failure(exc)
 
     usage = {"model": getattr(response, "model", model),
              "input_tokens": getattr(response.usage, "input_tokens", None),

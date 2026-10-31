@@ -15,8 +15,8 @@ Usage:
     python -m coolorbit.agents.librarian --check                              # validate the dataset only
     python -m coolorbit.agents.librarian --board boards/<id> --serve [--once] # answer reference_value needs
 
-Names: the board matches references by candidate name, so a record can list ``aliases`` (e.g. copper ->
-"Cu"). Bulk posting posts the canonical name and every alias; serving a need posts the reference under
+Names: the board matches references by candidate name, so a record can list ``aliases`` (e.g. Cu ->
+"copper"). Bulk posting posts the canonical name and every alias; serving a need posts the reference under
 the exact name the result uses.
 """
 

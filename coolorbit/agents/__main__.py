@@ -3,7 +3,7 @@
 In production each agent is its own process (``python -m coolorbit.agents.<module> --board ...``);
 this helper just steps them in turn until a full round is idle.
 
-    python -m coolorbit.agents --board boards/dev-<name> --fake-sim [--trap copper=silent_heating]
+    python -m coolorbit.agents --board boards/dev-<name> --fake-sim [--trap Cu=silent_heating]
     python -m coolorbit.agents --board boards/<id> --scouts scout_metals --no-ranker
 """
 
