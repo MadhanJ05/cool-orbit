@@ -411,6 +411,25 @@ def run_heating(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Bat
     return result, batch
 
 
+def relax_solid_shapes(solids: list[Atoms], model, s: Settings, rows: list, t: float,
+                       stage: str) -> tuple[list[Atoms], list[dict]]:
+    """Let each crystal find the model's own axis ratios at T (anisotropic NPT) before the isotropic enthalpy run.
+
+    The reference crystals carry the measured lattice. For non-cubic ones (alpha-Ga, In, beta-Sn, Bi) an isotropic
+    barostat keeps the measured axis ratios, so the solid stays strained: its enthalpy is too high and the latent
+    heat too low. The joint solid+liquid stage stays isotropic (a liquid's box has no shape to relax).
+    """
+    batch = Batch.from_data_list([make_data(a, t, s.seed + 7 + i) for i, a in enumerate(solids)], device="cuda")
+    rec = Recorder(stage, s.record_every, [t] * len(solids))
+    batch = run_stage(npt(model, s, [t] * len(solids), s.equil_steps, "anisotropic"), batch, model, rec)
+    rows += rec.rows
+    relaxed = batch_to_atoms(batch)
+    shapes = [{"cell_lengths_before_A": [round(float(x), 4) for x in a.cell.lengths()],
+               "cell_lengths_after_A": [round(float(x), 4) for x in r.cell.lengths()]}
+              for a, r in zip(solids, relaxed)]
+    return relaxed, shapes
+
+
 def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batch]:
     t = s.temps[0]
     print(f"Latent heat at T={t:g} K: preparing liquid from T_melt={s.t_melt:g} K", flush=True)
@@ -420,7 +439,8 @@ def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batc
     everything = torch.ones(liq.num_nodes, dtype=torch.bool, device=liq.positions.device)
     liq, liq_melted, liq_temps = melt_until_liquid(liq, model, s, rows, "prep_liquid_nvt", everything, False, t)
 
-    data = [make_data(atoms, t, s.seed + 3), make_data(batch_to_atoms(liq)[0], t, s.seed + 4)]
+    (solid,), shapes = relax_solid_shapes([atoms], model, s, rows, t, "solid_shape_npt")
+    data = [make_data(solid, t, s.seed + 3), make_data(batch_to_atoms(liq)[0], t, s.seed + 4)]
     batch = Batch.from_data_list(data, device="cuda")
     pos0 = batch.positions.detach().clone()
     rec = Recorder("latent_npt", s.record_every, [t, t])
@@ -450,7 +470,8 @@ def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batc
     dh_err = math.hypot(phases["liquid"]["H_sem"], phases["solid"]["H_sem"])
     to_j_per_kg = EV_TO_J * N_A / (mass_amu / 1000.0)
     result = {"mode": "latent", "phases": phases, "density_g_cm3": density, "delta_H_eV_per_atom": dh,
-              "liquid_prep": {"melted_fraction": liq_melted, "melt_temperatures_K": liq_temps}}
+              "liquid_prep": {"melted_fraction": liq_melted, "melt_temperatures_K": liq_temps},
+              "solid_shape_relaxation": shapes[0]}
     problems = []
     if phases["liquid"]["moved_fraction"] < 0.5:
         problems.append("liquid may have recrystallized or never melted (few atoms diffused)")
@@ -488,6 +509,7 @@ def run_alloy_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict
     for el in elements:
         cell = element_crystal(el)
         solids.append(cell.repeat(solid_reps(cell, s.solid_atoms)))
+    solids, shapes = relax_solid_shapes(solids, model, s, rows, t, "solid_shape_npt")
     systems = [batch_to_atoms(liq)[0]] + solids
     names = ["liquid_alloy"] + [f"solid_{el}" for el in elements]
     data = [make_data(a, t, s.seed + 3 + i) for i, a in enumerate(systems)]
@@ -528,6 +550,7 @@ def run_alloy_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict
                                                                              "liquid": rho_liquid},
               "latent_heat_J_per_L_solid": l_kg * rho_solid,  # (J/kg) x (g/cm3 = kg/L)
               "liquid_prep": {"melted_fraction": liq_melted, "melt_temperatures_K": liq_temps},
+              "solid_shape_relaxation": dict(zip(elements, shapes)),
               "flags": ["eutectic_solid_assumed_pure_elements"]}
     problems = []
     if phases["liquid_alloy"]["moved_fraction"] < 0.5:
