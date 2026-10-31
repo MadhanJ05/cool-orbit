@@ -53,7 +53,7 @@ class FakeExecutor:
         transcript_path.parent.mkdir(parents=True, exist_ok=True)
         transcript_path.write_text(self.transcript_text)
         return SessionResult(exit_code=0, timed_out=False, wall_s=0.01, input_tokens=1000, output_tokens=100,
-                             usd=0.01, num_turns=3, model="fake-llm", transcript=self.transcript_text)
+                             usd_reported=0.01, num_turns=3, model="fake-llm", transcript=self.transcript_text)
 
 
 def request_id(prompt: str) -> str:

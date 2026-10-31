@@ -25,9 +25,9 @@ the metrics compare like with like.
   (summed over all its agents, from `costs.jsonl`).
 - **Model: the `arm_baseline` role** (`claude-opus-5-5`, effort `high`) for every arm A/B session
   (`claude -p --model ... --effort ...`).
-- Dollars are computed one way for every arm: `llm_roles.cost_usd(model, usage)` per model in the session
-  (`usd` in `costs.jsonl`); Claude Code's own figure is kept as `usd_reported`, and the budget pool is charged
-  the larger of the two. Note: `cost_usd` has no price for cache writes, so `usd` can understate.
+- Dollars charged = Claude Code's own `total_cost_usd` per session (it prices cache writes), the same for every
+  arm (`usd` in `costs.jsonl`). A session that left no report (killed at the time limit) is charged its cap.
+  `llm_roles.cost_usd(model, usage)` is logged per session as a cross-check only (`usd_check_cost_usd`).
 - Same wall-clock limit per session, same tools (ALCHEMI skills, web access, and the calibration dataset
   `data/calibration/tier1.json`, which arm C's Librarian uses: mounted read-only for arms A and B).
   An arm that runs out of budget stops and records that (`run_record.json` `budget.stopped_by_budget`).

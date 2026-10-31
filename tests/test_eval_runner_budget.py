@@ -34,7 +34,7 @@ class SpendingExecutor:
         transcript_path.parent.mkdir(parents=True, exist_ok=True)
         transcript_path.write_text('{"type": "result"}\n')
         usd = self.spend.get((role, int(attempt)), 0.0)
-        return SessionResult(exit_code=0, timed_out=False, wall_s=0.01, usd=usd, usd_reported=usd,
+        return SessionResult(exit_code=0, timed_out=False, wall_s=0.01, usd_reported=usd,
                              transcript='{"type": "result"}\n')
 
 
@@ -112,32 +112,46 @@ class BudgetTest(unittest.TestCase):
 
 
 class PricingTest(unittest.TestCase):
-    def test_per_model_pricing_uses_llm_roles(self) -> None:
+    def test_charged_figure_is_claude_codes_total_and_cost_usd_is_a_cross_check(self) -> None:
         final = {"type": "result", "total_cost_usd": 9.99, "usage": {"input_tokens": 1}, "modelUsage": {
             "claude-opus-5-5": {"inputTokens": 1_000_000, "outputTokens": 100_000, "cacheReadInputTokens": 2_000_000,
                                 "cacheCreationInputTokens": 500_000, "costUSD": 9.0},
             "claude-haiku-5-5": {"inputTokens": 1_000_000, "outputTokens": 0, "costUSD": 0.99}}}
-        res = SessionResult(exit_code=0, timed_out=False, wall_s=1.0, **{k: v for k, v in _usage_fields(final).items()})
-        price_session(res, "claude-opus-5-5")
+        res = SessionResult(exit_code=0, timed_out=False, wall_s=1.0, **_usage_fields(final))
+        price_session(res, "claude-opus-5-5", cap_usd=1.5)
+        self.assertEqual((res.usd, res.usd_source), (9.99, "reported"))
         expected = (llm_roles.cost_usd("claude-opus-5-5", res.model_usage["claude-opus-5-5"])
                     + llm_roles.cost_usd("claude-haiku-5-5", res.model_usage["claude-haiku-5-5"]))
-        self.assertAlmostEqual(res.usd, expected)
-        self.assertEqual(res.usd_reported, 9.99)
+        self.assertAlmostEqual(res.usd_check, expected)
         self.assertIsNone(res.unpriced_models)
 
-    def test_unpriced_model_never_counts_as_zero(self) -> None:
+    def test_no_report_charges_the_session_cap(self) -> None:
+        res = SessionResult(exit_code=None, timed_out=True, wall_s=60.0, error="killed")  # no final event
+        price_session(res, "claude-opus-5-5", cap_usd=0.75)
+        self.assertEqual((res.usd, res.usd_source), (0.75, "session_cap"))
+
+    def test_unpriced_model_is_listed_for_the_cross_check(self) -> None:
         final = {"type": "result", "total_cost_usd": 0.05, "usage": {"input_tokens": 10, "output_tokens": 5},
                  "modelUsage": {"mystery-model": {}}}
         res = SessionResult(exit_code=0, timed_out=False, wall_s=1.0, **_usage_fields(final))
-        price_session(res, "claude-opus-5-5")
+        price_session(res, "claude-opus-5-5", cap_usd=1.5)
         self.assertEqual((res.usd, res.unpriced_models), (0.05, ["mystery-model"]))
 
-    def test_aggregate_usage_priced_with_role_model(self) -> None:
-        final = {"type": "result", "usage": {"input_tokens": 1000, "output_tokens": 1000, "cache_read_input_tokens": 0}}
-        res = SessionResult(exit_code=0, timed_out=False, wall_s=1.0, **_usage_fields(final))
-        price_session(res, "claude-opus-5-5")
-        self.assertAlmostEqual(res.usd, llm_roles.cost_usd("claude-opus-5-5", {"input_tokens": 1000,
-                                                                                "output_tokens": 1000}))
+    def test_timed_out_session_charges_its_cap_against_the_task_budget(self) -> None:
+        class Killed:
+            def run(self, prompt, *, cwd, budget, transcript_path, board_root):
+                transcript_path.parent.mkdir(parents=True, exist_ok=True)
+                transcript_path.write_text("")
+                return SessionResult(exit_code=None, timed_out=True, wall_s=1.0, error="killed after 1 s")
+        with tempfile.TemporaryDirectory() as tmp:
+            full = load_tasks(calibration_path=Path(tmp) / "none.json")
+            ts = TaskSet(version=1, frozen=False, tasks=[full.by_id()["tier1_al_melting"]])
+            r = ArmRunner("A", "run", 1, Killed(), Budget(1.5, 1, "claude-opus-5-5", "high"),
+                          boards_root=Path(tmp) / "b", work_root=Path(tmp) / "w", skills_dir=None,
+                          log=lambda *_: None, keys=None)
+            (rec,) = r.run(ts)
+            row = json.loads((Path(tmp) / "b" / "run" / "A-r1" / "tier1_al_melting" / "costs.jsonl").read_text())
+        self.assertEqual((rec["budget"]["spent_usd"], row["usd"], row["usd_source"]), (1.5, 1.5, "session_cap"))
 
 
 class CliTest(unittest.TestCase):

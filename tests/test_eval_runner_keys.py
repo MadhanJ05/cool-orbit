@@ -39,11 +39,11 @@ class ScriptedExecutor:
         if (key, role) in self.broke or (key, "*") in self.broke:
             transcript_path.write_text(OUT_OF_CREDIT)
             return SessionResult(exit_code=1, timed_out=False, wall_s=0.01, input_tokens=50, output_tokens=0,
-                                 usd=0.0, error="error_during_execution", transcript=OUT_OF_CREDIT)
+                                 usd_reported=0.0, error="error_during_execution", transcript=OUT_OF_CREDIT)
         self.behavior[role](cwd, prompt, int(attempt))
         transcript_path.write_text(self.transcript_ok)
         return SessionResult(exit_code=0, timed_out=False, wall_s=0.01, input_tokens=1000, output_tokens=100,
-                             usd=0.01, transcript=self.transcript_ok)
+                             usd_reported=0.01, transcript=self.transcript_ok)
 
 
 class Base(unittest.TestCase):

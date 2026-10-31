@@ -128,8 +128,10 @@ class SessionResult:
     key_name: Optional[str] = None              # which shared key (by name, never the key) the session used
     uncached_input_tokens: Optional[int] = None
     model_usage: Optional[dict] = None          # per model: input/output/cache_read/cache_creation tokens
-    usd_reported: Optional[float] = None        # Claude Code's own total_cost_usd
-    unpriced_models: Optional[list] = None      # models without a price in llm_roles.json (their usd_reported share used)
+    usd_reported: Optional[float] = None        # Claude Code's own total_cost_usd (prices cache writes)
+    unpriced_models: Optional[list] = None      # models without a price in llm_roles.json (cross-check only)
+    usd_check: Optional[float] = None           # llm_roles.cost_usd per model: cross-check, never charged
+    usd_source: Optional[str] = None            # what `usd` (the charged figure) is: reported | session_cap
 
 
 class Executor(Protocol):
@@ -180,33 +182,41 @@ def _usage_fields(final: dict) -> dict:
         "cache_read_input_tokens": parts[1],
         "cache_creation_input_tokens": parts[2],
         "usd_reported": final.get("total_cost_usd"),
-        "usd": final.get("total_cost_usd"),
+        "usd": final.get("total_cost_usd"),  # callers that use the executor directly (arm C) read this
+        "usd_source": "reported" if final.get("total_cost_usd") is not None else None,
         "num_turns": final.get("num_turns"),
         "model": ",".join(per_model) or None,
         "model_usage": per_model or None,
     }
 
 
-def price_session(res: "SessionResult", default_model: Optional[str]) -> None:
-    """Set ``res.usd`` with llm_roles.cost_usd (one consistent formula for every arm); keep Claude Code's figure
-    in ``usd_reported``. Models without a price fall back to their reported share and are listed."""
+def price_session(res: "SessionResult", default_model: Optional[str], cap_usd: Optional[float] = None) -> None:
+    """Set the charged figure ``res.usd`` = Claude Code's ``total_cost_usd`` (it prices cache writes).
+
+    If the session left no report (killed at the wall-clock limit, or died before its final event), charge
+    the session's cap: ``--max-budget-usd`` means it can't have spent more, and charging 0 would let a task
+    overspend. ``res.usd_check`` = llm_roles.cost_usd per model, kept only as a cross-check.
+    """
     prices = llm_roles.load()["prices_per_mtok"]
+    check, unpriced = None, []
     if res.model_usage:
-        total, unpriced = 0.0, []
+        check = 0.0
         for model, mu in res.model_usage.items():
             if model in prices:
-                total += llm_roles.cost_usd(model, mu)
+                check += llm_roles.cost_usd(model, mu)
             else:
                 unpriced.append(model)
-                total += float(mu.get("reported_usd") or 0.0)
-        no_share = [m for m in unpriced if res.model_usage[m].get("reported_usd") is None]
-        if no_share and res.usd_reported is not None:
-            total = max(total, float(res.usd_reported))  # never undercount an unpriced model to $0
-        res.usd, res.unpriced_models = total, unpriced or None
     elif res.uncached_input_tokens is not None and default_model in prices:
-        res.usd = llm_roles.cost_usd(default_model, {"input_tokens": res.uncached_input_tokens,
-                                                     "cache_read_input_tokens": res.cache_read_input_tokens or 0,
-                                                     "output_tokens": res.output_tokens or 0})
+        check = llm_roles.cost_usd(default_model, {"input_tokens": res.uncached_input_tokens,
+                                                   "cache_read_input_tokens": res.cache_read_input_tokens or 0,
+                                                   "output_tokens": res.output_tokens or 0})
+    res.usd_check, res.unpriced_models = check, unpriced or None
+    if res.usd_reported is not None:
+        res.usd, res.usd_source = float(res.usd_reported), "reported"
+    elif cap_usd is not None:
+        res.usd, res.usd_source = float(cap_usd), "session_cap"
+    else:
+        res.usd_source = "unknown" if res.usd is None else res.usd_source
 
 
 class ClaudeCodeExecutor:
@@ -365,9 +375,11 @@ def _log_cost(board_root: Path, task_id: str, agent: str, res: SessionResult) ->
            "input_tokens": res.input_tokens, "uncached_input_tokens": res.uncached_input_tokens,
            "output_tokens": res.output_tokens, "cache_read_input_tokens": res.cache_read_input_tokens,
            "cache_creation_input_tokens": res.cache_creation_input_tokens,
-           "gpu_hours": None, "usd": res.usd, "usd_reported": res.usd_reported, "unpriced_models": res.unpriced_models,
+           "gpu_hours": None, "usd": res.usd, "usd_source": res.usd_source, "usd_reported": res.usd_reported,
+           "usd_check_cost_usd": res.usd_check, "unpriced_models": res.unpriced_models,
            "wall_s": round(res.wall_s, 3), "timed_out": res.timed_out,
-           "note": "usd = llm_roles.cost_usd (cache writes unpriced there); usd_reported = Claude Code's figure; "
+           "note": "usd (charged) = Claude Code total_cost_usd, or the session cap if no report; "
+                   "usd_check_cost_usd = llm_roles.cost_usd cross-check (no cache-write price); "
                    "gpu_hours unknown: GPU jobs run inside the session, see wall_s"}
     with open(board_root / COSTS_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(row) + "\n")
@@ -413,8 +425,8 @@ class ArmRunner:
         res = self.executor.run(prompt, cwd=sandbox, budget=session_budget, transcript_path=transcript,
                                 board_root=board_root)
         res.key_name = key_name
-        price_session(res, self.budget.model)
-        self._spent += max(res.usd or 0.0, res.usd_reported or 0.0)  # conservative: the larger of the two
+        price_session(res, self.budget.model, cap_usd=session_budget.usd)
+        self._spent += res.usd or 0.0  # Claude Code's total_cost_usd, or the session cap if it left no report
         _log_cost(board_root, task.id, agent, res)  # dollars and tokens per session, failed ones too
         if self.keys and self.keys.is_credit_exhausted(exhaustion_text(res)):
             raise CreditExhausted(key_name)
