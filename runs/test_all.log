@@ -1,0 +1,30 @@
+test_boards_are_isolated (test_board.BoardTest.test_boards_are_isolated) ... ok
+test_concurrent_posts_from_many_processes (test_board.BoardTest.test_concurrent_posts_from_many_processes) ... /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=173426) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  self.pid = os.fork()
+ok
+test_disagreement_with_experiment_flags (test_board.BoardTest.test_disagreement_with_experiment_flags) ... ok
+test_need_claim_expiry_and_fulfilment (test_board.BoardTest.test_need_claim_expiry_and_fulfilment) ... ok
+test_numbers_beat_verdict_text (test_board.BoardTest.test_numbers_beat_verdict_text) ... ok
+test_property_without_registered_tolerance_cannot_be_trusted (test_board.BoardTest.test_property_without_registered_tolerance_cannot_be_trusted) ... ok
+test_reference_value_requires_source (test_board.BoardTest.test_reference_value_requires_source) ... ok
+test_rejection_needs_two_distinct_referees (test_board.BoardTest.test_rejection_needs_two_distinct_referees) ... ok
+test_same_engine_and_model_is_not_independent (test_board.BoardTest.test_same_engine_and_model_is_not_independent) ... ok
+test_scienceclaw_compatible_records (test_board.BoardTest.test_scienceclaw_compatible_records) ... ok
+test_self_checks_are_ignored (test_board.BoardTest.test_self_checks_are_ignored) ... ok
+test_simulated_then_under_review (test_board.BoardTest.test_simulated_then_under_review) ... ok
+test_superheating_story (test_board.BoardTest.test_superheating_story)
+Single-phase heating gets flagged; the coexistence rerun becomes trusted. ... ok
+test_trust_tier_needs_matching_sourced_reference (test_board.BoardTest.test_trust_tier_needs_matching_sourced_reference) ... ok
+test_trusted_needs_audit_and_independent_agreement (test_board.BoardTest.test_trusted_needs_audit_and_independent_agreement) ... ok
+test_unit_mismatch_flags (test_board.BoardTest.test_unit_mismatch_flags) ... ok
+test_unknown_parent_rejected (test_board.BoardTest.test_unknown_parent_rejected) ... ok
+test_unknown_type_and_bad_payload_rejected (test_board.BoardTest.test_unknown_type_and_bad_payload_rejected) ... ok
+test_flags_only_the_perfect_crystal_that_melts (test_superheating_hook.SuperheatingHookTest.test_flags_only_the_perfect_crystal_that_melts) ... ok
+test_handles_periodic_wrapping (test_superheating_hook.SuperheatingHookTest.test_handles_periodic_wrapping)
+A crystal shifted by a whole lattice vector (wrapped) must not look mobile. ... ok
+test_raise_action (test_superheating_hook.SuperheatingHookTest.test_raise_action) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 1.912s
+
+OK

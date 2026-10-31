@@ -55,6 +55,8 @@ from nvalchemi.dynamics.hooks import FreezeAtomsHook, NaNDetectorHook
 from nvalchemi.dynamics.hooks._utils import kinetic_energy_per_graph
 from nvalchemi.hooks import NeighborListHook, WrapPeriodicHook
 
+from coolorbit.hooks import SuperheatingDetectorHook
+
 KB_EV = 8.617333262e-5  # eV/K
 EV_TO_J = 1.602176634e-19
 N_A = 6.02214076e23
@@ -171,13 +173,15 @@ class Recorder:
                               "volume_per_atom_A3": v, "Lz_A": z})
 
 
-def run_stage(dyn, batch: Batch, model, recorder: Recorder, freeze: bool = False) -> Batch:
+def run_stage(dyn, batch: Batch, model, recorder: Recorder, freeze: bool = False, extra_hooks=()) -> Batch:
     dyn.register_hook(NeighborListHook(model.model_config.neighbor_config, stage=DynamicsStage.BEFORE_COMPUTE))
     if freeze:
         dyn.register_hook(FreezeAtomsHook())  # before wrapping, per FreezeAtomsHook docs
     dyn.register_hook(WrapPeriodicHook(stage=DynamicsStage.AFTER_POST_UPDATE))
     dyn.register_hook(NaNDetectorHook(frequency=100))
     dyn.register_hook(recorder)
+    for hook in extra_hooks:
+        dyn.register_hook(hook)
     t0 = time.perf_counter()
     batch = dyn.run(batch)
     torch.cuda.synchronize()
@@ -254,7 +258,9 @@ def run_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict,
     data = [make_data(box, t, s.seed + 10 + i) for i, t in enumerate(s.temps)]
     batch = Batch.from_data_list(data, device="cuda")
     rec = Recorder("production_npt", s.record_every, s.temps)
-    batch = run_stage(npt(model, s, s.temps, s.prod_steps, "anisotropic"), batch, model, rec)
+    detector = SuperheatingDetectorHook(action="record")  # negative control: must stay silent here
+    batch = run_stage(npt(model, s, s.temps, s.prod_steps, "anisotropic"), batch, model, rec,
+                      extra_hooks=[detector])
     rows += rec.rows
 
     per_t = []
@@ -276,6 +282,9 @@ def run_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict,
               "(increase --melt-steps or --t-melt); verdicts near the melting point are unreliable.")
     if prep["frozen_half_moved_fraction"] > 0.05:
         result["flags"].append("crystal_half_disturbed")
+    result["superheating_detector"] = detector.report()
+    if "superheating_observed" in detector.flags():
+        result["flags"].append("unexpected_superheating_signal")  # should never fire on a two-phase box
     melt_t = [p["T_target_K"] for p in per_t if p["verdict"] == "melting"]
     freeze_t = [p["T_target_K"] for p in per_t if p["verdict"] == "freezing"]
     if not melt_t:
@@ -300,7 +309,9 @@ def run_heating(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Bat
     data = [make_data(atoms, t, s.seed + i) for i, t in enumerate(s.temps)]
     batch = Batch.from_data_list(data, device="cuda")
     rec = Recorder("heating_npt", s.record_every, s.temps)
-    batch = run_stage(npt(model, s, s.temps, s.prod_steps, "isotropic"), batch, model, rec)
+    detector = SuperheatingDetectorHook(action="warn")  # positive control: should fire on melting crystals
+    batch = run_stage(npt(model, s, s.temps, s.prod_steps, "isotropic"), batch, model, rec,
+                      extra_hooks=[detector])
     rows += rec.rows
 
     curve = []
@@ -308,7 +319,8 @@ def run_heating(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Bat
         pe = production_series(rows, "heating_npt", i, "pe_per_atom_eV", discard=0.5)
         curve.append({"T_target_K": t, "pe_per_atom_eV": float(pe.mean())})
     curve.sort(key=lambda c: c["T_target_K"])
-    result = {"mode": "heating", "curve": curve, "flags": ["single_phase_heating", "superheating_risk"]}
+    result = {"mode": "heating", "curve": curve, "superheating_detector": detector.report(),
+              "flags": sorted({"single_phase_heating", "superheating_risk"} | detector.flags())}
     for a, b in zip(curve, curve[1:]):
         # Subtract the ordinary heat-up of a harmonic solid (PE rises by 3/2 kB per K per atom).
         jump = b["pe_per_atom_eV"] - a["pe_per_atom_eV"] - 1.5 * KB_EV * (b["T_target_K"] - a["T_target_K"])
