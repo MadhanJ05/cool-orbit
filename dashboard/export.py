@@ -24,7 +24,7 @@ from typing import Optional
 
 from coolorbit.board import Board, derive_status, load_rules
 from coolorbit.board._scienceclaw import REPO_ROOT
-from coolorbit.eval.metrics import score_board, summarize_arm
+from coolorbit.eval.metrics import is_board, score_board, score_repeat, summarize_arm
 from coolorbit.eval.tasks import TaskSet, load_tasks, task_requests
 
 SCHEMA = "coolorbit.dashboard/1"
@@ -46,8 +46,33 @@ def _board_name(path: Path) -> str:
     return "__".join(parts) or path.name
 
 
+SKIP_DIRS = {"transcripts", "integrity", "artifacts"}
+
+
+def discover(path: str | Path) -> list[tuple[Path, Optional[Path]]]:
+    """Boards under ``path`` as (board, repeat folder or None).
+
+    ``path`` may be one board, an arm-repeat folder of per-task boards (the runners' ``<arm>-r<k>/<task>/``), or
+    any folder above them (e.g. ``boards/eval/<run>``). Folders starting with ``_`` (``_infra_failed``) are skipped:
+    infrastructure failures are never shown as results.
+    """
+    path = Path(path)
+    if is_board(path):
+        parent = path.parent
+        repeat = parent if ARM_RE.match(parent.name) and not ARM_RE.match(path.name) else None
+        return [(path, repeat)]
+    if not path.is_dir():
+        raise FileNotFoundError(f"{path} is not a board or a folder of boards")
+    found: list[tuple[Path, Optional[Path]]] = []
+    for child in sorted(path.iterdir()):
+        if child.is_dir() and not child.name.startswith(("_", ".")) and child.name not in SKIP_DIRS:
+            found += discover(child)
+    return found
+
+
 def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
-                 *, name: Optional[str] = None, now: Optional[datetime] = None) -> dict:
+                 *, name: Optional[str] = None, now: Optional[datetime] = None,
+                 repeat_dir: Optional[Path] = None) -> dict:
     snap = board.snapshot()
     ordered = snap.ordered()
     name = name or _board_name(board.root)
@@ -104,7 +129,9 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
     if task_set is not None and task_requests(snap):
         scorecard = score_board(board, task_set, rules).to_dict()
 
-    m = ARM_RE.match(board.root.name)
+    # Arm and repeat come from the board's folder (<arm>-r<k>) or, for the runners' per-task boards, its parent.
+    arm_dir = Path(repeat_dir) if repeat_dir is not None else board.root
+    m = ARM_RE.match(arm_dir.name)
     return {
         "schema": SCHEMA,
         "name": name,
@@ -113,7 +140,8 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
         "synthetic": _is_synthetic(ordered),
         "rules_frozen": bool(rules.get("frozen")),
         "arm": m.group("arm") if m else None,
-        "run": _board_name(board.root.parent) if m else None,
+        "run": _board_name(arm_dir.parent) if m else None,
+        "task_id": board.root.name if repeat_dir is not None else None,
         "repeat": int(m.group("repeat")) if m else None,
         "agents": sorted({a.producer_agent for a in ordered}),
         "counts": {"artifacts": len(ordered), "by_type": dict(Counter(a.artifact_type for a in ordered)),
@@ -146,18 +174,26 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
     by_run: dict[str, dict[str, list]] = defaultdict(lambda: defaultdict(list))
     synthetic_runs: set[str] = set()
     excluded: list[str] = []
-    for path in board_paths:
-        path = Path(path)
-        if not (path / "artifacts").is_dir():
-            raise FileNotFoundError(f"{path} is not a board (no artifacts/ directory)")
+    repeats: dict[Path, dict] = {}  # per-task repeat folders: scored once, as a whole
+    found = [hit for path in board_paths for hit in discover(path)]
+    if not found:
+        raise FileNotFoundError(f"no boards under {[str(p) for p in board_paths]}")
+    for path, repeat_dir in found:
         board = Board(path)
-        data = export_board(board, rules, task_set, now=now)
+        data = export_board(board, rules, task_set, now=now, repeat_dir=repeat_dir)
         if data["name"] in boards:
             raise ValueError(f"two boards export to the same name {data['name']!r}")
         boards[data["name"]] = data
         (out / f"{data['name']}.json").write_text(json.dumps(data, indent=1), encoding="utf-8")
         entries.append({"name": data["name"], "file": f"{data['name']}.json", "synthetic": data["synthetic"],
-                        "arm": data["arm"], "repeat": data["repeat"], "counts": data["counts"]})
+                        "arm": data["arm"], "repeat": data["repeat"], "run": data["run"], "task_id": data["task_id"],
+                        "counts": data["counts"]})
+        if repeat_dir is not None and data["arm"]:
+            rec = repeats.setdefault(Path(repeat_dir), {"run": data["run"], "arm": data["arm"], "synthetic": False,
+                                                         "names": []})
+            rec["synthetic"] |= data["synthetic"]
+            rec["names"].append(data["name"])
+            continue
         if data["arm"] and data["scorecard"]:
             if data["synthetic"] and not include_synthetic_in_comparison:
                 excluded.append(data["name"])
@@ -166,6 +202,14 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
             by_run[run][data["arm"]].append(score_board(board, task_set, rules))
             if data["synthetic"]:
                 synthetic_runs.add(run)
+
+    for repeat_dir, rec in sorted(repeats.items()):
+        if rec["synthetic"] and not include_synthetic_in_comparison:
+            excluded += rec["names"]
+            continue
+        by_run[rec["run"]][rec["arm"]].append(score_repeat(repeat_dir, task_set, rules))
+        if rec["synthetic"]:
+            synthetic_runs.add(rec["run"])
 
     comparison = [{"run": run, "synthetic": run in synthetic_runs,
                    "arms": {arm: summarize_arm(scores) for arm, scores in sorted(arms.items())}}
@@ -182,7 +226,8 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
 
 def main(argv: Optional[list[str]] = None) -> None:
     ap = argparse.ArgumentParser(prog="python -m dashboard.export", description=__doc__.splitlines()[0])
-    ap.add_argument("--board", action="append", required=True, help="board directory; repeat for several")
+    ap.add_argument("--board", action="append", required=True,
+                    help="a board, an arm-repeat folder of per-task boards, or any folder above them; repeatable")
     ap.add_argument("--out", default=str(DEFAULT_OUT), help="output directory (default: dashboard/data)")
     ap.add_argument("--rules", help="trust rules JSON (default: configs/trust_rules.json)")
     ap.add_argument("--tasks", help="eval task set (default: coolorbit/eval/tasks.json)")
