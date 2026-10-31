@@ -1,0 +1,10 @@
+{
+  "_note": "Figure of merit (CLAUDE.md section 5). The operating window is an OPEN TEAM DECISION (section 14.2): these bounds are PLACEHOLDERS so the pipeline runs. Set decided=true when the team picks real values.",
+  "decided": false,
+  "window_K": {"min": 290.0, "max": 370.0},
+  "transition_pairs": [
+    {"temperature": "melting_point", "latent_heat": "latent_heat", "kind": "solid-liquid"},
+    {"temperature": "transition_temperature", "latent_heat": "transition_latent_heat", "kind": "solid-solid"}
+  ],
+  "score": "latent heat per kg in kJ/kg (primary; launch cost scales with mass). Trusted conductivity is reported in the note as the secondary criterion and breaks ties."
+}

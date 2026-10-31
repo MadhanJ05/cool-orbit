@@ -96,6 +96,8 @@ class Settings:
 
 MELT_TARGET_FRACTION = 0.8  # share of the melting half that must have moved > 1.5 A
 MAX_MELT_ROUNDS = 3
+MELT_ESCALATION = 1.25  # each extra melt round is this much hotter...
+MAX_MELT_FACTOR = 3.0   # ...up to this multiple of the reference temperature
 
 
 def expand_top_half(atoms: Atoms, frozen: np.ndarray, expansion: float) -> Atoms:
@@ -228,6 +230,31 @@ def run_stage(dyn, batch: Batch, model, recorder: Recorder, freeze: bool = False
     return batch
 
 
+def melt_until_liquid(batch: Batch, model, s: Settings, rows: list, stage: str, mask: torch.Tensor,
+                      freeze: bool, t_ref: float) -> tuple[Batch, float, list[float]]:
+    """Melt a single-system batch in NVT rounds until >= MELT_TARGET_FRACTION of ``mask`` atoms moved > 1.5 A.
+
+    Each extra round is hotter (x MELT_ESCALATION, capped at MAX_MELT_FACTOR x t_ref): a perfect crystal can
+    superheat far beyond 1.6 x T_m (Teammate 2 saw Ga, In and Bi stay solid at 1.6 x T_m with MEAM), so
+    repeating the same temperature may never melt it. Returns (batch, melted fraction, temperatures used).
+    """
+    pos0 = batch.positions.detach().clone()
+    temps_used, melted = [], 0.0
+    for r in range(MAX_MELT_ROUNDS):
+        t = min(s.t_melt * MELT_ESCALATION ** r, MAX_MELT_FACTOR * t_ref)
+        steps = s.melt_steps if r == 0 else max(s.melt_steps // 2, 1)
+        if r:
+            print(f"  only {melted:.0%} melted; melting {steps} more steps at {t:.0f} K", flush=True)
+        rec = Recorder(f"{stage}_r{r + 1}", s.record_every, [t] * batch.num_graphs)
+        batch = run_stage(nvt(model, s, t, steps, s.seed + 2 + r), batch, model, rec, freeze=freeze)
+        rows += rec.rows
+        temps_used.append(round(t, 1))
+        melted = displaced_fraction(pos0, batch.positions, batch.cell[0], mask)
+        if melted >= MELT_TARGET_FRACTION:
+            break
+    return batch, melted, temps_used
+
+
 def npt(model, s: Settings, temps: list[float], steps: int, coupling: str):
     m = len(temps)
     pressure = torch.zeros(m, 3) if coupling == "anisotropic" else 0.0
@@ -276,17 +303,7 @@ def prepare_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[B
     batch = Batch.from_data_list([make_data(box, s.t_melt, s.seed + 1, frozen)], device="cuda")
     pos0 = batch.positions.detach().clone()
     free = torch.tensor(~frozen, device=batch.positions.device)
-
-    rounds, melted = 0, 0.0
-    while rounds < MAX_MELT_ROUNDS and (rounds == 0 or melted < MELT_TARGET_FRACTION):
-        steps = s.melt_steps if rounds == 0 else max(s.melt_steps // 2, 1)
-        if rounds:
-            print(f"  liquid half only {melted:.0%} melted; melting {steps} more steps", flush=True)
-        rec = Recorder(f"prep_melt_nvt_r{rounds + 1}", s.record_every, [s.t_melt])
-        batch = run_stage(nvt(model, s, s.t_melt, steps, s.seed + 2 + rounds), batch, model, rec, freeze=True)
-        rows += rec.rows
-        melted = displaced_fraction(pos0, batch.positions, batch.cell[0], free)
-        rounds += 1
+    batch, _, melt_temps = melt_until_liquid(batch, model, s, rows, "prep_melt_nvt", free, True, s.t_prep)
 
     rec = Recorder("prep_quench_nvt", s.record_every, [s.t_prep])
     batch = run_stage(nvt(model, s, s.t_prep, s.quench_steps, s.seed + 9), batch, model, rec, freeze=True)
@@ -294,7 +311,8 @@ def prepare_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[B
     cell = batch.cell[0]
     prep = {
         "liquid_expansion": s.liquid_expansion,
-        "melt_rounds": rounds,
+        "melt_rounds": len(melt_temps),
+        "melt_temperatures_K": melt_temps,
         "frozen_half_moved_fraction": displaced_fraction(pos0, batch.positions, cell, ~free),
         "melted_half_moved_fraction": displaced_fraction(pos0, batch.positions, cell, free),
     }
@@ -395,13 +413,12 @@ def run_heating(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Bat
 
 def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batch]:
     t = s.temps[0]
-    print(f"Latent heat at T={t:g} K: preparing liquid at T_melt={s.t_melt:g} K", flush=True)
-    rec = Recorder("prep_liquid_nvt", s.record_every, [s.t_melt])
+    print(f"Latent heat at T={t:g} K: preparing liquid from T_melt={s.t_melt:g} K", flush=True)
     roomy = atoms.copy()  # the liquid needs more volume than the crystal
     roomy.set_cell(np.asarray(atoms.cell) * (1.0 + s.liquid_expansion) ** (1 / 3), scale_atoms=True)
     liq = Batch.from_data_list([make_data(roomy, s.t_melt, s.seed + 1)], device="cuda")
-    liq = run_stage(nvt(model, s, s.t_melt, s.melt_steps, s.seed + 2), liq, model, rec)
-    rows += rec.rows
+    everything = torch.ones(liq.num_nodes, dtype=torch.bool, device=liq.positions.device)
+    liq, liq_melted, liq_temps = melt_until_liquid(liq, model, s, rows, "prep_liquid_nvt", everything, False, t)
 
     data = [make_data(atoms, t, s.seed + 3), make_data(batch_to_atoms(liq)[0], t, s.seed + 4)]
     batch = Batch.from_data_list(data, device="cuda")
@@ -432,7 +449,8 @@ def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batc
     dh = phases["liquid"]["H_eV_per_atom"] - phases["solid"]["H_eV_per_atom"]
     dh_err = math.hypot(phases["liquid"]["H_sem"], phases["solid"]["H_sem"])
     to_j_per_kg = EV_TO_J * N_A / (mass_amu / 1000.0)
-    result = {"mode": "latent", "phases": phases, "density_g_cm3": density, "delta_H_eV_per_atom": dh}
+    result = {"mode": "latent", "phases": phases, "density_g_cm3": density, "delta_H_eV_per_atom": dh,
+              "liquid_prep": {"melted_fraction": liq_melted, "melt_temperatures_K": liq_temps}}
     problems = []
     if phases["liquid"]["moved_fraction"] < 0.5:
         problems.append("liquid may have recrystallized or never melted (few atoms diffused)")
@@ -460,10 +478,10 @@ def run_alloy_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict
     t = s.temps[0]
     print(f"Alloy latent heat: {composition_label(fractions)} (at%) at T={t:g} K; "
           f"melting the mixed box at {s.t_melt:g} K", flush=True)
-    rec = Recorder("prep_liquid_alloy_nvt", s.record_every, [s.t_melt])
     liq = Batch.from_data_list([make_data(atoms, s.t_melt, s.seed + 1)], device="cuda")
-    liq = run_stage(nvt(model, s, s.t_melt, s.melt_steps, s.seed + 2), liq, model, rec)
-    rows += rec.rows
+    everything = torch.ones(liq.num_nodes, dtype=torch.bool, device=liq.positions.device)
+    liq, liq_melted, liq_temps = melt_until_liquid(liq, model, s, rows, "prep_liquid_alloy_nvt", everything,
+                                                   False, t)
 
     elements = sorted(fractions)
     solids = []
@@ -509,6 +527,7 @@ def run_alloy_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict
               "phases": phases, "delta_H_eV_per_atom": dh, "density_g_cm3": {"solid_mixture": rho_solid,
                                                                              "liquid": rho_liquid},
               "latent_heat_J_per_L_solid": l_kg * rho_solid,  # (J/kg) x (g/cm3 = kg/L)
+              "liquid_prep": {"melted_fraction": liq_melted, "melt_temperatures_K": liq_temps},
               "flags": ["eutectic_solid_assumed_pure_elements"]}
     problems = []
     if phases["liquid_alloy"]["moved_fraction"] < 0.5:

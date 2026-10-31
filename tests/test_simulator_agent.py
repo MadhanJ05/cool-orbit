@@ -181,6 +181,23 @@ class SimulatorAgentTest(unittest.TestCase):
         self.assertEqual(rep.status, "flagged")
         self.assertEqual(rep.superseded_by, [new.artifact_id])
 
+    def test_failed_rerun_keeps_its_link_to_the_flawed_result(self) -> None:
+        """Rerun requested on a check -> rerun fails (bracket) -> retry succeeds -> still supersedes the original."""
+        self.candidate()
+        agent = self.agent(FakeRunner(OK, ABOVE, {**OK, "value": 1350.0}))
+        agent.step()
+        (old,) = self.board.snapshot().of_type("property_result")
+        self.board.post("referee_a", "check", {"check_type": "method_audit", "verdict": "fail"},
+                        parents=[old.artifact_id],
+                        needs=[{"artifact_type": "property_result", "property": "melting_point",
+                                "query": "rerun melting_point of Cu", "rationale": "the first result superheated",
+                                "temps_K": [1300, 1350, 1400, 1450], "preset": "quick"}])
+        agent.step()  # rerun fails -> run_report with a retry need
+        agent.step()  # retry succeeds
+        snap = self.board.snapshot()
+        final = [r for r in snap.of_type("property_result") if r.artifact_id != old.artifact_id][0]
+        self.assertEqual(derive_status(snap, old, RULES).superseded_by, [final.artifact_id])
+
     def test_follow_up_for_another_property_does_not_supersede(self) -> None:
         """A latent-heat request hanging off the melting result must not mark the melting result superseded."""
         cand = self.candidate()

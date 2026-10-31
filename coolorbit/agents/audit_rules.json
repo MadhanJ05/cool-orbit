@@ -1,0 +1,26 @@
+{
+  "_note": "Rule-based method audit (CLAUDE.md section 12 trap catalog). Thresholds are PLACEHOLDERS pending the computational chemistry lead; change them here, not in code. Set frozen=true before the comparison runs (pre-registration).",
+  "frozen": false,
+  "melting_properties": ["melting_point", "transition_temperature"],
+  "transport_properties": ["diffusion_coefficient", "self_diffusion", "diffusivity", "conductivity",
+                           "thermal_conductivity", "ionic_conductivity", "viscosity"],
+  "single_phase_protocols": ["single-phase heating", "single phase heating", "heating ramp", "direct heating"],
+  "thermostat_ensembles_banned_for_transport": ["langevin", "nvt-langevin", "berendsen", "andersen"],
+  "inorganic_only_model_patterns": ["mace-mp", "mpa-0", "mace-omat", "matpes", "tensornet"],
+  "organic_families": ["paraffin", "fatty_acid", "sugar_alcohol", "plastic_crystal"],
+  "max_timestep_fs_with_hydrogen": 0.5,
+  "min_atoms": {"default": 200, "two-phase coexistence": 500},
+  "min_sim_length_ps": {"default": 10.0, "two-phase coexistence": 20.0},
+  "required_method_fields": ["ensemble", "timestep_fs", "n_atoms", "sim_length_ps"],
+  "blocking_producer_flags": {
+    "single_phase_heating": "melting point from single-phase heating (superheating)",
+    "superheating_risk": "producer reports a superheating risk",
+    "superheating_observed": "SuperheatingDetectorHook observed superheating",
+    "unexpected_superheating_signal": "superheating signal in a two-phase box",
+    "model_out_of_domain": "force field outside its training domain",
+    "timestep_too_large_for_hydrogen": "timestep too large for hydrogen",
+    "liquid_half_incompletely_melted": "coexistence box: liquid half did not fully melt",
+    "crystal_half_disturbed": "coexistence box: crystal half was disturbed during preparation",
+    "quick_settings_not_production": "quick pipeline-test settings, not production"
+  }
+}
