@@ -85,7 +85,8 @@ NVIDIA tested Claude (claude-opus-4-8) writing 45 ALCHEMI simulation pipelines o
   independent referees. (`coolorbit/board/status.py`)
 - Independent second opinion with a different physics: classical MD (MEAM potentials from the NIST
   Interatomic Potentials Repository, LAMMPS on Nebius) for In, Sn and Bi. Ga was dropped: its only available
-  potential fails to hold alpha-Ga's structure (our stability check), a failure we report. [S15]
+  potential distorts alpha-Ga (our stability check: the cell is off by −8.4%/+6.6% and the next neighbour shell
+  collapses toward the close pair), a failure we report. [S15]
 - Visual: live dashboard (results, reasons, lineage, needs, failures, shortlist).
 
 ## Slide 7: Evidence 1: collective capability (the 25% criterion)
@@ -113,8 +114,8 @@ A = single agent + NVIDIA's recommended prompt; B = worker + checker pipeline; C
   two-phase coexistence lands near the measurement `[RESULT PENDING: both numbers for one metal]`.
 - Independent classical check (MEAM/LAMMPS) `[RESULT PENDING; only if the Nebius runs happen]`.
 - **Gallium fails both methods, and we say so:** MACE puts Ga's latent heat about 5x too low (15.2 ± 0.3 vs 80.2 kJ/kg
-  measured [S11]; GB10 production run, 512 atoms [S20]), and the only LAMMPS-ready classical potential can't hold
-  alpha-Ga's structure [S15]. Ga appears on slide 4 only with **measured** data; we don't claim to simulate it.
+  measured [S11]; GB10 production run, 512 atoms [S20]), and the only LAMMPS-ready classical potential distorts
+  alpha-Ga (cell off by −8.4%/+6.6%; next shell collapses toward the pair) [S15]. Ga appears on slide 4 only with **measured** data; we don't claim to simulate it.
 
 ## Slide 9: The shortlist, labelled by trust level
 A "trusted only" ranking will be empty tonight: only In, Sn and Bi can become trusted (via the classical check),
@@ -147,7 +148,7 @@ cycling, microgravity friendliness. `[open team decision: operating window]`
 - AI force fields have errors; we measure them against data and report them. No exact melting points.
 - MACE-MP is trained on inorganic materials: waxes are out of its domain (our Simulator refuses them and asks
   for classical MD).
-- Gallium: MACE's latent heat is ~5x low and the classical potential can't hold alpha-Ga, so we report Ga as a
+- Gallium: MACE's latent heat is ~5x low and the classical potential distorts alpha-Ga, so we report Ga as a
   failure of both methods, not a result [S20, S15].
 - Nothing on the shortlist is "trusted" yet; every row is labelled by trust level (slide 9).
 - Alloy latent heats assume the solid is a mixture of the pure elements (intermetallics would lower them).
@@ -199,7 +200,7 @@ Backup: a screen recording, in case the GB10 or network fails on stage.
 | S12 | liquid Ga density 6.077 g/cm³ at Tm | Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873 | via calibration set |
 | S13 | liquid Ga conductivity 28.1 W/m·K at 302.93 K | Ho, Powell, Liley, J. Phys. Chem. Ref. Data 1, 279 (1972), doi:10.1063/1.3253100 | via calibration set (from OCR of a scan) |
 | S14 | NVIDIA benchmark facts on slide 5 (45 pipelines, H200, claude-opus-4-8, zero pushback, LiF, 3-5x Langevin, synthetic-data self-test, 38/45 FIRE, seven GPU failures, advice) | NVIDIA Technical Blog, Aug 18 2026, https://developer.nvidia.com/blog/how-ai-coding-agents-can-unlock-materials-simulation-with-nvidia-alchemi-toolkit/ | raw page text grepped for each quote |
-| S15 | MEAM potentials for In/Sn/Bi from NIST IPR; Ga's potential fails an alpha-Ga stability check | `data/nebius/README.md`, `data/nebius/metals/Ga/stability/RESULT.md` | entry pages read; stability check run on a laptop CPU |
+| S15 | MEAM potentials for In/Sn/Bi from NIST IPR; Ga's potential fails an alpha-Ga stability check (cell −8.4%/+6.6%, next shell collapses toward the pair; the pair itself survives) | `data/nebius/README.md`, `data/nebius/metals/Ga/stability/RESULT.md` | entry pages read; stability check run on a laptop CPU |
 | S16 | Paraffin PCM packs (40.69 g n-hexadecane) flown on IceCube in ISS orbit, 2017, instrument "Day-On Every Other Orbit"; "maintained the instrument temperatures at about 18 degrees Centigrade most of the time" | M.K. Choi, "Thermal Assessment of Paraffin Phase Change Material Mini-Packs on IceCube 3U CubeSat in Flight", NASA NTRS 20180004470, https://ntrs.nasa.gov/citations/20180004470 | NTRS record and abstract read |
 | S17 | n-octadecane 0.7768 g/cm³ at 28 °C (used as the liquid) | CRC Handbook 95th ed. p. 3-424, via PubChem/HSDB (secondary), https://pubchem.ncbi.nlm.nih.gov/compound/11635 | PubChem record read. Caveat: 28 °C is at Tm, so the phase isn't stated; 5% below the 0.814 solid value [S8], consistent with liquid |
 | S18 | Ga 5.9037 g/cm³ solid at 29.65 °C; 6.0947 liquid at 29.8 °C | The Merck Index (1996), via PubChem/HSDB (secondary), https://pubchem.ncbi.nlm.nih.gov/compound/5360835 | PubChem record read |
