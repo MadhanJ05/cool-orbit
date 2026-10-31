@@ -8,6 +8,7 @@ Each one polls the board, claims needs it can serve, posts, and logs every decis
 |---|---|---|---|
 | Scouts (`scout_metals`, `scout_paraffin`, `scout_fatty_acid`, `scout_sugar_alcohol`, `scout_salt_hydrate`, `scout_plastic_crystal`) | `scout.py`, seeds in `scout_seeds.json` | one material family + its candidate budget | posts candidates, routes each to an engine that can handle it (ALCHEMI for inorganic crystals, `classical_md` for molecular organics), requests the latent heat once a usable melting point exists |
 | Rule referee (`referee_rules`) | `referee_rules.py`, thresholds in `audit_rules.json` | the trap catalog | audits every `property_result` once: single-phase heating, Langevin transport, out-of-domain model, H timestep, size/length, missing metadata, blocking producer flags |
+| Premise checker (`referee_premise`) | `premise.py` (reuses `audit_rules.json` lists) | the premise question | before anything runs, checks every simulation request: is the property measurable with this method, model, size and timescale? Rules first (pristine-crystal diffusion, single-phase heating, Langevin transport, model domain; recognises well-posed controls), Claude Opus 5.5 (structured JSON) only when rules are undecided. Advisory: never claims; carries a `fail` onto any result produced from a failed request so it is flagged |
 | Librarian (`librarian`) | `librarian.py`, data in `data/calibration/` | the measured-value dataset | answers `reference_value` needs (by name or alias); says "not found" instead of guessing |
 | Ranker (`ranker`) | `ranker.py`, config in `ranker_config.json` | the shortlist | ranks trusted results only, in the operating window, by latent heat per kg |
 | FakeSimulator (`simulator_fake`) | `fake_simulator.py` | nothing real | the real Simulator agent with a synthetic runner, `dev-*` boards only, every result marked SYNTHETIC; optional traps |
@@ -31,5 +32,9 @@ Placeholders awaiting team decisions (each file says so, and outputs carry a war
 `audit_rules.json` thresholds (chemistry lead), `ranker_config.json` operating window (team),
 `scout_plastic_crystal` disabled until solid-solid PCMs are approved.
 
-Not done yet: the LLM referee (needs `ANTHROPIC_API_KEY` in `.env`), the premise checker (T3),
-periodic structures in `data/structures/` for gallium, indium, salt hydrates and the organics.
+Premise checks without the board (e.g. for the eval harness):
+`python -m coolorbit.agents.premise --task '{"material": "LiF", "property": "self_diffusion", "description": "pristine crystalline LiF"}'`
+or `--tasks file.json`. The LLM layer needs `pip install anthropic python-dotenv` and `ANTHROPIC_API_KEY` in
+`.env`; without it, undecided tasks are reported `inconclusive`, never passed.
+
+Not done yet: the LLM method-audit referee (needs the API key), periodic structures in `data/structures/` for gallium, indium, salt hydrates and the organics.

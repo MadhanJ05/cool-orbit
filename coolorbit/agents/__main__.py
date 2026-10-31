@@ -13,6 +13,7 @@ import argparse
 
 from coolorbit.agents.base import run_round_robin
 from coolorbit.agents.librarian import LibrarianAgent
+from coolorbit.agents.premise import PremiseChecker
 from coolorbit.agents.ranker import Ranker
 from coolorbit.agents.referee_rules import RuleReferee
 from coolorbit.agents.scout import Scout, load_seeds
@@ -27,12 +28,16 @@ def main() -> None:
     ap.add_argument("--fake-sim", action="store_true", help="add the synthetic FakeSimulator (dev-* boards only)")
     ap.add_argument("--trap", action="append", default=[], help="FakeSimulator trap: candidate=silent_heating")
     ap.add_argument("--no-ranker", action="store_true")
+    ap.add_argument("--llm", default="inconclusive", choices=["inconclusive", "always", "never"],
+                    help="when the premise checker asks Claude (needs ANTHROPIC_API_KEY in .env)")
     ap.add_argument("--rounds", type=int, default=200)
     args = ap.parse_args()
 
     board = Board(args.board)
     seeds = load_seeds()
-    agents = [Scout(board, s, seeds=seeds, preset=args.preset) for s in (args.scouts or seeds)]
+    # The premise checker goes first so requests are checked before anyone runs them.
+    agents = [PremiseChecker(board, client=None if args.llm == "never" else "auto", llm_mode=args.llm)]
+    agents += [Scout(board, s, seeds=seeds, preset=args.preset) for s in (args.scouts or seeds)]
     if args.fake_sim:
         from coolorbit.agents.fake_simulator import FakeSimulatorAgent
 
