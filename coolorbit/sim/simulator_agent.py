@@ -433,8 +433,9 @@ class SimulatorAgent:
 
     def _report(self, *, status: str, task: str, reason: str, target_id: str, need_index: int,
                 candidate: Optional[Artifact], attempt: int = 1, run_dir: Optional[str] = None,
-                details: Optional[dict] = None, needs: tuple = ()) -> Artifact:
-        parents = [candidate.artifact_id] if candidate else []
+                details: Optional[dict] = None, needs: tuple = (), supersedes: Optional[str] = None) -> Artifact:
+        # Keep the link to the flawed result a rerun replaces, so a retry of a failed rerun still supersedes it.
+        parents = ([candidate.artifact_id] if candidate else []) + ([supersedes] if supersedes else [])
         art = self.board.post(self.name, "run_report",
                               {"status": status, "task": task, "reason": reason, "run_dir": run_dir,
                                "attempt": attempt, "details": details or {}},
@@ -459,7 +460,7 @@ class SimulatorAgent:
         except Exception as exc:  # crash, timeout, missing output: report it, never hide it
             self._report(status="failed", task=job.task, reason=f"run did not complete: {exc!r}"[:500],
                          target_id=job.target.artifact_id, need_index=job.need_index, candidate=job.candidate,
-                         attempt=job.attempt, run_dir=str(out_dir))
+                         attempt=job.attempt, run_dir=str(out_dir), supersedes=job.supersedes)
             return
         if result.get("status") == "ok":
             payload = build_property_payload(job.candidate.payload, result, settings["settings"],
@@ -476,7 +477,7 @@ class SimulatorAgent:
                      target_id=job.target.artifact_id, need_index=job.need_index, candidate=job.candidate,
                      attempt=job.attempt, run_dir=str(run_dir),
                      details={k: result[k] for k in ("failure", "per_temperature", "flags") if k in result},
-                     needs=[retry] if retry else ())
+                     needs=[retry] if retry else (), supersedes=job.supersedes)
 
 
 def main() -> None:
