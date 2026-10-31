@@ -1,4 +1,4 @@
-# latent phase=solid T_target_K=505.1 n_atoms=448 barostat=aniso dt_ps=0.002 prod_steps=25000 seed=2026 | step T_K pe_per_atom_eV ke_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV
+# latent phase=solid T_target_K=505.1 validation=1 n_atoms=448 barostat=aniso dt_ps=0.002 prod_steps=25000 seed=2026 | step T_K pe_per_atom_eV ke_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV
 # Fix print output for fix log
 0 505.1 -3.1005436944148 0.0651435641965547 12121.412438016 23.328 23.328 22.274 0
 50 179.717986001457 -3.05797544299116 0.0231785194186526 12791.927983746 23.7647355649358 23.7501383938355 22.6640163562748 -0.265393634650754

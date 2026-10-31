@@ -7,7 +7,9 @@ Run from the repo root:  .venv/bin/python -m unittest discover -s tests -v
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import io
 import importlib.util
 import json
 import math
@@ -66,8 +68,33 @@ class BundleTest(unittest.TestCase):
         self.assertEqual(out.returncode, 1, "the committed evidence must reproduce the failed verdict")
         v = json.loads(out.stdout)
         self.assertTrue(v["checks"]["alpha_below_fcc_at_0K"])
-        self.assertFalse(v["checks"]["first_peak_near_2.44A"])
+        self.assertTrue(v["checks"]["close_pair_survives_at_T"], "the close pair survives (Madhan's re-review)")
         self.assertFalse(v["checks"]["relaxed_cell_within_3pct_of_experiment"])
+        self.assertFalse(v["checks"]["next_shell_stays_beyond_2.6A_at_T"])
+        self.assertAlmostEqual(v["rdf_first_local_max_A"], 2.67, places=2)
+        self.assertAlmostEqual(v["pair_distance_running_count_1_A"], 2.51, places=2)
+        self.assertTrue((METALS / "Ga" / "stability" / "alpha_relaxed.lmp").is_file())
+        status = manifest("Ga")["status"]
+        self.assertIn("collapses toward the close pair", status)
+        self.assertNotIn("dimer is lost", status)
+
+    def test_first_peak_is_the_first_local_maximum_not_the_tallest(self) -> None:
+        spec2 = importlib.util.spec_from_file_location("check_ga", METALS / "Ga" / "stability" / "check_ga.py")
+        check_ga = importlib.util.module_from_spec(spec2)
+        spec2.loader.exec_module(check_ga)
+        with tempfile.TemporaryDirectory() as tmp:
+            rdf = Path(tmp) / "rdf.dat"
+            g = [0.0] * 200
+            g[5] = 0.004               # counting noise below the first shell: ignored (g <= 1)
+            g[120], g[121], g[122] = 1.5, 2.0, 1.6    # small first peak at r = 2.43 A
+            g[135], g[136], g[137] = 3.0, 4.0, 3.0    # tallest peak at r = 2.73 A
+            count = 0.0
+            lines = ["# Time-averaged data", "# TimeStep Number-of-rows", "# Row r g count", "10000 200"]
+            for i in range(200):
+                count += g[i] * 0.05
+                lines.append(f"{i + 1} {0.01 + 0.02 * i:.2f} {g[i]} {count}")
+            rdf.write_text("\n".join(lines) + "\n")
+            self.assertAlmostEqual(check_ga.first_peak(rdf), 2.43, places=2)
 
     def test_potential_files_match_their_recorded_hashes(self) -> None:
         for el in ALL:
@@ -113,10 +140,11 @@ class BundleTest(unittest.TestCase):
                 self.assertIn(f"log_{j['id']}.lammps", j["command"])
                 inp = re.search(r"-in (\S+)", j["command"]).group(1)
                 self.assertTrue((METALS / el / inp).resolve().is_file())
+                self.assertNotRegex(j["command"], r"[<>]", "no angle brackets: they break shells")
                 if j["kind"] == "latent":
-                    self.assertEqual(j["T_K"], "<Tm_MEAM>")
+                    self.assertEqual(j["T_K"], "TM_MEAM_K")
                     self.assertTrue(j["status"].startswith("BLOCKED"))
-                    self.assertIn("-var T <Tm_MEAM>", j["command"])
+                    self.assertIn("-var T TM_MEAM_K", j["command"])
 
     def test_melt_temperature_is_three_times_prep(self) -> None:
         for el in ACTIVE:
@@ -162,29 +190,58 @@ class BundleTest(unittest.TestCase):
 
 
 class RealOutputTest(unittest.TestCase):
-    """Real LAMMPS outputs from the laptop validation (not results)."""
+    """Real LAMMPS outputs from the laptop validation (marked validation=1; not results)."""
 
     def test_real_headers_carry_numbers(self) -> None:
         header, rows = analyze.read_columns(VALIDATION / "pe_T505.1.dat")
         self.assertEqual(float(header["T_target_K"]), 505.1)
         self.assertGreater(float(header["melt_liquid_moved"]), 0.8)
+        self.assertEqual(header["validation"], "1")
         self.assertEqual(len(rows[0]), 8)
 
-    def test_short_real_coexistence_run_is_refused(self) -> None:
+    def test_real_validation_coexistence_is_refused(self) -> None:
         out = analyze.analyze_coexist([VALIDATION / "pe_T505.1.dat"], manifest=manifest("Sn"))
         self.assertEqual((out["status"], out["failure"]), ("failed", "melt_check"))
-        self.assertIn("too little production data", out["reason"])
+        self.assertIn("VALIDATION", out["reason"])
 
-    def test_real_latent_files_parse_with_phase_checks(self) -> None:
+    def test_real_validation_latent_is_refused(self) -> None:
         out = analyze.analyze_latent(VALIDATION / "h_solid_T505.1.dat", VALIDATION / "h_liquid_T505.1.dat",
                                      log_solid=VALIDATION / "log_val_solid.lammps",
                                      log_liquid=VALIDATION / "log_val_liquid.lammps", manifest=manifest("Sn"))
-        self.assertEqual(out["status"], "ok", out.get("reason"))
-        self.assertEqual(out["solid_moved_fraction"], 0.0)
-        self.assertGreater(out["liquid_moved_fraction"], 0.5)
+        self.assertEqual(out["status"], "failed")
+        self.assertIn("VALIDATION", out["reason"])
+        self.assertIn("MEASURED melting point", out["reason"])
+        self.assertNotIn("value", out, "no J/kg for validation data")
+        # the file parsing itself still works on real output
         self.assertLess(max(abs(x) for x in out["solid"]["box_shape_change"]), 0.03)
-        self.assertEqual(out["method"]["engine"], "LAMMPS")
-        self.assertEqual((out["method"]["n_atoms"], out["method"]["timestep_fs"], out["method"]["seed"]), (448, 2.0, 2026))
+        self.assertEqual((out["method"]["n_atoms"], out["method"]["timestep_fs"]), (448, 2.0))
+
+    def test_unmarked_run_at_the_measured_tm_is_refused(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            for ph in ("solid", "liquid"):
+                text = (VALIDATION / f"h_{ph}_T505.1.dat").read_text().replace(" validation=1", "", 1)
+                (Path(tmp) / f"h_{ph}.dat").write_text(text)
+            out = analyze.analyze_latent(Path(tmp) / "h_solid.dat", Path(tmp) / "h_liquid.dat",
+                                         log_solid=VALIDATION / "log_val_solid.lammps",
+                                         log_liquid=VALIDATION / "log_val_liquid.lammps", manifest=manifest("Sn"))
+        self.assertEqual(out["status"], "failed")
+        self.assertIn("MEASURED melting point", out["reason"])
+        self.assertNotIn("VALIDATION", out["reason"])
+
+    def test_in_and_bi_validation_logs_are_committed(self) -> None:
+        for el in ("In", "Bi"):
+            log = (METALS / el / "validation" / "log_val_prep.lammps").read_text()
+            moved = re.findall(r"^MELT_CHECK liquid_moved_fraction ([0-9.]+) crystal_moved_fraction ([0-9.]+)", log, re.M)
+            self.assertTrue(moved, el)
+            self.assertGreaterEqual(float(moved[-1][0]), 0.8)
+            self.assertLessEqual(float(moved[-1][1]), 0.05)
+
+    def test_missing_manifest_warns(self) -> None:
+        analyze.WARNINGS.clear()
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(analyze.load_manifest(Path("/nonexistent/manifest.json")), {})
+        self.assertIn("manifest", err.getvalue())
+        self.assertTrue(analyze.WARNINGS)
 
 
 def series(n: int, start: float, end: float, noise: float, seed: int = 1) -> list[float]:
@@ -192,8 +249,10 @@ def series(n: int, start: float, end: float, noise: float, seed: int = 1) -> lis
     return [start + (end - start) * i / (n - 1) + rng.gauss(0, noise) for i in range(n)]
 
 
-def write_pe(path: Path, t: float, pe: list[float], melt_liq: float | None = 0.95, melt_cry: float = 0.0) -> Path:
-    melt = f" melt_liquid_moved={melt_liq} melt_crystal_moved={melt_cry}" if melt_liq is not None else ""
+def write_pe(path: Path, t: float, pe: list[float], melt_liq: float | None = 0.95, melt_cry: float = 0.0,
+             melt_t: float = 1500.0) -> Path:
+    melt = (f" Tmelt_K=1500 melt_liquid_moved={melt_liq} melt_crystal_moved={melt_cry} melt_liquid_T_K={melt_t}"
+            if melt_liq is not None else "")
     path.write_text(f"# coexistence T_target_K={t} n_atoms=1000{melt} dt_ps=0.002 prod_steps=25000 seed=1 | cols\n"
                     "# Fix print output for fix log\n" +
                     "".join(f"{i * 50} {t} {v} 1.0 1.0 1.0 1.0 0.0\n" for i, v in enumerate(pe)))
@@ -229,6 +288,17 @@ class AnalyzeTest(unittest.TestCase):
         out = analyze.analyze_coexist(files)
         self.assertEqual((out["status"], out["failure"]), ("failed", "melt_check"))
         self.assertIn("single-phase heating", out["reason"])
+
+    def test_wrong_liquid_temperature_during_the_melt_fails(self) -> None:
+        out = analyze.analyze_coexist(self.bracket([(400, -0.03), (500, 0.03)], melt_t=3000.0))
+        self.assertEqual(out["failure"], "melt_check")
+        self.assertIn("not the set", out["reason"])
+
+    def test_validation_flag_is_refused(self) -> None:
+        files = self.bracket([(400, -0.03), (500, 0.03)])
+        text = files[0].read_text().replace("T_target_K=400", "T_target_K=400 validation=1", 1)
+        files[0].write_text(text)
+        self.assertIn("VALIDATION", analyze.analyze_coexist(files)["reason"])
 
     def test_missing_melt_check_fails(self) -> None:
         out = analyze.analyze_coexist(self.bracket([(400, -0.03), (500, 0.03)], melt_liq=None))

@@ -36,7 +36,7 @@ NIST = "https://www.ctcms.nist.gov/potentials/entry/"
 
 # Settings mirror coolorbit/sim/melting.py production defaults (dt 2 fs, thermostat 100 fs, barostat 1000 fs,
 # equil 4000 / melt 6000 / quench 3000 / production 25000 steps, record every 50, |dPE| threshold 0.002 eV/atom,
-# T_melt = 1.6 x T_prep). Same protocol, different method.
+# T_melt factor set below). Same protocol, different method.
 SETTINGS = {"dt_ps": 0.002, "tdamp_ps": 0.1, "pdamp_ps": 1.0, "equil_steps": 4000, "melt_steps": 6000,
             "quench_steps": 3000, "prod_steps": 25000, "record_every": 50, "pe_threshold_eV_per_atom": 0.002,
             "t_melt_factor": 3.0, "latent_t_hot_factor": 3.0, "seed": 2026}
@@ -45,8 +45,9 @@ SETTINGS = {"dt_ps": 0.002, "tdamp_ps": 0.1, "pdamp_ps": 1.0, "equil_steps": 400
 CALIBRATION = REPO / "data" / "calibration" / "tier1.json"
 DROPPED = {
     "Ga": "failed the alpha-Ga stability check (metals/Ga/stability/RESULT.md): the relaxed 0 K cell is off by -8.4% (b) "
-          "and +6.6% (c) and the 2.44 A dimer is lost (first neighbour peak 2.71 A, ~1.9 neighbours within 2.6 A), so "
-          "this potential's 'alpha-Ga' is a different structure; its melting point would not be gallium's.",
+          "and +6.6% (c) and the next neighbour shell collapses toward the close pair (2.70/2.74 -> 2.62/2.68 A; ~1.9 "
+          "neighbours within 2.6 A at 303 K instead of 1); the pair itself survives. This potential's alpha-Ga is a "
+          "distorted structure, so its melting point would not be gallium's.",
 }
 
 
@@ -173,12 +174,12 @@ def build(symbol: str, out_root: Path = OUT) -> dict:
                          "outputs": [f"pe_T{t:g}.dat", f"log_{jid}.lammps"]})
         for phase in ("solid", "liquid"):
             jid = f"{symbol}-latent-{phase}"
-            jobs.append({"id": jid, "kind": "latent", "phase": phase, "T_K": "<Tm_MEAM>",
+            jobs.append({"id": jid, "kind": "latent", "phase": phase, "T_K": "TM_MEAM_K",
                          "status": "BLOCKED until this potential's own melting point is known from the coexistence "
                                    "jobs (latent heat is defined at the model's Tm, not the experimental one)",
                          "command": f"lmp -in ../in.latent.lmp -log log_{jid}.lammps -var phase {phase} "
-                                    f"-var T <Tm_MEAM> -var seed {SETTINGS['seed']}",
-                         "outputs": [f"h_{phase}_T<Tm_MEAM>.dat", f"log_{jid}.lammps"]})
+                                    f"-var T TM_MEAM_K -var seed {SETTINGS['seed']}",
+                         "outputs": [f"h_{phase}_TTM_MEAM_K.dat", f"log_{jid}.lammps"]})
     phase_name = ELEMENT_CRYSTALS[symbol][0]
     manifest = {
         "element": symbol,
@@ -213,7 +214,7 @@ def build(symbol: str, out_root: Path = OUT) -> dict:
                               "ensemble": "NPT (Nose-Hoover; solid aniso, liquid iso)", "n_atoms": len(solid),
                               "sim_length_ps": SETTINGS["prod_steps"] * SETTINGS["dt_ps"]}},
         "analysis": {"coexistence": "python ../analyze.py coexist pe_T*.dat",
-                     "latent": f"python ../analyze.py latent h_solid_T<Tm_MEAM>.dat h_liquid_T<Tm_MEAM>.dat "
+                     "latent": f"python ../analyze.py latent h_solid_TTM_MEAM_K.dat h_liquid_TTM_MEAM_K.dat "
                                f"--log-solid log_{symbol}-latent-solid.lammps --log-liquid log_{symbol}-latent-liquid.lammps"},
         "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule "
                              "as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart.",

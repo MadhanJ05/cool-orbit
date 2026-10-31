@@ -1,4 +1,4 @@
-# latent phase=liquid T_target_K=505.1 n_atoms=448 barostat=iso dt_ps=0.002 prod_steps=25000 seed=2026 | step T_K pe_per_atom_eV ke_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV
+# latent phase=liquid T_target_K=505.1 validation=1 n_atoms=448 barostat=iso dt_ps=0.002 prod_steps=25000 seed=2026 | step T_K pe_per_atom_eV ke_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV
 # Fix print output for fix log
 6000 505.1 -2.86083479253524 0.0651435641965547 12727.4830599168 23.7104942117769 23.7104942117769 22.639212451694 0
 6050 765.918659928607 -2.92567783766605 0.0987817687436119 13865.24621837 24.3969550384292 24.3969550384292 23.2946577728898 14.0237988173905

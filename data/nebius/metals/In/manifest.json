@@ -137,11 +137,11 @@
       "id": "In-latent-solid",
       "kind": "latent",
       "phase": "solid",
-      "T_K": "<Tm_MEAM>",
+      "T_K": "TM_MEAM_K",
       "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
-      "command": "lmp -in ../in.latent.lmp -log log_In-latent-solid.lammps -var phase solid -var T <Tm_MEAM> -var seed 2026",
+      "command": "lmp -in ../in.latent.lmp -log log_In-latent-solid.lammps -var phase solid -var T TM_MEAM_K -var seed 2026",
       "outputs": [
-        "h_solid_T<Tm_MEAM>.dat",
+        "h_solid_TTM_MEAM_K.dat",
         "log_In-latent-solid.lammps"
       ]
     },
@@ -149,11 +149,11 @@
       "id": "In-latent-liquid",
       "kind": "latent",
       "phase": "liquid",
-      "T_K": "<Tm_MEAM>",
+      "T_K": "TM_MEAM_K",
       "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
-      "command": "lmp -in ../in.latent.lmp -log log_In-latent-liquid.lammps -var phase liquid -var T <Tm_MEAM> -var seed 2026",
+      "command": "lmp -in ../in.latent.lmp -log log_In-latent-liquid.lammps -var phase liquid -var T TM_MEAM_K -var seed 2026",
       "outputs": [
-        "h_liquid_T<Tm_MEAM>.dat",
+        "h_liquid_TTM_MEAM_K.dat",
         "log_In-latent-liquid.lammps"
       ]
     }
@@ -181,7 +181,7 @@
   },
   "analysis": {
     "coexistence": "python ../analyze.py coexist pe_T*.dat",
-    "latent": "python ../analyze.py latent h_solid_T<Tm_MEAM>.dat h_liquid_T<Tm_MEAM>.dat --log-solid log_In-latent-solid.lammps --log-liquid log_In-latent-liquid.lammps"
+    "latent": "python ../analyze.py latent h_solid_TTM_MEAM_K.dat h_liquid_TTM_MEAM_K.dat --log-solid log_In-latent-solid.lammps --log-liquid log_In-latent-liquid.lammps"
   },
   "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
 }

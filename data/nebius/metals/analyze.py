@@ -35,6 +35,17 @@ N_A = 6.02214076e23
 PE_THRESHOLD = 0.002
 MELT_LIQUID_MIN, MELT_CRYSTAL_MAX = 0.8, 0.05
 SHAPE_TOL = 0.03          # solid box-length ratios may change by at most 3% during production
+MELT_T_TOL = 0.15         # the liquid half's recorded temperature during the melt must be within 15% of Tmelt
+WARNINGS: list[str] = []
+
+
+def warn(msg: str) -> None:
+    WARNINGS.append(msg)
+    print(f"WARNING: {msg}", file=sys.stderr)
+
+
+def is_validation(header: dict) -> bool:
+    return str(header.get("validation", "0")).strip() not in ("0", "", "${validation}")
 
 
 def read_columns(path: Path) -> tuple[dict, list[list[float]]]:
@@ -85,6 +96,13 @@ def melt_check(header: dict) -> tuple[bool, str]:
         return False, f"upper half did not melt ({liq:.2f} < {MELT_LIQUID_MIN} of atoms moved): single-phase heating"
     if cry > MELT_CRYSTAL_MAX:
         return False, f"crystal half disturbed during the melt ({cry:.2f} > {MELT_CRYSTAL_MAX})"
+    try:
+        t_liq, t_set = float(header["melt_liquid_T_K"]), float(header["Tmelt_K"])
+    except (KeyError, ValueError):
+        return False, "no recorded liquid temperature for the melt: can't check the thermostat"
+    if abs(t_liq - t_set) > MELT_T_TOL * t_set:
+        return False, (f"liquid half was at {t_liq:.0f} K during the melt, not the set {t_set:.0f} K "
+                       "(thermostat measuring the wrong atoms?)")
     return True, ""
 
 
@@ -102,6 +120,7 @@ def interpolate(per_t: list[dict], lo: float, hi: float) -> float:
 
 def load_manifest(path: Path | None) -> dict:
     if path is None or not Path(path).is_file():
+        warn(f"manifest {path} not found: no method block (run from the element folder or pass --manifest)")
         return {}
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -132,6 +151,8 @@ def analyze_coexist(paths: list[Path], threshold: float = PE_THRESHOLD, manifest
         except ValueError as exc:  # e.g. a run that died early: too few samples for the blocks
             r = {"verdict": "invalid", "delta_pe_eV_per_atom": None}
             ok, why = False, f"too little production data ({exc})"
+        if is_validation(header):  # always wins: validation data is never a result
+            ok, why = False, "laptop VALIDATION output (validation=1), not a result"
         r.update(file=str(p), T_target_K=t_target, T_measured_K=round(statistics.fmean(row[1] for row in rows), 1),
                  melt_check_ok=ok)
         if len(rows[0]) >= 8:
@@ -145,7 +166,8 @@ def analyze_coexist(paths: list[Path], threshold: float = PE_THRESHOLD, manifest
            "method": method_block(manifest or {}, "coexistence", header0)}
     if invalid:
         out.update(status="failed", failure="melt_check",
-                   reason="; ".join(invalid) + ". Rerun those temperatures with a higher Tmelt or longer melt.")
+                   reason="; ".join(invalid) + ". Fix or rerun those temperatures (a failed melt needs a higher "
+                          "Tmelt or a longer melt) before reading a melting point.")
         return out
     melt = [r["T_target_K"] for r in per_t if r["verdict"] == "melting"]
     freeze = [r["T_target_K"] for r in per_t if r["verdict"] == "freezing"]
@@ -208,6 +230,12 @@ def analyze_latent(solid: Path, liquid: Path, mass_amu: float | None = None, log
     out = {"mode": "latent", "solid": s, "liquid": l, "delta_H_eV_per_atom": dh,
            "method": method_block(manifest, "latent", s["header"])}
     problems = []
+    if is_validation(s["header"]) or is_validation(l["header"]):
+        problems.append("laptop VALIDATION output (validation=1), not a result")
+    t_measured = (manifest.get("settings") or {}).get("T_prep_K")
+    if t_measured is not None and abs(s["T_target_K"] - float(t_measured)) < 0.05:
+        problems.append(f"run at the MEASURED melting point ({t_measured} K); latent heat must be computed at this "
+                        "potential's own Tm from the coexistence jobs")
     if s["phase"] != "solid" or l["phase"] != "liquid":
         problems.append(f"files are phases {s['phase']!r} and {l['phase']!r}, expected solid and liquid")
     if abs(s["T_target_K"] - l["T_target_K"]) > 1e-6:
@@ -259,6 +287,8 @@ def main(argv: list[str] | None = None) -> int:
         out = analyze_coexist(args.files, args.threshold, manifest)
     else:
         out = analyze_latent(args.solid, args.liquid, args.mass_amu, args.log_solid, args.log_liquid, manifest)
+    if WARNINGS:
+        out["warnings"] = list(WARNINGS)
     print(json.dumps(out, indent=2))
     return 0 if out["status"] == "ok" else 1
 

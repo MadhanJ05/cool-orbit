@@ -1,4 +1,4 @@
-# coexistence T_target_K=505.1 n_atoms=1900 Tprep_K=505.1 Tmelt_K=1515.3 melt_liquid_moved=0.986286919831224 melt_crystal_moved=0.00105042016806723 melt_liquid_T_K=1575.96459160797 dt_ps=0.002 prod_steps=400 seed=2026 | step T_K pe_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV
+# coexistence T_target_K=505.1 validation=1 n_atoms=1900 Tprep_K=505.1 Tmelt_K=1515.3 melt_liquid_moved=0.986286919831224 melt_crystal_moved=0.00105042016806723 melt_liquid_T_K=1575.96459160797 dt_ps=0.002 prod_steps=400 seed=2026 | step T_K pe_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV
 # Fix print output for fix log
 13000 515.341574685955 -3.00209506386141 55168.8724666919 29.7351816514068 29.6822076054919 62.5068068680259 0
 13050 510.110403587544 -3.00397150862604 55383.9148293017 29.7013099128619 29.7846187002977 62.6060066029177 4.84817945811522

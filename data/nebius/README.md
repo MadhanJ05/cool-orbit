@@ -24,9 +24,10 @@ used only to place temperatures.
 
 ### Ga: reported failure (`metals/Ga/stability/RESULT.md`)
 A cheap check before spending compute: relax alpha-Ga and fcc at 0 K, then 20 ps NPT at 303 K. alpha-Ga is below
-fcc (−104 meV/atom) and the atoms stay put, but the relaxed cell is off by −8.4% (b) and +6.6% (c), and the
-2.44 Å alpha-Ga dimer is lost (first neighbour peak 2.71 Å, ~1.9 neighbours within 2.6 Å). Its melting point
-would not be gallium's, so Ga has no jobs.
+fcc (−104 meV/atom), the atoms stay put, and the close pair survives (2.43 Å at 0 K). But the relaxed cell is off
+by −8.4% (b) and +6.6% (c), and the next neighbour shell collapses toward the pair (2.70/2.74 → 2.62/2.68 Å), so at
+303 K about 1.9 neighbours sit within 2.6 Å instead of 1. The potential's alpha-Ga is a distorted structure; its
+melting point would not be gallium's, so Ga has no jobs.
 
 ### Not EAM: MEAM (the brief said EAM)
 For these elements the NIST repository has **no plain EAM potential with LAMMPS files**: the elemental,
@@ -58,7 +59,7 @@ build_metal_bundles.py    regenerates metals/<El>/ (structures from coolorbit/si
    melt fails the whole analysis** (that box was single-phase heating). All melting -> shift down 20%; all
    freezing -> up 20%; then refine with 4 temperatures 2% apart.
 2. **Latent heat (BLOCKED until step 1 gives this potential's Tm):** `-var phase solid` and `-var phase liquid` at
-   `T = <Tm_MEAM>`. `python ../analyze.py latent h_solid_T<Tm>.dat h_liquid_T<Tm>.dat --log-solid ... --log-liquid ...`
+   `T = TM_MEAM_K`. `python ../analyze.py latent h_solid_TTM_MEAM_K.dat h_liquid_TTM_MEAM_K.dat --log-solid ... --log-liquid ...`
    gives J/kg; fails on phase checks, enthalpy drift or a solid box-shape change.
 
 Protocol details: 2 fs, Nosé-Hoover thermostat 0.1 ps, barostat 1 ps, equilibrate 4000, melt 6000, quench 3000,
@@ -71,7 +72,10 @@ production 25,000 steps (50 ps), record every 50, threshold 0.002 eV/atom or 3x 
   box lengths and the thermostat/barostat energy exchange (`ecouple`) are logged every 50 steps.
 
 ### Laptop validation (inputs only, not results)
-LAMMPS 22 Jul 2025 (PyPI wheel, MEAM package present), CPU, full-length preparation stages, after the review fixes:
+LAMMPS 22 Jul 2025 (PyPI wheel, MEAM package present), CPU, full-length preparation stages, after the review fixes.
+The logs behind every column are committed in `metals/<El>/validation/` (Sn also keeps its output files). All
+validation outputs are marked `validation=1` and `analyze.py` refuses them as results; it also refuses latent
+runs at the measured melting point.
 
 | Check | In | Sn | Bi | Want |
 |---|---|---|---|---|
@@ -87,7 +91,8 @@ latent-heat liquid prep (1.6 x T left Ga, In, Bi solid; now 3 x T); (3) **review
 averaged over all atoms incl. the frozen half, so the liquid ran at ~2x its set T (fixed with `compute tliq`;
 the table above shows the liquid now at its set T); (4) **`fix print` writes its title without substituting
 variables**, so the output headers held `${T}` instead of numbers; headers are now written with `print`.
-analyze.py now reads real LAMMPS output in its tests.
+analyze.py now reads real LAMMPS output in its tests; (5) **re-review:** the Ga verdict first read the *tallest* RDF
+peak as the dimer; the close pair actually survives and the next shell collapses toward it (now measured directly).
 
 No production coexistence runs were done on the laptop (they are the Nebius jobs); no numbers here are results.
 

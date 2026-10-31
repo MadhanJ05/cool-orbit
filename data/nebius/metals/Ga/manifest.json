@@ -1,7 +1,7 @@
 {
   "element": "Ga",
   "purpose": "Independent classical-MD check (MEAM) of the GB10's MACE melting point and latent heat.",
-  "status": "DROPPED: failed the alpha-Ga stability check (metals/Ga/stability/RESULT.md): the relaxed 0 K cell is off by -8.4% (b) and +6.6% (c) and the 2.44 A dimer is lost (first neighbour peak 2.71 A, ~1.9 neighbours within 2.6 A), so this potential's 'alpha-Ga' is a different structure; its melting point would not be gallium's.",
+  "status": "DROPPED: failed the alpha-Ga stability check (metals/Ga/stability/RESULT.md): the relaxed 0 K cell is off by -8.4% (b) and +6.6% (c) and the next neighbour shell collapses toward the close pair (2.70/2.74 -> 2.62/2.68 A; ~1.9 neighbours within 2.6 A at 303 K instead of 1); the pair itself survives. This potential's alpha-Ga is a distorted structure, so its melting point would not be gallium's.",
   "engine": "LAMMPS (needs the MEAM package: check `lmp -h | grep -i meam` on the Nebius image)",
   "potential": {
     "citation": "E.C. Do, Y.-H. Shin, and B.-J. Lee (2009), \"Atomistic modeling of III-V nitrides: modified embedded-atom method interatomic potentials for GaN, InN and Ga1-xInxN\", J. Phys.: Condens. Matter 21(32), 325801.",
@@ -105,7 +105,7 @@
   },
   "analysis": {
     "coexistence": "python ../analyze.py coexist pe_T*.dat",
-    "latent": "python ../analyze.py latent h_solid_T<Tm_MEAM>.dat h_liquid_T<Tm_MEAM>.dat --log-solid log_Ga-latent-solid.lammps --log-liquid log_Ga-latent-liquid.lammps"
+    "latent": "python ../analyze.py latent h_solid_TTM_MEAM_K.dat h_liquid_TTM_MEAM_K.dat --log-solid log_Ga-latent-solid.lammps --log-liquid log_Ga-latent-liquid.lammps"
   },
   "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
 }

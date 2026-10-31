@@ -21,6 +21,7 @@ variable        melt    index 6000
 variable        quench  index 3000
 variable        prod    index 25000
 variable        every   index 50
+variable        validation index 0      # 1 = laptop validation run: analyze.py refuses it as a result
 
 units           metal
 atom_style      atomic
@@ -86,7 +87,7 @@ variable        lyy equal ly
 variable        lzz equal lz
 variable        ec equal ecouple
 # Header via `print` (fix print's title is written literally, without variable substitution), then the data rows.
-print           "# coexistence T_target_K=${T} n_atoms=$(atoms) Tprep_K=${Tprep} Tmelt_K=${Tmelt} melt_liquid_moved=${melt_liq} melt_crystal_moved=${melt_cry} melt_liquid_T_K=${melt_tliq} dt_ps=${dt} prod_steps=${prod} seed=${seed} | step T_K pe_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV" file pe_T${T}.dat screen no
+print           "# coexistence T_target_K=${T} n_atoms=$(atoms) Tprep_K=${Tprep} Tmelt_K=${Tmelt} melt_liquid_moved=${melt_liq} melt_crystal_moved=${melt_cry} melt_liquid_T_K=${melt_tliq} validation=${validation} dt_ps=${dt} prod_steps=${prod} seed=${seed} | step T_K pe_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV" file pe_T${T}.dat screen no
 fix             log all print ${every} "${st} ${tt} ${pea} ${vv} ${lxx} ${lyy} ${lzz} ${ec}" append pe_T${T}.dat screen no
 run             ${prod}
 write_data      final_T${T}.lmp

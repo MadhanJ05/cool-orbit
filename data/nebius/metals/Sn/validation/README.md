@@ -8,3 +8,6 @@ Real LAMMPS outputs from the laptop validation (LAMMPS 22 Jul 2025 wheel, CPU, 2
 - `h_solid_T505.1.dat`, `h_liquid_T505.1.dat`, `log_val_solid.lammps`, `log_val_liquid.lammps`: full-length latent
   runs at the **experimental** melting point (505.1 K), not at this potential's own melting point. Their latent heat
   is therefore not a result and must not be reported.
+
+The first (header) line of the three `.dat` files was edited after the run to add `validation=1` (the inputs now
+write it themselves with `-var validation 1`), so `analyze.py` refuses them as results; the data rows are untouched.

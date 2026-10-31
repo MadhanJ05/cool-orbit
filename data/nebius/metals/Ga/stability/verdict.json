@@ -15,14 +15,15 @@
     1.0231,
     1.0077
   ],
-  "rdf_first_peak_A": 2.71,
+  "rdf_first_local_max_A": 2.67,
+  "pair_distance_running_count_1_A": 2.51,
   "checks": {
     "alpha_below_fcc_at_0K": true,
     "relaxed_cell_within_3pct_of_experiment": false,
     "atoms_stay_put_at_T": true,
     "box_shape_kept_at_T": true,
-    "one_dimer_neighbour_within_2.6A": false,
-    "first_peak_near_2.44A": false
+    "close_pair_survives_at_T": true,
+    "next_shell_stays_beyond_2.6A_at_T": false
   },
   "passed": false
 }
