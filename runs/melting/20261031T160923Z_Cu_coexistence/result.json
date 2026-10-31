@@ -1,0 +1,43 @@
+{
+  "mode": "coexistence",
+  "prep": {
+    "frozen_half_moved_fraction": 0.0,
+    "melted_half_moved_fraction": 0.7403100728988647
+  },
+  "per_temperature": [
+    {
+      "T_target_K": 1250.0,
+      "T_measured_K": 1252.6,
+      "delta_pe_eV_per_atom": 0.00010097026824951172,
+      "block_noise_eV_per_atom": 0.00108441483389084,
+      "verdict": "stable"
+    },
+    {
+      "T_target_K": 1300.0,
+      "T_measured_K": 1300.5,
+      "delta_pe_eV_per_atom": 0.0021548956632613248,
+      "block_noise_eV_per_atom": 0.001037917168620877,
+      "verdict": "melting"
+    },
+    {
+      "T_target_K": 1350.0,
+      "T_measured_K": 1348.0,
+      "delta_pe_eV_per_atom": -0.00019625127315547886,
+      "block_noise_eV_per_atom": 0.0007663085500537705,
+      "verdict": "stable"
+    },
+    {
+      "T_target_K": 1400.0,
+      "T_measured_K": 1401.3,
+      "delta_pe_eV_per_atom": -0.002768278121948242,
+      "block_noise_eV_per_atom": 0.0016588708094153683,
+      "verdict": "freezing"
+    }
+  ],
+  "flags": [
+    "liquid_half_incompletely_melted"
+  ],
+  "status": "failed",
+  "reason": "inconsistent: froze at or above a melting temperature (runs too short or too noisy)",
+  "wall_s": 3056.8
+}

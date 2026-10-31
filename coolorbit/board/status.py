@@ -71,7 +71,10 @@ def derive_status(snap: "BoardSnapshot", result: "Artifact | str", rules: dict) 
     checks = [k for k in kids if k.artifact_type == "check"]
     report = StatusReport(
         status="simulated",
-        superseded_by=[k.artifact_id for k in kids if k.artifact_type == "property_result"],
+        # Only a rerun of the same property replaces a result; a follow-up for another property (e.g. latent heat
+        # requested from a melting result) does not.
+        superseded_by=[k.artifact_id for k in kids
+                       if k.artifact_type == "property_result" and k.payload.get("property") == p["property"]],
     )
     reasons = report.reasons
     failing = False

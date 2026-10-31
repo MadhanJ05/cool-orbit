@@ -94,9 +94,23 @@ class SimulatorAgentTest(unittest.TestCase):
         self.assertTrue(agent.step())  # picks up its own retry need
         retry_job = runner.jobs[1]
         self.assertEqual(retry_job.attempt, 2)
-        self.assertGreater(min(retry_job.temps), 1400)
+        self.assertEqual(retry_job.temps, [1400.0, 1450.0, 1500.0, 1550.0])  # anchored at the highest tried T
         (res,) = self.board.snapshot().of_type("property_result")
         self.assertIn(report.artifact_id, res.parent_artifact_ids)  # lineage: result <- failed attempt
+
+    def test_retry_keeps_the_nearest_decisive_temperature(self) -> None:
+        """Replays the first real agent run: 1300 K undecided, 1350-1450 K melting -> retry 1200-1350 K."""
+        self.candidate(need={**REQUEST, "temps_K": [1300, 1350, 1400, 1450]})
+        below = {"status": "failed", "failure": "below_bracket", "reason": "no temperature froze",
+                 "per_temperature": [{"T_target_K": 1300.0, "verdict": "stable"},
+                                     {"T_target_K": 1350.0, "verdict": "melting"},
+                                     {"T_target_K": 1400.0, "verdict": "melting"},
+                                     {"T_target_K": 1450.0, "verdict": "melting"}]}
+        runner = FakeRunner(below, OK)
+        agent = self.agent(runner)
+        agent.step()
+        agent.step()
+        self.assertEqual(runner.jobs[1].temps, [1200.0, 1250.0, 1300.0, 1350.0])
 
     def test_gives_up_after_max_attempts(self) -> None:
         self.candidate()
@@ -145,6 +159,45 @@ class SimulatorAgentTest(unittest.TestCase):
         job = runner.jobs[0]
         self.assertEqual((job.mode, job.temps, job.n_atoms), ("latent", [1296.0], 256))
         self.assertEqual(job.candidate.artifact_id, cand.artifact_id)
+
+    def test_rerun_requested_on_a_check_supersedes_the_flawed_result(self) -> None:
+        cand = self.candidate()
+        agent = self.agent(FakeRunner(OK, {**OK, "value": 1350.0}))
+        self.assertTrue(agent.step())
+        (old,) = self.board.snapshot().of_type("property_result")
+        self.board.post("referee_a", "check",
+                        {"check_type": "method_audit", "verdict": "fail", "flags": ["single_phase_heating"]},
+                        parents=[old.artifact_id],
+                        needs=[{"artifact_type": "property_result", "property": "melting_point",
+                                "query": "rerun melting_point of Cu with two-phase coexistence",
+                                "rationale": "the first result superheated", "temps_K": [1300, 1350, 1400, 1450],
+                                "preset": "quick"}])
+        self.assertTrue(agent.step())
+        snap = self.board.snapshot()
+        new = [r for r in snap.of_type("property_result") if r.artifact_id != old.artifact_id][0]
+        self.assertIn(old.artifact_id, new.parent_artifact_ids)
+        self.assertIn(cand.artifact_id, new.parent_artifact_ids)
+        rep = derive_status(snap, old, RULES)
+        self.assertEqual(rep.status, "flagged")
+        self.assertEqual(rep.superseded_by, [new.artifact_id])
+
+    def test_follow_up_for_another_property_does_not_supersede(self) -> None:
+        """A latent-heat request hanging off the melting result must not mark the melting result superseded."""
+        cand = self.candidate()
+        latent_ok = {"status": "ok", "property": "latent_heat", "value": 2.0e5, "uncertainty": 1.0e4, "units": "J/kg"}
+        agent = self.agent(FakeRunner(OK, latent_ok))
+        agent.step()
+        (melt,) = self.board.snapshot().of_type("property_result")
+        self.board.post("scout_metals", "request", {"note": "latent heat at the coexistence melting point"},
+                        parents=[cand.artifact_id, melt.artifact_id],
+                        needs=[{"artifact_type": "property_result", "property": "latent_heat",
+                                "query": "latent_heat of Cu at 1296 K", "rationale": "figure-of-merit input",
+                                "temperature_K": 1296, "preset": "quick"}])
+        agent.step()
+        snap = self.board.snapshot()
+        latent = [r for r in snap.of_type("property_result") if r.payload["property"] == "latent_heat"][0]
+        self.assertNotIn(melt.artifact_id, latent.parent_artifact_ids)
+        self.assertEqual(derive_status(snap, melt, RULES).superseded_by, [])
 
     def test_organics_are_out_of_domain(self) -> None:
         self.assertIsNotNone(ood_reason({"C", "H"}))

@@ -1,0 +1,75 @@
+{
+  "settings": {
+    "mode": "coexistence",
+    "label": "Cu",
+    "model": "medium-mpa-0",
+    "dt_fs": 2.0,
+    "temps": [
+      1300.0,
+      1350.0,
+      1400.0,
+      1450.0
+    ],
+    "t_prep": 1375.0,
+    "t_melt": 2200.0,
+    "equil_steps": 500,
+    "melt_steps": 1500,
+    "quench_steps": 500,
+    "prod_steps": 2500,
+    "record_every": 50,
+    "friction_per_fs": 0.01,
+    "thermostat_fs": 100.0,
+    "barostat_fs": 1000.0,
+    "pe_threshold": 0.002,
+    "jump_threshold": 0.03,
+    "seed": 2026,
+    "liquid_expansion": 0.05
+  },
+  "args": {
+    "mode": "coexistence",
+    "element": "Cu",
+    "structure": "fcc",
+    "a": 3.61,
+    "structure_file": null,
+    "reps": [
+      4,
+      4,
+      8
+    ],
+    "label": "Cu",
+    "temps": [
+      1300.0,
+      1350.0,
+      1400.0,
+      1450.0
+    ],
+    "temperature": null,
+    "t_prep": null,
+    "t_melt": null,
+    "model": "medium-mpa-0",
+    "dt": 2.0,
+    "equil_steps": 500,
+    "melt_steps": 1500,
+    "quench_steps": 500,
+    "prod_steps": 2500,
+    "record_every": 50,
+    "liquid_expansion": 0.05,
+    "pe_threshold": 0.002,
+    "jump_threshold": 0.03,
+    "seed": 2026,
+    "quick": true,
+    "board": null,
+    "agent": null,
+    "candidate_id": null,
+    "out": "/home/dell/Desktop/cool-orbit/runs/agent/e2e-cu-quick/734306e1-n0-a1"
+  },
+  "env": {
+    "torch": "2.14.1+cu130",
+    "nvalchemi": "0.2.0",
+    "mace_torch": "0.3.15",
+    "gpu": "NVIDIA GB10",
+    "quick": true
+  },
+  "n_atoms": 512,
+  "flags": []
+}

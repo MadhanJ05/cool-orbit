@@ -74,6 +74,7 @@ class Job:
     structure_args: list[str]
     n_atoms: int
     elements: set[str] = field(default_factory=set)
+    supersedes: Optional[str] = None  # the flawed result this run replaces (rerun requested on a check)
 
     @property
     def name(self) -> str:
@@ -124,6 +125,28 @@ def find_candidate(snap: BoardSnapshot, art: Artifact) -> Optional[Artifact]:
         cur = queue.pop(0)
         if cur.artifact_type == "candidate":
             return cur
+        for pid in cur.parent_artifact_ids:
+            if pid not in seen and pid in snap.artifacts:
+                seen.add(pid)
+                queue.append(snap.artifacts[pid])
+    return None
+
+
+def find_rerun_target(snap: BoardSnapshot, art: Artifact, prop: str) -> Optional[str]:
+    """The result a rerun request is about: a same-property result the need's artifact hangs off.
+
+    Walks up from the need's artifact and stops at the candidate; returns the first property_result for
+    ``prop``. Linking the new result to it marks the old one superseded (board status and eval metrics both
+    use this). A follow-up for a *different* property (latent heat requested from a melting result) is not a
+    rerun and must not supersede anything.
+    """
+    seen, queue = set(), [art]
+    while queue:
+        cur = queue.pop(0)
+        if cur.artifact_type == "property_result" and cur.payload.get("property") == prop:
+            return cur.artifact_id
+        if cur.artifact_type == "candidate":
+            continue
         for pid in cur.parent_artifact_ids:
             if pid not in seen and pid in snap.artifacts:
                 seen.add(pid)
@@ -207,6 +230,7 @@ def build_job(snap: BoardSnapshot, on: OpenNeed) -> Optional[Job]:
         dt_fs=float(need.get("dt_fs") or (0.5 if "H" in elements else 2.0)), preset=preset,
         prod_steps=need.get("prod_steps"), attempt=int(need.get("attempt", 1)), structure_args=structure_args,
         n_atoms=len(unit) * math.prod(int(r) for r in reps), elements=elements,
+        supersedes=find_rerun_target(snap, on.artifact, prop),
     )
 
 
@@ -215,15 +239,22 @@ def retry_need(job: Job, result: dict) -> Optional[dict]:
     if job.attempt >= MAX_ATTEMPTS or job.mode != "coexistence":
         return None
     temps = sorted(job.temps)
-    width = temps[-1] - temps[0]
-    spacing = width / (len(temps) - 1)
+    n = len(temps)
+    spacing = (temps[-1] - temps[0]) / (n - 1)
+    per_t = result.get("per_temperature") or []
+    melting = sorted(p["T_target_K"] for p in per_t if p["verdict"] == "melting")
+    freezing = sorted(p["T_target_K"] for p in per_t if p["verdict"] == "freezing")
     failure = result.get("failure")
     need = {k: v for k, v in job.need.items() if k != "t_guess_K"}
-    if failure == "above_bracket":
-        need["temps_K"] = [t + width + spacing for t in temps]
+    # Anchor the new bracket at the nearest decisive temperature so the answer can't be skipped over
+    # (seen in the first agent run: melting at 1350-1450 K, 1300 K undecided; a full-width shift jumped to 1100-1250).
+    if failure == "above_bracket":  # nothing melted: T_m is above the highest freezing (or highest tried) T
+        anchor = max(freezing) if freezing else temps[-1]
+        need["temps_K"] = [anchor + k * spacing for k in range(n)]
         what = "bracket shifted up"
-    elif failure == "below_bracket":
-        need["temps_K"] = [t - width - spacing for t in temps]
+    elif failure == "below_bracket":  # nothing froze: T_m is below the lowest melting (or lowest tried) T
+        anchor = min(melting) if melting else temps[0]
+        need["temps_K"] = [anchor - k * spacing for k in reversed(range(n))]
         what = "bracket shifted down"
         if min(need["temps_K"]) <= 0:
             return None
@@ -345,7 +376,8 @@ class SimulatorAgent:
         if result.get("status") == "ok":
             payload = build_property_payload(job.candidate.payload, result, settings["settings"],
                                              settings["n_atoms"], str(run_dir))
-            art = self.board.post(self.name, "property_result", payload, parents=[job.candidate.artifact_id],
+            parents = [job.candidate.artifact_id] + ([job.supersedes] if job.supersedes else [])
+            art = self.board.post(self.name, "property_result", payload, parents=parents,
                                   needs=check_needs(job), fulfills=(job.target.artifact_id, job.need_index),
                                   skill="coolorbit.sim.melting")
             print(f"[{self.name}] RESULT {art.artifact_id[:8]}: {payload['property']} = {payload['value']} "

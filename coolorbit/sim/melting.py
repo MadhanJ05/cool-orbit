@@ -301,14 +301,17 @@ def run_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict,
 
     per_t = []
     for i, t in enumerate(s.temps):
-        pe = production_series(rows, "production_npt", i, "pe_per_atom_eV")
-        means = block_means(pe)
+        # Skip only the barostat settling time: with little liquid in the box, the whole phase change can be
+        # over within the first fifth of the run (seen in the first production Cu run), so a 20% cut hides it.
+        pe = production_series(rows, "production_npt", i, "pe_per_atom_eV", discard=0.05)
+        means = block_means(pe, n_blocks=10)
         delta = float(means[-1] - means[0])
-        noise = float(np.std(np.diff(means)) / math.sqrt(2)) if len(means) > 2 else float("nan")
-        verdict = "melting" if delta > s.pe_threshold else "freezing" if delta < -s.pe_threshold else "stable"
+        noise = float(np.std(np.diff(means)) / math.sqrt(2)) if len(means) > 2 else 0.0
+        threshold = max(s.pe_threshold, 3.0 * noise)  # a verdict must beat the run's own noise
+        verdict = "melting" if delta > threshold else "freezing" if delta < -threshold else "stable"
         t_meas = float(production_series(rows, "production_npt", i, "T_K").mean())
         per_t.append({"T_target_K": t, "T_measured_K": round(t_meas, 1), "delta_pe_eV_per_atom": delta,
-                      "block_noise_eV_per_atom": noise, "verdict": verdict})
+                      "block_noise_eV_per_atom": noise, "threshold_eV_per_atom": threshold, "verdict": verdict})
         print(f"  T={t:7.1f} K (measured {t_meas:7.1f}): dPE = {delta:+.4f} eV/atom -> {verdict}", flush=True)
 
     result = {"mode": "coexistence", "prep": prep, "per_temperature": per_t, "flags": []}
