@@ -5,11 +5,15 @@ routes each one to an engine that can handle it (ALCHEMI for in-domain inorganic
 for molecular organics), and follows up on its own candidates (latent heat once a melting point exists).
 Requests follow docs/simulation-requests.md.
 
-Evaluation tasks: the eval harness posts each task as a ``request`` whose need asks for a ``candidate``
-(``coolorbit/eval/tasks.py``). A family Scout claims a task when the task's material is one of its seeds
-(by name or alias), posts the candidate with the task request as parent (fulfilling the need) and asks for
-the task's property. ``scout_general`` takes the tasks no family Scout owns. With ``eval_only`` a Scout
-answers tasks and proposes nothing else (comparison runs).
+Evaluation tasks: the eval harness posts each task as a ``request`` whose need asks for a ``candidate``.
+A family Scout claims a task when one of its seed names or aliases appears as a word in the task text
+(``need["query"]``; element symbols match case-sensitively, so "In" is indium but "in" is not), posts the
+candidate with the task request as parent (fulfilling the need) and asks for the task's property, if the
+seed has a route and a structure. ``scout_general`` takes the tasks no family Scout owns.
+
+Fairness: Scouts see only what is on the board, the same task text every arm gets. They never read
+``coolorbit/eval/tasks.json`` (it holds trap labels and reference values the other arms don't get).
+With ``eval_only`` a Scout answers tasks and proposes nothing else (comparison runs).
 
     python -m coolorbit.agents.scout --board boards/<id> --scout scout_metals [--once] [--eval-only]
     python -m coolorbit.agents.scout --list
@@ -22,7 +26,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from coolorbit.agents.base import Agent, OpenNeed, agent_cli, formula_elements, norm
+from coolorbit.agents.base import Agent, OpenNeed, agent_cli, norm
 from coolorbit.agents.librarian import DEFAULT_DATA, index_records, load_calibration
 from coolorbit.board import Board, BoardSnapshot, derive_status, load_rules
 from coolorbit.board._scienceclaw import Artifact
@@ -30,7 +34,10 @@ from coolorbit.board._scienceclaw import Artifact
 SEEDS_PATH = Path(__file__).with_name("scout_seeds.json")
 TRANSITION_PROPS = {"melting_point": "latent_heat", "transition_temperature": "transition_latent_heat"}
 EVAL_AGENT = "eval_harness"
-FORMULA_RE = re.compile(r"^(?:[A-Z][a-z]?\d*(?:\.\d+)?)+$")
+SYMBOL_RE = re.compile(r"^(?:[A-Z][a-z]?\d*(?:\.\d+)?)+$")  # Cu, LiF, Bi58Sn42: matched case-sensitively
+FORMULA_TOKEN_RE = re.compile(r"(?<!\w)((?:[A-Z][a-z]?\d*)+)(?![a-z])")
+STATE_WORDS = {"liquid": "liquid", "molten": "liquid", "crystal": "crystal", "crystalline": "crystal",
+               "solid": "crystal"}
 
 
 def load_seeds(path: str | Path = SEEDS_PATH) -> dict:
@@ -41,22 +48,42 @@ def seed_names(seed: dict) -> set[str]:
     return {norm(n) for n in [seed["name"], *seed.get("aliases", [])]}
 
 
-def task_material(snap: BoardSnapshot, on: OpenNeed) -> tuple[str, Optional[str]]:
-    """(material name, state hint) for an eval task need. Uses the task set's ``material`` field when the
-    eval package is available (e.g. 'LiF (crystal)' -> ('LiF', 'crystal')), else the prompt."""
-    material = on.need.get("material")
-    if not material:
-        try:
-            from coolorbit.eval.tasks import load_tasks
+def mentions(text: str, name: str) -> Optional[int]:
+    """Position of ``name`` as a whole word in ``text`` (symbols/formulas case-sensitive), else None."""
+    flags = 0 if SYMBOL_RE.match(name) else re.IGNORECASE
+    m = re.search(r"(?<!\w)" + re.escape(name) + r"(?!\w)", text, flags)
+    return m.start() if m else None
 
-            material = next((t.material for t in load_tasks().tasks if t.id == on.need.get("eval_task")), None)
-        except Exception:  # noqa: BLE001 - the eval package is optional for Scouts
-            material = None
-    material = material or on.need.get("query", "")
-    m = re.match(r"^(.*?)\s*\(([^)]*)\)\s*$", material)
-    if m and m.group(2).lower() in ("crystal", "liquid", "solid", "melt"):
-        return m.group(1).strip(), m.group(2).lower()
-    return material.strip(), None
+
+def periodic_table() -> tuple[set[str], dict[str, str]]:
+    """(element symbols, {'lithium': 'Li', ...}) from ASE (generic chemistry, not task data); empty without ASE."""
+    try:
+        from ase.data import atomic_names, chemical_symbols
+    except ImportError:
+        return set(), {}
+    return set(chemical_symbols[1:]), {n.lower(): sym for n, sym in zip(atomic_names, chemical_symbols) if n}
+
+
+def material_from_text(text: str) -> Optional[str]:
+    """Best guess of the material named in a task text: the formula token with most elements (LiF over Li),
+    else an element name (silicon -> Si). Generic parsing only; None if nothing is recognised."""
+    symbols, names = periodic_table()
+    text = re.sub(r"\d+(?:\.\d+)?\s*(?:K|°C|C|eV|GPa|ps|ns|fs)\b", " ", text)  # "800 K" is a temperature
+    valid = [t for t in FORMULA_TOKEN_RE.findall(text)
+             if len(t) <= 12 and all(e in symbols for e in re.findall(r"[A-Z][a-z]?", t))]
+    if valid:
+        return max(valid, key=lambda t: (len(re.findall(r"[A-Z]", t)), -text.find(t)))
+    for word in re.findall(r"[a-z]+", text.lower()):
+        if word in names:
+            return names[word]
+    return None
+
+
+def state_from_text(text: str) -> Optional[str]:
+    for word, state in STATE_WORDS.items():
+        if re.search(r"\b" + word + r"\b", text, re.IGNORECASE):
+            return state
+    return None
 
 
 def is_eval_task(on: OpenNeed) -> bool:
@@ -91,13 +118,19 @@ class Scout(Agent):
         return next((snap.artifacts[p] for p in cand.parent_artifact_ids if p in snap.artifacts
                      and snap.artifacts[p].producer_agent == EVAL_AGENT), None)
 
+    def _audited_pass(self, snap: BoardSnapshot, res: Artifact) -> bool:
+        """A method audit by someone other than the producer has passed this result."""
+        return any(k.artifact_type == "check" and k.payload["check_type"] == "method_audit"
+                   and k.payload["verdict"] == "pass" and k.producer_agent != res.producer_agent
+                   for k in snap.children.get(res.artifact_id, []))
+
     def _guess(self, name: str, prop: str) -> Optional[float]:
         rec = self.refs.get((norm(name), prop))
         return rec["value"] if rec and rec["value"] is not None else None
 
     def _request(self, seed: dict, prop: str, **fields) -> Optional[dict]:
         need = {"artifact_type": "property_result", "property": prop,
-                "query": f"{prop} of {seed['name']}", "rationale": "", **fields}
+                "query": f"{prop} of {seed['name']}", "rationale": f"{seed['family']} candidate", **fields}
         if seed.get("route") == "classical_md":
             need["engine"] = "classical_md"
         if self.preset:
@@ -109,20 +142,21 @@ class Scout(Agent):
                          reason="no literature value to centre the bracket on")
                 return None
             need["t_guess_K"] = round(guess)
-            need["rationale"] = (f"{seed['family']} candidate; two-phase coexistence bracket centred on the "
-                                 f"literature value ({round(guess)} K)")
+            need["rationale"] += f"; two-phase coexistence bracket centred on the literature value ({round(guess)} K)"
         return need
 
-    def _owner(self, material: str) -> Optional[tuple[str, dict]]:
-        """(scout name, seed) of the enabled family Scout whose seeds include this material."""
-        key = norm(material)
+    def _owner(self, text: str) -> Optional[tuple[str, dict]]:
+        """(scout name, seed) of the enabled family Scout whose seed is named earliest in the task text."""
+        best = None
         for scout, cfg in self.all_seeds.items():
             if cfg.get("general") or not cfg.get("enabled", True):
                 continue
             for seed in cfg["candidates"]:
-                if key in seed_names(seed):
-                    return scout, seed
-        return None
+                for n in [seed["name"], *seed.get("aliases", [])]:
+                    pos = mentions(text, n)
+                    if pos is not None and (best is None or pos < best[0]):
+                        best = (pos, scout, seed)
+        return (best[1], best[2]) if best else None
 
     # ------------------------------------------------------------------ work
 
@@ -137,20 +171,19 @@ class Scout(Agent):
 
     def _answer_task(self) -> bool:
         """Claim an eval task about one of my materials (or any unowned one, for scout_general)."""
-        snap = self.board.snapshot()
         for on in self.board.open_needs(include_claimed=False):
             if not is_eval_task(on):
                 continue
-            material, state = task_material(snap, on)
-            owner = self._owner(material)
+            text = on.need.get("query", "")
+            owner = self._owner(text)
             if self.general:
                 if owner is not None:
                     continue
-                els = formula_elements(material) if FORMULA_RE.match(material.replace(" ", "")) else set()
+                material = material_from_text(text) or f"material of task {on.need['eval_task']}"
                 seed = {"name": material, "family": "eval_general", "tier": "trust",
-                        "formula": material if els else None, "structure_source": None, "route": None,
-                        "rationale": "evaluation task material outside every family Scout's seeds; no structure "
-                                     "source on file, so the Simulator will say so if it cannot run it"}
+                        "formula": material if SYMBOL_RE.match(material) else None,
+                        "structure_source": None, "route": None,
+                        "rationale": "evaluation task material outside every family Scout's seeds"}
             else:
                 if owner is None or owner[0] != self.name:
                     continue
@@ -159,23 +192,25 @@ class Scout(Agent):
                 continue
             prop = on.need.get("property")
             first = "melting_point" if prop == "latent_heat" else prop  # latent heat waits for the melting point
-            fields = {"query": on.need.get("query", f"{prop} of {seed['name']}"),
-                      "rationale": f"evaluation task {on.need['eval_task']}"}
-            if state:
-                fields["state"] = state
-            t = re.search(r"(\d+(?:\.\d+)?)\s*K\b", on.need.get("query", ""))
-            if t and first not in TRANSITION_PROPS:
-                fields["temperature_K"] = float(t.group(1))
-            need = self._request(seed, first, **fields)
-            if need is not None and first in TRANSITION_PROPS and "t_guess_K" in need:
-                need["rationale"] += f"; two-phase coexistence bracket centred on {need['t_guess_K']} K"
+            need = None
+            if seed.get("route") and seed.get("structure_source"):  # same guard as _propose
+                fields = {"query": text or f"{prop} of {seed['name']}",
+                          "rationale": f"evaluation task {on.need['eval_task']}"}
+                state = state_from_text(text)
+                if state:
+                    fields["state"] = state
+                t = re.search(r"(\d+(?:\.\d+)?)\s*K\b", text)
+                if t and first not in TRANSITION_PROPS:
+                    fields["temperature_K"] = float(t.group(1))
+                need = self._request(seed, first, **fields)
             payload = {k: seed[k] for k in ("name", "family", "tier", "formula", "structure_source", "rationale")
                        if seed.get(k) is not None}
             self.post("candidate", payload, parents=[on.artifact.artifact_id],
                       fulfills=(on.artifact.artifact_id, on.index), needs=[need] if need else [],
                       skill=f"coolorbit.scout.{seed['family']}")
             self.log("decision", eval_task=on.need["eval_task"], candidate=seed["name"],
-                     action=f"answered task: requested {first}" if need else "answered task: no runnable request",
+                     action=f"answered task: requested {first}" if need else
+                     "answered task: no runnable structure or route, so nothing requested",
                      route=seed.get("route"))
             return True
         return False
@@ -221,18 +256,16 @@ class Scout(Agent):
             if not seed or not seed.get("route"):
                 continue
             task = self._eval_parent(snap, cand)
-            if task is not None:
-                idx = cand.payload.get("_need_index", 0)
-                wanted = {task.needs[idx].get("property")} if idx < len(task.needs) else set()
-            else:
-                wanted = set(seed.get("requests", []))
+            wanted = {n.get("property") for n in task.needs} if task is not None else set(seed.get("requests", []))
             kids = list(snap.children.get(cand.artifact_id, []))
             asked = {n.get("property") for k in [cand, *kids] for n in k.needs}
             for t_prop, l_prop in TRANSITION_PROPS.items():
                 if l_prop not in wanted or l_prop in asked:
                     continue
                 results = [k for k in kids if k.artifact_type == "property_result" and k.payload["property"] == t_prop]
-                usable = [r for r in results if (rep := derive_status(snap, r, rules)).status not in ("flagged", "rejected")
+                # Only at a melting point a referee has audited and passed (not one still awaiting review).
+                usable = [r for r in results if self._audited_pass(snap, r)
+                          and (rep := derive_status(snap, r, rules)).status not in ("flagged", "rejected")
                           and not rep.superseded_by]
                 if not usable:
                     continue
@@ -241,7 +274,7 @@ class Scout(Agent):
                 need["rationale"] = (f"second figure-of-merit input, at the simulated {t_prop} "
                                      f"({tm:g} K, result {usable[-1].artifact_id[:8]})")
                 if task is not None:
-                    need["rationale"] += f"; evaluation task {task.needs[idx].get('eval_task')}"
+                    need["rationale"] += f"; evaluation task {task.needs[0].get('eval_task')}"
                 self.post("request", {"note": f"{l_prop} of {seed['name']} at the simulated {t_prop}"},
                           parents=[cand.artifact_id, usable[-1].artifact_id], needs=[need])
                 self.log("decision", candidate=seed["name"], action=f"requested {l_prop}", at_K=tm)

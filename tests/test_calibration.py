@@ -134,6 +134,20 @@ class RealDataset(unittest.TestCase):
             self.assertIn((metal, "melting_point"), have)
             self.assertIn((metal, "latent_heat"), have)
 
+    def test_low_melting_metals_and_alloys(self):
+        if not DEFAULT_DATA.exists():
+            self.skipTest("data/calibration/tier1.json not created yet")
+        recs = {(r["candidate"], r["property"]): r for r in load_calibration(DEFAULT_DATA)}
+        for el in ("Sn", "Bi"):  # NIST SRM certificates
+            self.assertIsNotNone(recs[(el, "latent_heat")]["value"])
+        self.assertIsNotNone(recs[("BiInSn", "latent_heat")]["value"])  # Field's metal: measured by DSC
+        for alloy in ("BiSn", "InBi", "InSn", "GaIn", "GaInSn"):  # no opened measurement: prediction targets
+            rec = recs[(alloy, "latent_heat")]
+            self.assertIsNone(rec["value"])
+            self.assertIn("PREDICTION TARGET", rec["note"])
+            self.assertIn("wt%", rec["formula"])
+        self.assertIn("Galinstan", recs[("GaInSn", "melting_point")]["aliases"])
+
 
 if __name__ == "__main__":
     unittest.main()

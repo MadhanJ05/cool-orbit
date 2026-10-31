@@ -144,6 +144,8 @@ class ScoutTest(BoardCase):
             self.board.post(who, "check", {"check_type": "method_audit", "verdict": "reject"}, parents=[bad.artifact_id])
         self.assertFalse(s.step())
         good = self.board.post("simulator_x", "property_result", result(value=333.0), parents=[cand.artifact_id])
+        self.assertFalse(s.step())  # not yet audited: wait instead of racing the referee
+        self.board.post("referee_a", "check", {"check_type": "method_audit", "verdict": "pass"}, parents=[good.artifact_id])
         self.assertTrue(s.step())
         req = self.board.snapshot().of_type("request")[-1]
         self.assertEqual(req.needs[0]["temperature_K"], 333.0)
@@ -186,8 +188,8 @@ class RefereeAgentTest(BoardCase):
         self.assertEqual(len(open_needs), 1)
         rerun = open_needs[0]
         self.assertEqual(rerun.artifact.artifact_id, check.artifact_id)  # on the check, per the Reruns contract
-        self.assertEqual((rerun.need["property"], rerun.need["t_guess_K"], rerun.need["preset"]),
-                         ("melting_point", round(330.0 / 1.2), "production"))
+        self.assertEqual((rerun.need["property"], rerun.need["t_guess_K"]), ("melting_point", round(330.0 / 1.2)))
+        self.assertNotIn("preset", rerun.need)  # the result was not a quick run, so the preset is not the fix
         self.assertIn("two-phase coexistence", rerun.need["query"])
         self.assertEqual(derive_status(self.board.snapshot(), res, TRUST).status, "flagged")
         own = self.board.post("referee_rules", "property_result", result())
@@ -250,19 +252,52 @@ class RankerTest(BoardCase):
 
 
 class RerunNeedTest(unittest.TestCase):
-    def test_fixes_per_flag(self):
+    rules = load_audit_rules()
+
+    def need(self, res, flags, origin=None):
+        return rerun_need(res, flags, self.rules, origin)
+
+    def test_superheating_only_divided_for_single_phase(self):
         heat = result(value=1500.0, method={**GOOD, "protocol": "single-phase heating"})
-        n = rerun_need(heat, ["single_phase_heating"])
-        self.assertEqual((n["t_guess_K"], n["preset"]), (1250, "production"))
+        n = self.need(heat, ["single_phase_heating"])
+        self.assertEqual(n["t_guess_K"], 1250)
+        self.assertNotIn("preset", n)
+        # unexpected_superheating_signal comes from a two-phase run: keep its bracket, don't divide by 1.2.
+        two = result(value=1500.0, method={**GOOD, "temperatures_K": [1400, 1450, 1500, 1550]})
+        self.assertIsNone(self.need(two, ["unexpected_superheating_signal"]))  # nothing a request can change
+        n = self.need(two, ["unexpected_superheating_signal", "quick_settings_not_production"])
+        self.assertEqual((n["temps_K"], n["preset"]), ([1400, 1450, 1500, 1550], "production"))
+        self.assertNotIn("t_guess_K", n)
+
+    def test_each_fix_changes_a_request_field(self):
         quick = result(method={**GOOD, "temperatures_K": [300, 320, 340, 360]})
-        n = rerun_need(quick, ["quick_settings_not_production"])
+        n = self.need(quick, ["quick_settings_not_production"])
         self.assertEqual((n["temps_K"], n["preset"]), ([300, 320, 340, 360], "production"))
-        wax = result(family="paraffin")
-        self.assertEqual(rerun_need(wax, ["model_out_of_domain"])["engine"], "classical_md")
-        self.assertIsNone(rerun_need(result(), ["missing_method_metadata"]))  # not fixable by rerunning
-        self.assertIsNone(rerun_need(result("self_diffusion", 1e-5, "cm2/s"), ["langevin_transport"]))  # no runner
-        lat = result("latent_heat", 2e5, "J/kg", method={**GOOD, "temperatures_K": [1357.0]})
-        self.assertEqual(rerun_need(lat, ["run_too_short"])["temperature_K"], 1357.0)
+        small = result(method={**GOOD, "n_atoms": 256, "temperatures_K": [300, 340]})
+        n = self.need(small, ["system_too_small"], origin={"reps": [4, 4, 4]})
+        self.assertNotIn("preset", n)
+        self.assertGreaterEqual(256 / 64 * (n["reps"][0] * n["reps"][1] * n["reps"][2]), 500)
+        self.assertEqual(self.need(small, ["system_too_small"])["reps"], [6, 6, 8])  # default [4,4,8], 2 atoms/cell -> >=250 cells
+        short = result(method={**GOOD, "sim_length_ps": 5.0, "timestep_fs": 2.0, "temperatures_K": [300, 340]})
+        self.assertEqual(self.need(short, ["run_too_short"])["prod_steps"], 10000)  # 20 ps at 2 fs
+        h = result(family="paraffin", method={**GOOD, "engine": "OpenMM", "model": "GAFF2", "timestep_fs": 1.0,
+                                              "temperatures_K": [300, 320]})
+        n = self.need(h, ["timestep_too_large_for_hydrogen"])
+        self.assertEqual((n["dt_fs"], n["engine"]), (0.5, "classical_md"))  # stays on the classical route
+        n = self.need(result(method={**GOOD, "temperatures_K": [300, 340]}), ["timestep_too_large_for_hydrogen"])
+        self.assertNotIn("engine", n)  # ALCHEMI result: smaller timestep, no engine switch
+        self.assertEqual(self.need(result(family="paraffin"), ["model_out_of_domain"])["engine"], "classical_md")
+        lat = result("latent_heat", 2e5, "J/kg", method={**GOOD, "temperatures_K": [1357.0], "sim_length_ps": 5.0})
+        self.assertEqual(self.need(lat, ["run_too_short"])["temperature_K"], 1357.0)
+
+    def test_no_rerun_when_nothing_can_change(self):
+        prod = result(method={**GOOD, "temperatures_K": [300, 340]})
+        for flag in ("liquid_half_incompletely_melted", "crystal_half_disturbed"):
+            self.assertIsNone(self.need(prod, [flag]))  # production prep problem: a request can't set melt steps
+        n = self.need(prod, ["liquid_half_incompletely_melted", "quick_settings_not_production"])
+        self.assertEqual(n["preset"], "production")  # on a quick run, production settings do fix the prep
+        self.assertIsNone(self.need(result(), ["missing_method_metadata"]))
+        self.assertIsNone(self.need(result("self_diffusion", 1e-5, "cm2/s"), ["langevin_transport"]))  # no runner
 
 
 class RerunCapTest(BoardCase):
@@ -288,15 +323,16 @@ class EvalTaskTest(BoardCase):
                  *SEEDS["scout_test"]["candidates"][1:]]},
              "scout_general": {"general": True, "budget": 0, "candidates": []}}
 
-    def task(self, tid, material, prop, prompt):
+    def task(self, tid, prop, prompt):
+        # exactly the need fields coolorbit.eval.tasks.seed_board posts: no material, kind or reference
         return self.board.post("eval_harness", "request", {"note": f"eval_task:{tid}"},
                                needs=[{"artifact_type": "candidate", "query": prompt, "rationale": "evaluation task",
-                                       "eval_task": tid, "property": prop, "units": "K", "material": material}])
+                                       "eval_task": tid, "property": prop, "units": "K"}])
 
     def test_family_and_general_scouts_answer_tasks(self):
-        melt = self.task("t_melt", "testium metal", "melting_point", "Find the melting point of testium.")
-        lat = self.task("t_lat", "testium", "latent_heat", "Compute the latent heat of testium.")
-        diff = self.task("t_lif", "LiF (crystal)", "self_diffusion",
+        melt = self.task("t_melt", "melting_point", "Find the melting point of testium metal.")
+        lat = self.task("t_lat", "latent_heat", "Compute the latent heat of testium.")
+        diff = self.task("t_lif", "self_diffusion",
                          "Compute the Li-ion diffusion coefficient in pristine crystalline LiF at 300 K.")
         fam = Scout(self.board, "scout_test", seeds=self.SEEDS, calibration=CAL, rules=TRUST, eval_only=True, **self.kw)
         gen = Scout(self.board, "scout_general", seeds=self.SEEDS, calibration=CAL, rules=TRUST, **self.kw)
@@ -309,14 +345,16 @@ class EvalTaskTest(BoardCase):
                          [n for n in self.board.open_needs() if n.need.get("artifact_type") == "candidate"], [])
         self.assertEqual(cands[melt.artifact_id].needs[0]["property"], "melting_point")
         self.assertEqual(cands[lat.artifact_id].needs[0]["property"], "melting_point")  # latent waits for Tm
+        self.assertEqual(cands[melt.artifact_id].needs[0]["query"], "Find the melting point of testium metal.")
         lif = cands[diff.artifact_id]
         self.assertEqual((lif.payload["name"], lif.payload["family"]), ("LiF", "eval_general"))
-        self.assertEqual((lif.needs[0]["property"], lif.needs[0]["state"], lif.needs[0]["temperature_K"]),
-                         ("self_diffusion", "crystal", 300.0))
-        # follow-up: latent heat only for the task that asked for it
+        self.assertEqual(lif.needs, [])  # no route/structure: nothing for the Simulator to refuse
+        # follow-up: latent heat only for the task that asked for it, and only at an audited melting point
         for c in (cands[melt.artifact_id], cands[lat.artifact_id]):
-            self.board.post("simulator_x", "property_result", result(value=331.0), parents=[c.artifact_id],
-                            fulfills=(c.artifact_id, 0))
+            r = self.board.post("simulator_x", "property_result", result(value=331.0), parents=[c.artifact_id],
+                                fulfills=(c.artifact_id, 0))
+            self.board.post("referee_a", "check", {"check_type": "method_audit", "verdict": "pass"},
+                            parents=[r.artifact_id])
         self.assertEqual(fam.drain(), 1)
         req = self.board.snapshot().of_type("request")
         asked = [r for r in req if r.producer_agent == "scout_test"]
@@ -325,11 +363,27 @@ class EvalTaskTest(BoardCase):
         self.assertEqual(asked[0].needs[0]["temperature_K"], 331.0)
 
     def test_discovery_budget_ignores_eval_answers(self):
-        self.task("t1", "testium", "melting_point", "melting point of testium")
+        self.task("t1", "melting_point", "melting point of testium")
         s = Scout(self.board, "scout_test", seeds=self.SEEDS, calibration=CAL, rules=TRUST, **self.kw)
         s.drain()
         names = [c.payload["name"] for c in self.board.snapshot().of_type("candidate")]
         self.assertEqual(sorted(names), ["testium", "testium", "waxium"])  # 1 task answer + budget of 2
+
+
+class FairnessTest(unittest.TestCase):
+    def test_scouts_never_read_the_eval_task_set(self):
+        import coolorbit.agents.scout as scout_mod
+        src = Path(scout_mod.__file__).read_text()
+        self.assertNotIn("import load_tasks", src)
+        self.assertNotIn("from coolorbit.eval", src)
+
+    def test_symbols_are_case_sensitive_words(self):
+        from coolorbit.agents.scout import material_from_text, mentions
+        self.assertIsNone(mentions("Find the melting point of gallium in air", "In"))
+        self.assertIsNotNone(mentions("melting point of the Ga-In eutectic", "In"))
+        self.assertIsNotNone(mentions("Find the melting point of Aluminum", "aluminum"))
+        self.assertEqual(material_from_text("Compute the self-diffusion coefficient of liquid lithium at 800 K."), "Li")
+        self.assertEqual(material_from_text("Li-ion diffusion in pristine crystalline LiF"), "LiF")
 
 
 class LibrarianPropertyTest(BoardCase):

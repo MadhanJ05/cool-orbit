@@ -8,13 +8,17 @@ Two layers:
    heating, transport under a thermostat, an inorganic-only MLIP on a molecular organic. Rules also
    recognise well-posed controls (coexistence melting, NPT latent heat, static EOS, adsorption energies,
    liquid diffusion in NVE).
-2. **LLM** (``llm_premise``, Claude Opus 5.5, structured JSON): consulted when the rules are inconclusive
-   (or always, with ``llm_mode="always"``). It cannot overturn a rule-based ``fail``. With no API
-   credentials it is skipped and the verdict stays ``inconclusive`` (reported, never silently passed).
+2. **LLM** (``llm_premise``, role ``premise_checker`` in configs/llm_roles.json, structured JSON): consulted
+   when the rules are inconclusive
+   (or always, with ``llm_mode="always"``). It cannot overturn a rule-based ``fail``. Keys come from the
+   team's shared ``coolorbit/llm_keys.py`` (primary until out of credit, then backup, for every agent at
+   once); with no usable key it is skipped and the verdict stays ``inconclusive`` (never silently passed).
+   If the premise checker itself answers "uncertain", the ``adjudicator`` role settles it (few, costly calls).
 
-On the board (``PremiseChecker``, agent ``referee_premise``) it posts a ``premise_check`` on every
-simulation request (a ``property_result`` need) as soon as it appears, and, if a result is produced from a
-request it failed, posts the same ``fail`` on that result so the trust rule flags it.
+On the board (``PremiseChecker``, agent ``referee_premise``) it posts a ``premise_check`` on every eval task
+request (from its text only) and on every simulation request (a ``property_result`` need) as soon as it
+appears, and, if a result is produced from a request it failed, posts the same ``fail`` on that result so
+the trust rule flags it.
 
     python -m coolorbit.agents.premise --board boards/<id> [--once] [--llm inconclusive|always|never]
     python -m coolorbit.agents.premise --task '{"material": "LiF", "property": "self_diffusion", ...}'
@@ -26,10 +30,9 @@ from __future__ import annotations
 import json
 import math
 import re
-import os
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from coolorbit.agents.base import ORGANIC_ELEMENTS, Agent, agent_cli, candidate_of, formula_elements, norm
 from coolorbit.agents.referee_rules import load_audit_rules
@@ -37,9 +40,6 @@ from coolorbit.board import Board, BoardSnapshot, OpenNeed
 from coolorbit.board._scienceclaw import Artifact
 
 AGENT_NAME = "referee_premise"
-LLM_MODEL = "claude-opus-5-5"
-LLM_EFFORT = "high"  # Opus 5.5 defaults to medium; premise checks are judgement-heavy
-FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 STATIC_PROPERTIES = {"equation_of_state", "bulk_modulus", "lattice_constant", "energy_volume_curve",
                      "adsorption_energy", "binding_energy", "formation_energy", "surface_energy"}
@@ -63,7 +63,8 @@ class PremiseVerdict:
     reasons: list[str] = field(default_factory=list)
     suggested_fix: str = ""
     source: str = "rules"  # rules | llm | rules+llm
-    usage: dict = field(default_factory=dict)  # LLM token counts, for cost metrics
+    usage: dict = field(default_factory=dict)  # LLM role, model, tokens and cost_usd, for cost metrics
+    undecided: bool = False  # the LLM answered "uncertain" (escalate to the adjudicator)
 
     def note(self) -> str:
         text = "; ".join(self.reasons) or "no issues found"
@@ -222,30 +223,53 @@ LLM_SCHEMA = {
 _LLM_TO_CHECK = {"well_posed": "pass", "ill_posed": "fail", "uncertain": "inconclusive"}
 
 
-def _load_env() -> None:
-    try:
-        from dotenv import load_dotenv
-    except ImportError:
-        return
-    load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+PREMISE_ROLE = "premise_checker"     # configs/llm_roles.json decides the model and effort, never this file
+ADJUDICATOR_ROLE = "adjudicator"     # expensive, few calls: only when the premise checker is undecided
+ADJUDICATOR_PROMPT = """You are the adjudicator for a team of AI referees. The premise checker could not decide \
+whether the task below is physically well-posed and measurable with the stated method and timescale. Settle it: \
+answer well_posed or ill_posed with a concrete physical reason, and use "uncertain" only if the task text truly \
+lacks the information needed. False alarms cost the team as much as missed errors."""
 
 
-def make_client():
-    """An Anthropic client, or None when no credentials are configured (rules-only mode)."""
-    _load_env()
-    if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
-            or os.environ.get("ANTHROPIC_PROFILE")):
+def roles_llm(role: str, **request: Any) -> tuple[Any, float]:
+    """Production LLM caller: coolorbit/llm_roles.py picks model/effort for the role, spends key 1 then key 2
+    (coolorbit/llm_keys.py) and adds refusal fallbacks. Returns (response, approximate cost in USD)."""
+    from coolorbit import llm_roles
+
+    return llm_roles.create(role, **request)
+
+
+def make_client() -> Optional[Callable[..., tuple[Any, float]]]:
+    """The LLM caller, or None (rules-only mode) when no key is usable or the SDK is missing.
+    Only asks llm_keys which key NAME is active; never reads a key."""
+    import importlib.util
+
+    from coolorbit import llm_keys
+
+    if importlib.util.find_spec("anthropic") is None:
         return None
     try:
-        import anthropic
-    except ImportError:
+        llm_keys.active_key_name()
+    except llm_keys.NoUsableKey:
         return None
-    return anthropic.Anthropic()
+    return roles_llm
+
+
+def _structured_request(role: str, system: str, user: str) -> dict:
+    """Request body for a role with JSON-schema output. The role's output_config (effort) is kept and the
+    format added, because llm_roles.create merges request keys shallowly."""
+    from coolorbit import llm_roles
+
+    output_config = dict(llm_roles.request_kwargs(role).get("output_config", {}))
+    output_config["format"] = {"type": "json_schema", "schema": LLM_SCHEMA}
+    return {"system": system, "messages": [{"role": "user", "content": user}], "output_config": output_config}
 
 
 def _api_failure(exc: Exception) -> PremiseVerdict:
     """Map an anthropic SDK error to an inconclusive verdict, most specific first; re-raise anything else."""
     names = [c.__name__ for c in type(exc).__mro__]
+    if "NoUsableKey" in names:  # coolorbit.llm_keys: no key configured, or primary out and no backup
+        return PremiseVerdict("inconclusive", reasons=["LLM unavailable: no usable Anthropic key"], source="llm")
     if "APIError" not in names:
         raise exc
     if "AuthenticationError" in names:
@@ -261,69 +285,79 @@ def _api_failure(exc: Exception) -> PremiseVerdict:
     return PremiseVerdict("inconclusive", reasons=[f"LLM unavailable: {why}"], source="llm")
 
 
-def llm_premise(task: dict, client: Any, rule_view: Optional[PremiseVerdict] = None,
-                model: str = LLM_MODEL, effort: str = LLM_EFFORT) -> PremiseVerdict:
-    """Ask Claude for a structured premise verdict. API problems become ``inconclusive``.
+def llm_premise(task: dict, client: Callable[..., tuple[Any, float]], rule_view: Optional[PremiseVerdict] = None,
+                role: str = PREMISE_ROLE, earlier: Optional[PremiseVerdict] = None) -> PremiseVerdict:
+    """Ask the role for a structured premise verdict. API problems become ``inconclusive``.
 
-    Does not import ``anthropic`` itself (only ``make_client`` does), so tests can pass a fake client on a
-    machine without the SDK. SDK errors are recognised by their class hierarchy (``anthropic.APIError``);
-    anything else is a bug and is re-raised.
+    ``client`` is ``roles_llm`` in production (or a test double with the same signature). Does not import
+    ``anthropic`` itself. SDK errors are recognised by their class hierarchy; anything else is re-raised.
+    ``verdict.undecided`` is True only when the model answered "uncertain" (not on API problems).
     """
     user = ("Task to premise-check (JSON):\n" + json.dumps(task, indent=2, default=str)
-            + ("\n\nThe rule-based layer said: " + rule_view.note() if rule_view else ""))
+            + ("\n\nThe rule-based layer said: " + rule_view.note() if rule_view else "")
+            + ("\n\nThe premise checker said: " + earlier.note() if earlier else ""))
+    system = ADJUDICATOR_PROMPT + "\n\n" + SYSTEM_PROMPT if role == ADJUDICATOR_ROLE else SYSTEM_PROMPT
+    src = "adjudicator" if role == ADJUDICATOR_ROLE else "llm"
     try:
-        response = client.beta.messages.create(
-            model=model,
-            max_tokens=16000,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user}],
-            output_config={"effort": effort, "format": {"type": "json_schema", "schema": LLM_SCHEMA}},
-            betas=[FALLBACK_BETA],
-            fallbacks="default",  # on a safety decline, the API retries on a fallback model in the same call
-        )
+        response, cost = client(role, **_structured_request(role, system, user))
     except Exception as exc:  # noqa: BLE001 - narrowed below to the SDK's own error classes
-        return _api_failure(exc)
+        v = _api_failure(exc)
+        v.source = src
+        return v
 
-    usage = {"model": getattr(response, "model", model),
+    usage = {"role": role, "model": getattr(response, "model", None), "cost_usd": round(cost, 6),
              "input_tokens": getattr(response.usage, "input_tokens", None),
              "output_tokens": getattr(response.usage, "output_tokens", None)}
-    if response.stop_reason == "refusal":
-        return PremiseVerdict("inconclusive", reasons=["LLM declined the request"], source="llm", usage=usage)
+    if response.stop_reason == "refusal":  # the whole fallback chain declined
+        return PremiseVerdict("inconclusive", reasons=[f"{role} declined the request"], source=src, usage=usage)
     if response.stop_reason == "max_tokens":
-        return PremiseVerdict("inconclusive", reasons=["LLM answer truncated (max_tokens)"], source="llm", usage=usage)
+        return PremiseVerdict("inconclusive", reasons=[f"{role} answer truncated (max_tokens)"], source=src, usage=usage)
     text = next((b.text for b in response.content if getattr(b, "type", "") == "text"), "")
     try:
         data = json.loads(text)
         verdict = _LLM_TO_CHECK[data["verdict"]]
     except (json.JSONDecodeError, KeyError, TypeError):
-        return PremiseVerdict("inconclusive", reasons=["LLM returned unparseable output"], source="llm", usage=usage)
-    return PremiseVerdict(verdict, flags=[str(f) for f in data.get("flags", [])][:10],
-                          reasons=[str(data.get("reasoning", "")).strip()],
-                          suggested_fix=str(data.get("suggested_fix", "")).strip(), source="llm", usage=usage)
+        return PremiseVerdict("inconclusive", reasons=[f"{role} returned unparseable output"], source=src, usage=usage)
+    v = PremiseVerdict(verdict, flags=[str(f) for f in data.get("flags", [])][:10],
+                       reasons=[str(data.get("reasoning", "")).strip()],
+                       suggested_fix=str(data.get("suggested_fix", "")).strip(), source=src, usage=usage)
+    v.undecided = data["verdict"] == "uncertain"
+    return v
+
+
+def _merge_usage(*verdicts: PremiseVerdict) -> dict:
+    calls = [v.usage for v in verdicts if v.usage]
+    return {"calls": calls, "cost_usd": round(sum(c.get("cost_usd") or 0 for c in calls), 6)} if calls else {}
 
 
 def check_premise(task: dict, *, client: Any = None, llm_mode: str = "inconclusive",
                   rules: Optional[dict] = None) -> PremiseVerdict:
-    """Rules first; the LLM when they are inconclusive (or always). A rule ``fail`` is never overturned."""
+    """Rules first; the premise_checker role when they are inconclusive (or always); the adjudicator role only
+    when the premise checker answered "uncertain". A rule ``fail`` is never overturned."""
     if llm_mode not in ("inconclusive", "always", "never"):
         raise ValueError(f"llm_mode must be inconclusive|always|never, not {llm_mode!r}")
     rv = premise_rules(task, rules)
     ask = client is not None and (llm_mode == "always" or (llm_mode == "inconclusive" and rv.verdict == "inconclusive"))
     if not ask:
         if rv.verdict == "inconclusive" and client is None and llm_mode != "never":
-            rv.reasons.append("no LLM credentials configured, so left inconclusive")
+            rv.reasons.append("no usable LLM key or SDK, so left inconclusive")
         return rv
     lv = llm_premise(task, client, rv)
+    av = None
+    if rv.verdict == "inconclusive" and lv.undecided:
+        av = llm_premise(task, client, rv, role=ADJUDICATOR_ROLE, earlier=lv)
+    decided = av if av is not None else lv
     if rv.verdict == "fail":
         verdict = "fail"
-    elif rv.verdict == "pass" and lv.verdict == "inconclusive":
+    elif rv.verdict == "pass" and decided.verdict == "inconclusive":
         verdict = "pass"
     else:
-        verdict = lv.verdict
-    return PremiseVerdict(verdict, flags=list(dict.fromkeys(rv.flags + lv.flags)),
-                          reasons=[r for r in rv.reasons + lv.reasons if r],
-                          suggested_fix="; ".join(x for x in (rv.suggested_fix, lv.suggested_fix) if x),
-                          source="rules+llm", usage=lv.usage)
+        verdict = decided.verdict
+    parts = [rv, lv] + ([av] if av else [])
+    return PremiseVerdict(verdict, flags=list(dict.fromkeys(f for v in parts for f in v.flags)),
+                          reasons=[r for v in parts for r in v.reasons if r],
+                          suggested_fix="; ".join(v.suggested_fix for v in parts if v.suggested_fix),
+                          source="rules+llm" + ("+adjudicator" if av else ""), usage=_merge_usage(lv, *([av] if av else [])))
 
 
 # --------------------------------------------------------------------------- board agent
@@ -353,6 +387,20 @@ def task_from_need(snap: BoardSnapshot, art: Artifact, need: dict, calibration_i
         if rec and rec["value"] is not None:
             task["melting_point_K"] = rec["value"]
     return {k: v for k, v in task.items() if v not in (None, "", [])}
+
+
+EVAL_AGENT = "eval_harness"
+
+
+def task_from_eval_request(need: dict) -> dict:
+    """A premise-check task from an eval task request, using only the task text on the board (the same text
+    every arm gets; never coolorbit/eval/tasks.json)."""
+    text = need.get("query", "")
+    task = {"property": need.get("property", ""), "description": text}
+    t = re.search(r"(\d+(?:\.\d+)?)\s*K\b", text)
+    if t:
+        task["temperature_K"] = float(t.group(1))
+    return task
 
 
 def _tag(need_index: int) -> str:
@@ -385,6 +433,17 @@ class PremiseChecker(Agent):
 
     def step(self) -> bool:
         snap = self.board.snapshot()
+        # 0. Every eval task as posted (even once a Scout has answered it, or if no Scout can request a run).
+        for req in snap.of_type("request"):
+            if req.producer_agent != EVAL_AGENT:
+                continue
+            for i, need in enumerate(req.needs):
+                if not need.get("property") or self._checked(snap, req.artifact_id, i):
+                    continue
+                task = task_from_eval_request(need)
+                v = check_premise(task, client=self.client, llm_mode=self.llm_mode, rules=self.rules)
+                self._post(v, parent=req.artifact_id, need_index=i, task=task)
+                return True
         # 1. Every simulation request, before it runs (claimed or not: we don't claim, we only advise).
         for on in self.board.open_needs(include_claimed=True):
             if on.need.get("artifact_type") != "property_result":

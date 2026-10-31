@@ -1288,50 +1288,501 @@
       ]
     },
     {
-      "candidate": "field's metal",
-      "family": "low_melting_metal",
-      "formula": "In51Bi32.5Sn16.5 (wt%)",
+      "candidate": "BiInSn",
+      "family": "low_melting_alloy",
+      "formula": "Bi32.5In51Sn16.5 (wt%)",
       "property": "melting_point",
       "value": 333.71,
       "units": "K",
       "uncertainty": null,
       "source": "Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3",
       "quote": "Solid | 287.0 | 333.71 | 27.115",
-      "note": "DSC 10 K/min; single source"
+      "note": "eutectic; DSC 10 K/min on Bi 32.5 / In 51 / Sn 16.5 wt%",
+      "alternates": [
+        {
+          "value": 333.95,
+          "uncertainty": 0.1,
+          "source": "Manasijevic, Balanovic, Holjevac Grguric, Minic, Gorgievski, Materials Research 21(6), e20180501 (2018), doi:10.1590/1980-5373-MR-2018-0501, Table 4 (DSC, 5 runs; composition Bi 32.0 / In 51.2 / Sn 16.8 wt%)"
+        }
+      ],
+      "aliases": [
+        "Field's metal",
+        "Fields metal"
+      ]
     },
     {
-      "candidate": "field's metal",
-      "family": "low_melting_metal",
-      "formula": "In51Bi32.5Sn16.5 (wt%)",
+      "candidate": "BiInSn",
+      "family": "low_melting_alloy",
+      "formula": "Bi32.5In51Sn16.5 (wt%)",
       "property": "latent_heat",
       "value": 27115,
       "units": "J/kg",
       "uncertainty": null,
       "source": "Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3",
       "quote": "Solid | 287.0 | 333.71 | 27.115 (kJ/kg)",
-      "note": "DSC; single source, no cross-check found"
+      "note": "DSC. Independent DSC: 25.4 +/- 0.1 J/g (Manasijevic 2018, Bi 32.0 / In 51.2 / Sn 16.8 wt%): ~6.5% lower",
+      "alternates": [
+        {
+          "value": 25400,
+          "uncertainty": 100,
+          "source": "Manasijevic, Balanovic, Holjevac Grguric, Minic, Gorgievski, Materials Research 21(6), e20180501 (2018), doi:10.1590/1980-5373-MR-2018-0501, Table 4",
+          "quote": "32.0%Bi-51.2%In-16.8%Sn 60.8+/-0.1 25.4+/-0.1 59.2 26.7 J/g"
+        }
+      ],
+      "aliases": [
+        "Field's metal",
+        "Fields metal"
+      ]
     },
     {
-      "candidate": "field's metal",
-      "family": "low_melting_metal",
-      "formula": "In51Bi32.5Sn16.5 (wt%)",
+      "candidate": "BiInSn",
+      "family": "low_melting_alloy",
+      "formula": "Bi32.5In51Sn16.5 (wt%)",
       "property": "density",
       "value": null,
       "units": "g/cm3",
       "uncertainty": null,
       "source": null,
-      "note": "NOT FOUND: Zamora 2021 uses 7880 kg/m3 as an unsourced input, not a measurement"
+      "note": "NOT FOUND: Zamora 2021 uses 7880 kg/m3 as an unsourced input, not a measurement",
+      "aliases": [
+        "Field's metal",
+        "Fields metal"
+      ]
     },
     {
-      "candidate": "field's metal",
-      "family": "low_melting_metal",
-      "formula": "In51Bi32.5Sn16.5 (wt%)",
+      "candidate": "BiInSn",
+      "family": "low_melting_alloy",
+      "formula": "Bi32.5In51Sn16.5 (wt%)",
       "property": "conductivity",
       "value": null,
       "units": "W/m/K",
       "uncertainty": null,
       "source": null,
-      "note": "NOT FOUND: no openable source"
+      "note": "NOT FOUND: no openable measured source",
+      "aliases": [
+        "Field's metal",
+        "Fields metal"
+      ]
+    },
+    {
+      "candidate": "BiSn",
+      "family": "low_melting_alloy",
+      "formula": "Bi58Sn42 (wt%)",
+      "property": "melting_point",
+      "value": 411.15,
+      "units": "K",
+      "uncertainty": null,
+      "source": "AIM Solder technical data sheet 'Sn42/Bi58 Lead-Free Solder Alloy' (Doc Rev NF4), https://www.aimsolder.com/wp-content/uploads/alloy_sn42-bi58_tds.pdf",
+      "quote": "Sn42/Bi58 has a eutectic melting point of 138°C (280°F).",
+      "note": "DATASHEET value, method not stated; composition Sn 42 +/- 0.5 / Bi 58 +/- 0.5 wt%",
+      "alternates": [
+        {
+          "value": 411.95,
+          "source": "NIST Metallurgy Bi-Sn system (CALPHAD assessment, Lee, Oh, Shim, J. Electron. Mater. 25, 983 (1996)), https://www.metallurgy.nist.gov/phase/solder/bisn.html; calculated, eutectic at 56.97 wt% Bi"
+        }
+      ],
+      "aliases": [
+        "Bi-Sn eutectic",
+        "Sn42Bi58",
+        "Bi58Sn42"
+      ]
+    },
+    {
+      "candidate": "BiSn",
+      "family": "low_melting_alloy",
+      "formula": "Bi58Sn42 (wt%)",
+      "property": "latent_heat",
+      "value": null,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: no opened peer-reviewed measurement. AIM datasheet lists 44.8 J/g (method not stated); Zhu 2021 repeats 44.8 kJ/kg citing Ge et al. 2013 (not opened). Likely primary: Manasijevic et al., Materials Testing 62, 184 (2020), doi:10.3139/120.111470 (paywalled). PREDICTION TARGET",
+      "aliases": [
+        "Bi-Sn eutectic",
+        "Sn42Bi58",
+        "Bi58Sn42"
+      ]
+    },
+    {
+      "candidate": "BiSn",
+      "family": "low_melting_alloy",
+      "formula": "Bi58Sn42 (wt%)",
+      "property": "conductivity",
+      "value": 19.0,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "AIM Solder technical data sheet 'Sn42/Bi58 Lead-Free Solder Alloy' (Doc Rev NF4), https://www.aimsolder.com/wp-content/uploads/alloy_sn42-bi58_tds.pdf",
+      "phase": "solid",
+      "temperature_K": 358.15,
+      "quote": "Thermal Conductivity @ 85° C W/cm-° C 0.19",
+      "note": "DATASHEET value, method not stated; 0.19 W/cm/K x 100",
+      "aliases": [
+        "Bi-Sn eutectic",
+        "Sn42Bi58",
+        "Bi58Sn42"
+      ]
+    },
+    {
+      "candidate": "BiSn",
+      "family": "low_melting_alloy",
+      "formula": "Bi58Sn42 (wt%)",
+      "property": "density",
+      "value": 8.72,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "AIM Solder technical data sheet 'Sn42/Bi58 Lead-Free Solder Alloy' (Doc Rev NF4), https://www.aimsolder.com/wp-content/uploads/alloy_sn42-bi58_tds.pdf",
+      "phase": "solid",
+      "quote": "Density g/cc 8.72",
+      "note": "DATASHEET value, temperature not stated (solid product); Zhu 2021 lists 8.56 citing Ge 2013",
+      "aliases": [
+        "Bi-Sn eutectic",
+        "Sn42Bi58",
+        "Bi58Sn42"
+      ]
+    },
+    {
+      "candidate": "InBi",
+      "family": "low_melting_alloy",
+      "formula": "In66.3Bi33.7 (wt%)",
+      "property": "melting_point",
+      "value": 345.15,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Haines & Maassen alloy product page (vendor, approximate value), https://www.haines-maassen.com/en/nleg",
+      "quote": "66.3 In 33.7 Bi Melting temperature: ~ 72 °C",
+      "note": "APPROXIMATE vendor value (~72 C); no opened measurement. Primary DSC lead: Manasijevic et al., J. Therm. Anal. Calorim. 136, 643 (2019), doi:10.1007/s10973-018-7679-8 (paywalled)",
+      "alternates": [
+        {
+          "value": 346.25,
+          "source": "Pan, Wang, Zhang, Rare Metal Mater. Eng. 45(4), 874 (2016), doi:10.1016/S1875-5372(16)30091-1, as compiled in Zhu, Nguyen, Yonezawa, Nanoscale Adv. 3, 4626 (2021), doi:10.1039/d0na01008a, property table; NOT USED: Pan 2016 is a prediction paper, measured-vs-predicted not verifiable (paywalled)"
+        }
+      ],
+      "aliases": [
+        "In-Bi eutectic",
+        "Bi-In eutectic"
+      ]
+    },
+    {
+      "candidate": "InBi",
+      "family": "low_melting_alloy",
+      "formula": "In66.3Bi33.7 (wt%)",
+      "property": "latent_heat",
+      "value": null,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: no opened measurement. Compiled 22.46 kJ/kg (Pan 2016 via Zhu 2021, possibly predicted) and 25 kJ/kg (Su et al. 2015 review via Zhu 2021, composition unspecified). PREDICTION TARGET",
+      "aliases": [
+        "In-Bi eutectic",
+        "Bi-In eutectic"
+      ]
+    },
+    {
+      "candidate": "InSn",
+      "family": "low_melting_alloy",
+      "formula": "In52Sn48 (wt%)",
+      "property": "melting_point",
+      "value": 391.15,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Haines & Maassen alloy product page (vendor, approximate value), https://www.haines-maassen.com/en/nleg",
+      "quote": "52 In 48 Sn Melting temperature: ~ 118 °C",
+      "note": "APPROXIMATE vendor value (~118 C); no opened measurement or phase-diagram assessment",
+      "aliases": [
+        "In-Sn eutectic"
+      ]
+    },
+    {
+      "candidate": "InSn",
+      "family": "low_melting_alloy",
+      "formula": "In52Sn48 (wt%)",
+      "property": "latent_heat",
+      "value": null,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: no measured latent heat found. PREDICTION TARGET",
+      "aliases": [
+        "In-Sn eutectic"
+      ]
+    },
+    {
+      "candidate": "InSn",
+      "family": "low_melting_alloy",
+      "formula": "In52Sn48 (wt%)",
+      "property": "conductivity",
+      "value": 34.0,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Indium Corporation thermal conductivity list, as cited in Manasijevic et al., Metall. Mater. Eng. 25(4), 325 (2019), doi:10.30544/456 (secondary; the cited page was not opened)",
+      "phase": "solid",
+      "quote": "reported thermal conductivities of In–Sn solid eutectic alloy (34 Wm-1K-1) [24] and In–Sn liquid eutectic alloy at 250 °C (28.8 Wm-1K-1) [25]",
+      "note": "LOW CONFIDENCE (datasheet via a citing paper); liquid 28.8 W/m/K at 523 K from Stankus et al., Int. J. Thermophys. 33, 774 (2012), not opened",
+      "aliases": [
+        "In-Sn eutectic"
+      ]
+    },
+    {
+      "candidate": "GaIn",
+      "family": "low_melting_alloy",
+      "formula": "Ga75.5In24.5 (wt%)",
+      "property": "melting_point",
+      "value": 288.65,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Liu, Sweatman, McDonald, Nogita, Materials 11, 1384 (2018), doi:10.3390/ma11081384, Table 1 (review; collective citations [5-8,10-12], no per-value source or method)",
+      "quote": "Parameter Ga EGaIn Galinstan Hg Melting point (°C) 29.76 15.5 −19.0 −38.8",
+      "note": "LOW CONFIDENCE review value (no per-value source); vendor ~16-17 C for 76Ga/24In (Haines & Maassen)",
+      "alternates": [
+        {
+          "value": 288.15,
+          "source": "Pan, Wang, Zhang, Rare Metal Mater. Eng. 45(4), 874 (2016), doi:10.1016/S1875-5372(16)30091-1, as compiled in Zhu, Nguyen, Yonezawa, Nanoscale Adv. 3, 4626 (2021), doi:10.1039/d0na01008a, property table; NOT USED: Pan 2016 is a prediction paper, measured-vs-predicted not verifiable (paywalled)"
+        }
+      ],
+      "aliases": [
+        "EGaIn",
+        "Ga-In eutectic"
+      ]
+    },
+    {
+      "candidate": "GaIn",
+      "family": "low_melting_alloy",
+      "formula": "Ga75.5In24.5 (wt%)",
+      "property": "latent_heat",
+      "value": null,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: no opened measurement. Compiled 71.68 kJ/kg traces to Pan 2016 (possibly predicted). PREDICTION TARGET",
+      "aliases": [
+        "EGaIn",
+        "Ga-In eutectic"
+      ]
+    },
+    {
+      "candidate": "GaIn",
+      "family": "low_melting_alloy",
+      "formula": "Ga75.5In24.5 (wt%)",
+      "property": "density",
+      "value": 6.28,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Liu, Sweatman, McDonald, Nogita, Materials 11, 1384 (2018), doi:10.3390/ma11081384, Table 1 (review; collective citations [5-8,10-12], no per-value source or method)",
+      "phase": "liquid",
+      "temperature_K": 293.15,
+      "quote": "Density at 20 °C (g/cm 3 ) 5.90 6.280 6.440 13.533",
+      "note": "LOW CONFIDENCE review value",
+      "aliases": [
+        "EGaIn",
+        "Ga-In eutectic"
+      ]
+    },
+    {
+      "candidate": "GaIn",
+      "family": "low_melting_alloy",
+      "formula": "Ga75.5In24.5 (wt%)",
+      "property": "conductivity",
+      "value": 26.6,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Liu, Sweatman, McDonald, Nogita, Materials 11, 1384 (2018), doi:10.3390/ma11081384, Table 1 (review; collective citations [5-8,10-12], no per-value source or method)",
+      "phase": "liquid",
+      "quote": "Thermal conductivity (W/m/K) 29.3 26.6 16.5 8.5",
+      "note": "LOW CONFIDENCE review value; temperature not stated; the same table mislabels electrical conductivity units",
+      "aliases": [
+        "EGaIn",
+        "Ga-In eutectic"
+      ]
+    },
+    {
+      "candidate": "GaInSn",
+      "family": "low_melting_alloy",
+      "formula": "Ga68.5In21.5Sn10 (wt%)",
+      "property": "melting_point",
+      "value": null,
+      "units": "K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: CONFLICTING sources, chemistry lead to decide: the RotoMetals SDS (Ga 68.5 / In 21.5 / Sn 10 wt%) says 'Melting Point/Range -19 °C' (method not stated) and Liu 2018 repeats -19.0 C, but DSC reports a single melting peak around 10-11 C on heating with supercooling to -10..-21 C (Koh et al., Materialia 8, 100512 (2019), as described by Balbuena Ortega et al., ACS Omega (2026), doi:10.1021/acsomega.6c05488): -19 C looks like supercooled freezing",
+      "aliases": [
+        "Galinstan"
+      ]
+    },
+    {
+      "candidate": "GaInSn",
+      "family": "low_melting_alloy",
+      "formula": "Ga68.5In21.5Sn10 (wt%)",
+      "property": "latent_heat",
+      "value": null,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: no opened measurement. Compiled 71.2 kJ/kg traces to Pan 2016 (possibly predicted). PREDICTION TARGET",
+      "aliases": [
+        "Galinstan"
+      ]
+    },
+    {
+      "candidate": "GaInSn",
+      "family": "low_melting_alloy",
+      "formula": "Ga68.5In21.5Sn10 (wt%)",
+      "property": "density",
+      "value": 6.44,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "RotoMetals Galinstan SDS v1.7 (2015), https://fu.sav.sk/wp-content/uploads/uploaded/documents/BOZP/chem_bezp/MSDS/galinstan_rotometals.pdf",
+      "phase": "liquid",
+      "temperature_K": 293.15,
+      "quote": "Relative Density 6.44 g/cm3 (at 20 C)",
+      "note": "DATASHEET value; Liu 2018 lists 6.440",
+      "aliases": [
+        "Galinstan"
+      ]
+    },
+    {
+      "candidate": "GaInSn",
+      "family": "low_melting_alloy",
+      "formula": "Ga68.5In21.5Sn10 (wt%)",
+      "property": "conductivity",
+      "value": 16.5,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Liu, Sweatman, McDonald, Nogita, Materials 11, 1384 (2018), doi:10.3390/ma11081384, Table 1 (review; collective citations [5-8,10-12], no per-value source or method)",
+      "phase": "liquid",
+      "quote": "Thermal conductivity (W/m/K) 29.3 26.6 16.5 8.5",
+      "note": "LOW CONFIDENCE review value; temperature not stated",
+      "aliases": [
+        "Galinstan"
+      ]
+    },
+    {
+      "candidate": "Sn",
+      "family": "low_melting_metal",
+      "formula": "Sn",
+      "property": "melting_point",
+      "value": 505.078,
+      "units": "K",
+      "uncertainty": null,
+      "source": "NIST Temperature Scale Database (SRD 60), ITS-90 Fixed Points Summary, https://its90.nist.gov/FixedpointSummary",
+      "quote": "Sn FP 505.078 231.928",
+      "note": "ITS-90 defining freezing point (exact by definition)",
+      "alternates": [
+        {
+          "value": 505.08,
+          "uncertainty": 0.39,
+          "source": "NBS Certificate, Standard Reference Material 2220 'Temperature and Enthalpy of Fusion - Tin' (1985), https://tsapps.nist.gov/srmext/certificates/archives/2220.pdf (DSC, 2.5 K/min)"
+        }
+      ],
+      "aliases": [
+        "tin"
+      ]
+    },
+    {
+      "candidate": "Sn",
+      "family": "low_melting_metal",
+      "formula": "Sn",
+      "property": "latent_heat",
+      "value": 56570,
+      "units": "J/kg",
+      "uncertainty": 100,
+      "source": "NBS Certificate, Standard Reference Material 2220 'Temperature and Enthalpy of Fusion - Tin' (1985), https://tsapps.nist.gov/srmext/certificates/archives/2220.pdf",
+      "quote": "Enthalpy of Fusion 56.57 +/- 0.10 J/g",
+      "note": "DSC, 21 specimens of 99.9995% tin foil; uncertainty is 3x the standard error. 56.57 J/g x 1000",
+      "aliases": [
+        "tin"
+      ]
+    },
+    {
+      "candidate": "Sn",
+      "family": "low_melting_metal",
+      "formula": "Sn",
+      "property": "conductivity",
+      "value": 66.6,
+      "units": "W/m/K",
+      "uncertainty": 2.0,
+      "source": "Ho, Powell, Liley, J. Phys. Chem. Ref. Data 1, 279 (1972), doi:10.1063/1.3253100 (read from OCR of the scanned PDF)",
+      "phase": "solid",
+      "temperature_K": 300.0,
+      "quote": "300 0.515 0.742 0.666 (W/cm/K; parallel c, perpendicular c, polycrystalline)",
+      "note": "polycrystalline, +/-3% per HPL; 59.5 solid and 30.3 liquid at 505.118 K (IPTS-68 Tm); read from the scanned table",
+      "aliases": [
+        "tin"
+      ]
+    },
+    {
+      "candidate": "Bi",
+      "family": "low_melting_metal",
+      "formula": "Bi",
+      "property": "melting_point",
+      "value": 544.556,
+      "units": "K",
+      "uncertainty": 0.005,
+      "source": "NIST Certificate of Analysis, Standard Reference Material 2235 'Bismuth for Thermal Analysis' (2015), https://tsapps.nist.gov/srmext/certificates/archives/2235.pdf",
+      "quote": "Enthalpy of Fusion (J/g) Fusion Temperature (K) 53.146 +/- 0.082 544.556 +/- 0.005",
+      "note": "adiabatic calorimetry (Archer, J. Chem. Eng. Data 49, 1364 (2004)); k=2. ITS-90 secondary reference point 544.553 K",
+      "aliases": [
+        "bismuth"
+      ]
+    },
+    {
+      "candidate": "Bi",
+      "family": "low_melting_metal",
+      "formula": "Bi",
+      "property": "latent_heat",
+      "value": 53146,
+      "units": "J/kg",
+      "uncertainty": 82,
+      "source": "NIST Certificate of Analysis, Standard Reference Material 2235 'Bismuth for Thermal Analysis' (2015), https://tsapps.nist.gov/srmext/certificates/archives/2235.pdf",
+      "quote": "Enthalpy of Fusion (J/g) ... 53.146 +/- 0.082",
+      "note": "24 adiabatic-calorimeter measurements, 514-576 K; k=2 (95%). 53.146 J/g x 1000",
+      "aliases": [
+        "bismuth"
+      ]
+    },
+    {
+      "candidate": "Bi",
+      "family": "low_melting_metal",
+      "formula": "Bi",
+      "property": "conductivity",
+      "value": 7.86,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Ho, Powell, Liley, J. Phys. Chem. Ref. Data 1, 279 (1972), doi:10.1063/1.3253100 (read from OCR of the scanned PDF)",
+      "phase": "solid",
+      "temperature_K": 300.0,
+      "quote": "300 0.0528 0.0915 0.0786 (W/cm/K; parallel trigonal, perpendicular, polycrystalline)",
+      "note": "polycrystalline, +/-5-10% per HPL; liquid at 544.592 K: 12.4 W/m/K (+/-15-20%); read from the scanned table",
+      "aliases": [
+        "bismuth"
+      ]
+    },
+    {
+      "candidate": "Sn",
+      "family": "low_melting_metal",
+      "formula": "Sn",
+      "property": "density",
+      "value": null,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Assael reference correlations exist (doi:10.1063/1.3467496, doi:10.1063/1.4729873) but no open copy was found",
+      "aliases": [
+        "tin"
+      ]
+    },
+    {
+      "candidate": "Bi",
+      "family": "low_melting_metal",
+      "formula": "Bi",
+      "property": "density",
+      "value": null,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Assael reference correlations exist (doi:10.1063/1.3467496, doi:10.1063/1.4729873) but no open copy was found",
+      "aliases": [
+        "bismuth"
+      ]
     }
   ]
 }
