@@ -29,7 +29,7 @@ def main() -> None:
     ap.add_argument("--trap", action="append", default=[], help="FakeSimulator trap: candidate=silent_heating")
     ap.add_argument("--no-ranker", action="store_true")
     ap.add_argument("--llm", default="inconclusive", choices=["inconclusive", "always", "never"],
-                    help="when the premise checker asks Claude (needs ANTHROPIC_API_KEY in .env)")
+                    help="when the premise checker asks Claude (shared keys via coolorbit/llm_keys.py)")
     ap.add_argument("--rounds", type=int, default=200)
     ap.add_argument("--eval-only", action="store_true", help="Scouts answer eval tasks only (comparison runs)")
     args = ap.parse_args()

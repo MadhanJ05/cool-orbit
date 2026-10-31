@@ -158,6 +158,50 @@ class Llm(unittest.TestCase):
         self.assertEqual(check_premise(CONTROLS["Si equation of state"], client=down, llm_mode="always").verdict, "pass")
 
 
+class SharedKeyFailover(unittest.TestCase):
+    """The premise LLM call goes through coolorbit.llm_keys.call_with_failover (fake keys and client)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        d = Path(self._tmp.name)
+        self.env, self.state = d / ".env", d / "llm_key_state.json"
+        self.env.write_text("ANTHROPIC_API_KEY_PRIMARY=test-primary-not-a-key\n"
+                            "ANTHROPIC_API_KEY_BACKUP=test-backup-not-a-key\n")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_switches_to_backup_when_primary_is_out_of_credit(self):
+        from coolorbit import llm_keys
+        from coolorbit.agents.premise import SharedKeys
+
+        made = []
+
+        def make_client():  # the first client hits the out-of-credit error, the second works
+            c = FakeClient(ILL, exc=Exception("Your credit balance is too low to access the Anthropic API")
+                           if not made else None)
+            made.append(llm_keys.active_key_name(self.env, self.state))
+            return c
+
+        keys = SharedKeys(make_client=make_client, env_path=self.env, state_path=self.state)
+        v = check_premise(Llm.UNKNOWN, client=keys)
+        self.assertEqual(v.verdict, "fail")  # answered by the backup
+        self.assertEqual(made, [llm_keys.PRIMARY, llm_keys.BACKUP])
+        self.assertTrue(llm_keys.primary_exhausted(self.state))
+        self.assertNotIn("test-primary-not-a-key", self.state.read_text())  # keys never written
+
+    def test_no_usable_key_is_inconclusive(self):
+        from coolorbit import llm_keys
+        from coolorbit.agents.premise import SharedKeys
+
+        llm_keys.mark_primary_exhausted("test", self.state)
+        self.env.write_text("ANTHROPIC_API_KEY_PRIMARY=test-primary-not-a-key\n")  # no backup
+        keys = SharedKeys(make_client=lambda: FakeClient(WELL), env_path=self.env, state_path=self.state)
+        v = check_premise(Llm.UNKNOWN, client=keys)
+        self.assertEqual(v.verdict, "inconclusive")
+        self.assertIn("no usable Anthropic key", v.reasons[-1])
+
+
 class BoardAgent(unittest.TestCase):
     TRUST = {"frozen": True, "independent_check_types": ["second_mlip", "classical_md"], "rejection_min_referees": 2,
              "properties": {"self_diffusion": {"units": ["cm2/s"], "agree": {"rel": 0.2}, "tier1": {"rel": 0.3}}}}

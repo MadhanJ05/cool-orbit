@@ -9,8 +9,9 @@ Two layers:
    recognise well-posed controls (coexistence melting, NPT latent heat, static EOS, adsorption energies,
    liquid diffusion in NVE).
 2. **LLM** (``llm_premise``, Claude Opus 5.5, structured JSON): consulted when the rules are inconclusive
-   (or always, with ``llm_mode="always"``). It cannot overturn a rule-based ``fail``. With no API
-   credentials it is skipped and the verdict stays ``inconclusive`` (reported, never silently passed).
+   (or always, with ``llm_mode="always"``). It cannot overturn a rule-based ``fail``. Keys come from the
+   team's shared ``coolorbit/llm_keys.py`` (primary until out of credit, then backup, for every agent at
+   once); with no usable key it is skipped and the verdict stays ``inconclusive`` (never silently passed).
 
 On the board (``PremiseChecker``, agent ``referee_premise``) it posts a ``premise_check`` on every eval task
 request (from its text only) and on every simulation request (a ``property_result`` need) as soon as it
@@ -27,10 +28,9 @@ from __future__ import annotations
 import json
 import math
 import re
-import os
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from coolorbit.agents.base import ORGANIC_ELEMENTS, Agent, agent_cli, candidate_of, formula_elements, norm
 from coolorbit.agents.referee_rules import load_audit_rules
@@ -223,30 +223,50 @@ LLM_SCHEMA = {
 _LLM_TO_CHECK = {"well_posed": "pass", "ill_posed": "fail", "uncertain": "inconclusive"}
 
 
-def _load_env() -> None:
-    try:
-        from dotenv import load_dotenv
-    except ImportError:
-        return
-    load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+class SharedKeys:
+    """The team's shared Anthropic keys (coolorbit/llm_keys.py): every call goes through
+    ``llm_keys.call_with_failover``, which spends the PRIMARY key until it is out of credit and then moves
+    every agent to the BACKUP. This module never reads, prints or logs a key, only asks which one is active.
+
+    ``make_client`` / ``env_path`` / ``state_path`` are for tests; production uses the llm_keys defaults.
+    """
+
+    def __init__(self, make_client: Optional[Callable[[], Any]] = None, env_path: Optional[Path] = None,
+                 state_path: Optional[Path] = None) -> None:
+        self.make_client, self.env_path, self.state_path = make_client, env_path, state_path
+
+    def run(self, fn: Callable[[Any], Any]) -> Any:
+        from coolorbit import llm_keys
+
+        return llm_keys.call_with_failover(fn, make_client=self.make_client, state_path=self.state_path,
+                                           env_path=self.env_path)
 
 
-def make_client():
-    """An Anthropic client, or None when no credentials are configured (rules-only mode)."""
-    _load_env()
-    if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
-            or os.environ.get("ANTHROPIC_PROFILE")):
+def make_client() -> Optional[SharedKeys]:
+    """The shared-key LLM handle, or None (rules-only mode) when no key is configured or the SDK is missing."""
+    import importlib.util
+
+    from coolorbit import llm_keys
+
+    if importlib.util.find_spec("anthropic") is None:
         return None
     try:
-        import anthropic
-    except ImportError:
+        llm_keys.active_key_name()  # the key's NAME only: is any key usable?
+    except llm_keys.NoUsableKey:
         return None
-    return anthropic.Anthropic()
+    return SharedKeys()
+
+
+def _invoke(client: Any, fn: Callable[[Any], Any]) -> Any:
+    """Shared keys go through failover; any other object (a test double) is called directly."""
+    return client.run(fn) if isinstance(client, SharedKeys) else fn(client)
 
 
 def _api_failure(exc: Exception) -> PremiseVerdict:
     """Map an anthropic SDK error to an inconclusive verdict, most specific first; re-raise anything else."""
     names = [c.__name__ for c in type(exc).__mro__]
+    if "NoUsableKey" in names:  # coolorbit.llm_keys: no key configured, or primary out and no backup
+        return PremiseVerdict("inconclusive", reasons=["LLM unavailable: no usable Anthropic key"], source="llm")
     if "APIError" not in names:
         raise exc
     if "AuthenticationError" in names:
@@ -266,14 +286,15 @@ def llm_premise(task: dict, client: Any, rule_view: Optional[PremiseVerdict] = N
                 model: str = LLM_MODEL, effort: str = LLM_EFFORT) -> PremiseVerdict:
     """Ask Claude for a structured premise verdict. API problems become ``inconclusive``.
 
-    Does not import ``anthropic`` itself (only ``make_client`` does), so tests can pass a fake client on a
-    machine without the SDK. SDK errors are recognised by their class hierarchy (``anthropic.APIError``);
+    ``client`` is a ``SharedKeys`` handle (production: key failover via coolorbit/llm_keys.py) or a test
+    double called directly. Does not import ``anthropic`` itself, so tests run without the SDK. SDK errors are recognised by their class hierarchy (``anthropic.APIError``);
     anything else is a bug and is re-raised.
     """
     user = ("Task to premise-check (JSON):\n" + json.dumps(task, indent=2, default=str)
             + ("\n\nThe rule-based layer said: " + rule_view.note() if rule_view else ""))
     try:
-        response = client.beta.messages.create(
+        # beta endpoint: server-side refusal fallback ("fallbacks") is a beta parameter
+        response = _invoke(client, lambda c: c.beta.messages.create(
             model=model,
             max_tokens=16000,
             system=SYSTEM_PROMPT,
@@ -281,7 +302,7 @@ def llm_premise(task: dict, client: Any, rule_view: Optional[PremiseVerdict] = N
             output_config={"effort": effort, "format": {"type": "json_schema", "schema": LLM_SCHEMA}},
             betas=[FALLBACK_BETA],
             fallbacks="default",  # on a safety decline, the API retries on a fallback model in the same call
-        )
+        ))
     except Exception as exc:  # noqa: BLE001 - narrowed below to the SDK's own error classes
         return _api_failure(exc)
 
