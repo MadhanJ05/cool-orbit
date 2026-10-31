@@ -8,7 +8,7 @@ account from the metadata server and reads ``gs://<bucket>/<prefix>/<file>`` thr
 The bucket stays private; the service account needs only ``roles/storage.objectViewer`` on that bucket.
 
 Routes: ``/`` and the four static files (whitelist), ``/data/<name>.json|.js`` (exports; names validated),
-``/healthz``. Everything else is 404. Exports are cached for ``CACHE_S`` seconds (default 30).
+``/health`` (``/healthz`` locally; Cloud Run reserves it). Everything else is 404. Exports are cached for ``CACHE_S`` seconds (default 30).
 """
 
 from __future__ import annotations
@@ -129,7 +129,7 @@ def make_handler(cache: Cache, static_root: Path = HERE):
 
         def do_GET(self) -> None:  # noqa: N802
             path = urllib.parse.urlsplit(self.path).path
-            if path == "/healthz":
+            if path in ("/health", "/healthz"):  # Cloud Run's front end reserves /healthz; use /health there
                 return self._send(200, b"ok\n", "text/plain; charset=utf-8")
             if path in STATIC:
                 f = static_root / STATIC[path]

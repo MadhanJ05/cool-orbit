@@ -75,6 +75,7 @@ class LocalServerTest(unittest.TestCase):
             self.assertEqual(self.get(path)[0], 404, path)
 
     def test_health_and_head(self) -> None:
+        self.assertEqual(self.get("/health")[:1], (200,))
         self.assertEqual(self.get("/healthz")[:1], (200,))
         code, _, body = self.get("/", method="HEAD")
         self.assertEqual((code, body), (200, b""))
@@ -161,6 +162,16 @@ class PushTest(unittest.TestCase):
         types = {n.rsplit(".", 1)[1]: t for n, t, _ in up.objects}
         self.assertIn("json", types["json"])
         self.assertIn("javascript", types["js"])
+
+
+class GcloudUploaderTest(unittest.TestCase):
+    def test_command(self) -> None:
+        seen = []
+        up = push_exports.GcloudUploader("coolorbit-dash", runner=seen.append)
+        up.upload(Path("/tmp/index.json"), "dashboard/index.json", "application/json; charset=utf-8")
+        self.assertEqual(seen[0][:5], ["gcloud", "storage", "cp", "/tmp/index.json", "gs://coolorbit-dash/dashboard/index.json"])
+        self.assertIn("--cache-control=no-cache", seen[0])
+        self.assertIn("--content-type=application/json; charset=utf-8", seen[0])
 
 
 class DiscoveryTest(unittest.TestCase):
