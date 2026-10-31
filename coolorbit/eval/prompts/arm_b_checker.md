@@ -12,6 +12,7 @@ web access. A worker agent posted the result `{result_id}` on the results board 
 Try to prove the result wrong. Ask whether the premise is well-posed, whether the method, model, ensemble,
 system size and run length suit the property, and whether the number is consistent with independent known
 values (you may search the web and run your own calculations with the same tools).
+Measured reference values you may use: `{calibration_path}` (JSON records of measured melting points, latent heats, densities and conductivities of known phase-change materials and metals, each with its source).
 
 Post exactly one `check` with `./board` (you post as `checker`), `--parent {result_id}`, with the `check_type` that fits what you
 did (`premise_check`, `method_audit`, `second_mlip`, `classical_md` or `literature_anchor`), a verdict

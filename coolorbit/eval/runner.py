@@ -48,7 +48,8 @@ from coolorbit.board import Board
 from coolorbit.board._scienceclaw import REPO_ROOT
 from coolorbit.board.schema import NEGATIVE_VERDICTS
 from coolorbit.eval.metrics import COSTS_FILE
-from coolorbit.eval.sandbox import DEFAULT_TAG, DockerSandbox, board_wrapper, container_name
+from coolorbit.eval.sandbox import (CALIBRATION_FILE, CONTAINER_CALIBRATION, DEFAULT_TAG, DockerSandbox,
+                                    board_wrapper, container_name)
 from coolorbit.eval.tasks import Task, TaskSet, load_tasks, seed_board, task_requests
 
 PROMPTS_DIR = Path(__file__).with_name("prompts")
@@ -57,8 +58,9 @@ DEFAULT_WORK_ROOT = Path.home() / "coolorbit-eval-work"
 DEFAULT_SKILLS = REPO_ROOT / ".claude" / "skills"
 RECORD_FILE = "run_record.json"
 # Paths an arm-A/B agent should never read: answers, trap labels, our referees' logic, the brief.
+# (data/calibration is NOT here: every arm gets the measured references, see arms.md.)
 CONTAMINATION_PATTERNS = ("coolorbit/eval", "tasks.json", "trust_rules", "coolorbit/agents", "CLAUDE.md",
-                          "data/calibration", "BLIND_TASKS")
+                          "BLIND_TASKS")
 
 BOARD_TOOL_HELP = """
 ## The board tool
@@ -269,8 +271,10 @@ class ClaudeCodeExecutor:
 # ------------------------------------------------------------------ sandbox + prompts
 
 def prepare_sandbox(work_dir: Path, board_root: Path, agent: str, skills_dir: Optional[Path] = DEFAULT_SKILLS,
-                    python: str = sys.executable, docker: bool = False) -> Path:
-    """Fresh work dir with a ./board wrapper. ``docker=True``: container paths, skills come from the image."""
+                    python: str = sys.executable, docker: bool = False,
+                    calibration: Optional[Path] = CALIBRATION_FILE) -> Path:
+    """Fresh work dir with a ./board wrapper. ``docker=True``: container paths, skills come from the image and
+    the calibration file is mounted; otherwise both are copied in (``calibration_path_for`` gives the path)."""
     try:
         Path(work_dir).resolve().relative_to(REPO_ROOT)
         inside = True
@@ -288,12 +292,20 @@ def prepare_sandbox(work_dir: Path, board_root: Path, agent: str, skills_dir: Op
         return work_dir
     if skills_dir and Path(skills_dir).is_dir():
         shutil.copytree(skills_dir, work_dir / ".claude" / "skills")
+    if calibration is not None:
+        (work_dir / "calibration").mkdir()
+        shutil.copy2(calibration, work_dir / "calibration" / "tier1.json")
     wrapper.write_text(
         "#!/bin/sh\n"
         f"COOLORBIT_BOARD='{board_root.resolve()}' COOLORBIT_AGENT='{agent}' PYTHONPATH='{REPO_ROOT}' "
         f"exec '{python}' -m coolorbit.eval.board_tool \"$@\"\n", encoding="utf-8")
     wrapper.chmod(wrapper.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     return work_dir
+
+
+def calibration_path_for(sandbox: Path, docker: bool) -> str:
+    """Where the agent finds the measured references (same file in both modes)."""
+    return CONTAINER_CALIBRATION if docker else str((Path(sandbox) / "calibration" / "tier1.json").resolve())
 
 
 _COMMENT = re.compile(r"<!--.*?-->", re.S)
@@ -387,7 +399,8 @@ class ArmRunner:
         task_dir = task.id if self._try == 1 else f"{task.id}.try{self._try}"
         sandbox = prepare_sandbox(self.work_dir / task_dir / f"{role}-{attempt}", board_root, agent, self.skills_dir,
                                   docker=self.docker)
-        prompt = render_prompt(prompt_file, task_prompt=task.prompt, board_path="./board (this task's board)", **fields)
+        prompt = render_prompt(prompt_file, task_prompt=task.prompt, board_path="./board (this task's board)",
+                               calibration_path=calibration_path_for(sandbox, self.docker), **fields)
         if addendum:
             prompt += "\n" + addendum.strip() + "\n"
         (sandbox / "PROMPT.md").write_text(prompt, encoding="utf-8")  # evidence of exactly what it was told
@@ -601,6 +614,7 @@ def main(argv: Optional[list[str]] = None) -> None:
                                       board_root=runner.repeat_dir / "<task>", name="coolorbit-<...>")
         print("command:", " ".join(cmd))
         print("\n--- first prompt ---\n" + render_prompt(prompt_file, task_prompt=tasks[0].prompt,
+              calibration_path=CONTAINER_CALIBRATION if docker else "<sandbox>/calibration/tier1.json",
               board_path="./board (this task's board)", task_request_id="<request id>"))
         return
     records = runner.run(task_set, args.task)

@@ -20,6 +20,7 @@ anything:
 2. **Validation:** recover an independent known result with the same setup before trusting your number.
 3. **Uncertainty:** report an uncertainty and what it covers.
 You may search the web.
+Measured reference values you may use: `{calibration_path}` (JSON records of measured melting points, latent heats, densities and conductivities of known phase-change materials and metals, each with its source).
 
 ## How to record your work (required)
 Record everything on the results board with `./board` (see "The board tool" below; you post as `worker`):

@@ -23,7 +23,7 @@ from coolorbit.board._scienceclaw import REPO_ROOT
 from coolorbit import llm_keys
 from coolorbit.eval import runner as runner_mod
 from coolorbit.eval.runner import ArmRunner, Budget, ClaudeCodeExecutor, prepare_sandbox
-from coolorbit.eval.sandbox import API_KEY_ENV, DockerSandbox, _forbidden_mount, stage_context
+from coolorbit.eval.sandbox import API_KEY_ENV, CALIBRATION_FILE, DockerSandbox, _forbidden_mount, stage_context
 from coolorbit.eval.tasks import TaskSet, load_tasks
 
 FAKE_RESULT = {"type": "result", "subtype": "success", "is_error": False, "num_turns": 2, "total_cost_usd": 0.05,
@@ -103,12 +103,14 @@ class RunCommandTest(Base):
         return DockerSandbox("img:tag", **kw).run_command(["claude", "-p", "x"], work_dir=work, board_root=board,
                                                          name="coolorbit-test")
 
-    def test_only_two_mounts_one_env_var_and_the_gpu(self) -> None:
+    def test_only_three_mounts_one_env_var_and_the_gpu(self) -> None:
         cmd = self.cmd()
         mounts = [cmd[i + 1] for i, a in enumerate(cmd) if a in ("-v", "--volume", "--mount")]
-        self.assertEqual(len(mounts), 2)
+        self.assertEqual(len(mounts), 3)
         self.assertTrue(mounts[0].endswith(":/work:rw"))
         self.assertTrue(mounts[1].endswith("/board/artifacts:/board/artifacts:rw"))
+        self.assertEqual(mounts[2], f"{CALIBRATION_FILE.resolve()}:/data/calibration/tier1.json:ro",
+                         "calibration data: one file, read-only (arm C's Librarian uses it too)")
         envs = [cmd[i + 1] for i, a in enumerate(cmd) if a in ("-e", "--env")]
         self.assertEqual(envs, [API_KEY_ENV], "only the API key, passed by name (no value on the command line)")
         self.assertFalse(any(a.startswith("--env-file") for a in cmd))
@@ -118,7 +120,8 @@ class RunCommandTest(Base):
         self.assertIn("--rm", cmd)
         self.assertEqual(cmd[cmd.index("img:tag") + 1:], ["claude", "-p", "x"])
         joined = " ".join(cmd)
-        for bad in ("docker.sock", ".ssh", ".config/gh", ".brev", "/.env", "--privileged", str(REPO_ROOT) + ":"):
+        for bad in ("docker.sock", ".ssh", ".config/gh", ".brev", "/.env", "--privileged", str(REPO_ROOT) + ":",
+                    "tasks.json", "coolorbit/eval", "coolorbit/agents", "trust_rules", "CLAUDE.md"):
             self.assertNotIn(bad, joined)
         self.assertNotIn(f"{Path.home()}:", joined)
 
@@ -188,6 +191,12 @@ class DockerExecutorTest(Base):
             with self.assertRaisesRegex(RuntimeError, "not found"):
                 self.runner(self.fake_docker(image_ok=False)).run(self.ts)
         self.assertFalse((self.tmp / "boards").exists(), "nothing is created when preflight fails")
+
+    def test_preflight_needs_the_calibration_file(self) -> None:
+        sb = DockerSandbox("img:tag", docker=str(self.fake_docker()), calibration=self.tmp / "missing.json")
+        with mock.patch.dict(os.environ, {llm_keys.PRIMARY: "sk-SYNTHETIC"}):
+            with self.assertRaisesRegex(RuntimeError, "calibration"):
+                sb.preflight()
 
 
 class CliTest(Base):

@@ -97,14 +97,18 @@ class PromptAndSandboxTest(Base):
         for name, fields in [("arm_a_single_agent.md", {}), ("arm_b_worker.md", {}),
                              ("arm_b_checker.md", {"result_id": "RES123"})]:
             text = render_prompt(name, task_prompt="Find the melting point of aluminum at ambient pressure.",
-                                 board_path="./board", task_request_id="REQ123", **fields)
+                                 board_path="./board", task_request_id="REQ123",
+                                 calibration_path="/data/calibration/tier1.json", **fields)
             self.assertNotIn("<!--", text, name)
             self.assertIsNone(re.search(r"\{[a-z_]+\}", text), f"unfilled placeholder in {name}")
             self.assertIn("aluminum", text)
             self.assertIn("./board", text)
             self.assertIn("--fulfills REQ123:0", text)
             self.assertNotIn("coolorbit/eval", text, "prompts must not point agents at the eval code")
-        a = render_prompt("arm_a_single_agent.md", task_prompt="x" * 12, board_path="b", task_request_id="r")
+            self.assertIn("Measured reference values you may use: `/data/calibration/tier1.json`", text,
+                          f"{name}: every arm is told about the calibration data (arm C's Librarian uses it)")
+        a = render_prompt("arm_a_single_agent.md", task_prompt="x" * 12, board_path="b", task_request_id="r",
+                          calibration_path="c")
         self.assertIn("require recovery of an independent known result", a)  # NVIDIA's guidance, verbatim
 
     def test_sandbox_refuses_repo_and_reuse(self) -> None:
@@ -138,10 +142,30 @@ class PromptAndSandboxTest(Base):
                              text=True, env={**env, "PYTHONPATH": str(REPO_ROOT)})
         self.assertEqual(raw.returncode, 2)
 
+    def test_unsandboxed_sandbox_gets_a_copy_of_the_calibration_file(self) -> None:
+        from coolorbit.eval.runner import calibration_path_for
+        from coolorbit.eval.sandbox import CALIBRATION_FILE
+        sb = prepare_sandbox(self.tmp / "sbc", self.tmp / "b", "worker", None)
+        copy = Path(calibration_path_for(sb, docker=False))
+        self.assertEqual(copy.read_bytes(), CALIBRATION_FILE.read_bytes())
+        self.assertEqual(calibration_path_for(sb, docker=True), "/data/calibration/tier1.json")
+
+    def test_end_to_end_prompt_names_the_calibration_file(self) -> None:
+        seen = {}
+        def act(cwd, prompt, attempt):
+            seen["prompt"] = prompt
+            naive_answer()(cwd, prompt, attempt)
+        self.runner("A", FakeExecutor({"single_agent": act})).run(self.ts, ["tier1_al_melting"])
+        path = re.search(r"Measured reference values you may use: `([^`]+)`", seen["prompt"]).group(1)
+        self.assertTrue(Path(path).is_file())
+
     def test_contamination_scan(self) -> None:
         self.assertEqual(contamination('{"tool": "Read", "path": "/x/coolorbit/eval/tasks.json"}'),
                          ["coolorbit/eval", "tasks.json"])
         self.assertEqual(contamination("ran lammps"), [])
+        self.assertEqual(contamination("read /data/calibration/tier1.json"), [], "calibration data is allowed")
+        for blocked in ("tasks.json", "coolorbit/eval", "coolorbit/agents", "trust_rules", "CLAUDE.md"):
+            self.assertEqual(contamination(f"cat {blocked}"), [blocked])
 
 
 class ArmATest(Base):

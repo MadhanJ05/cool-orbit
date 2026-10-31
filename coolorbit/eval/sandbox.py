@@ -4,9 +4,10 @@
     python -m coolorbit.eval.sandbox check [--tag ...]                                   # is it there?
 
 Each session runs as ``docker run --rm`` with:
-  - mounts: the session's work dir at ``/work`` and the task board's ``artifacts/`` at
-    ``/board/artifacts``; nothing else (no home dir, ~/.ssh, ~/.config/gh, ~/.brev, repo, .env,
-    docker socket). Costs, transcripts and the run record stay outside the agent's reach.
+  - mounts: the session's work dir at ``/work``, the task board's ``artifacts/`` at
+    ``/board/artifacts``, and ``data/calibration/tier1.json`` read-only at ``/data/calibration/tier1.json``
+    (the measured references every arm gets); nothing else (no home dir, ~/.ssh, ~/.config/gh, ~/.brev,
+    rest of the repo, .env, docker socket). Costs, transcripts and the run record stay outside the agent's reach.
   - environment: only ``-e ANTHROPIC_API_KEY`` (passed by name, so the value never appears on the
     command line); its value is the active shared key from ``coolorbit.llm_keys.subprocess_env()``
     (primary until out of credit, then backup). Everything else is baked into the image.
@@ -39,6 +40,9 @@ DEFAULT_TAG = "coolorbit-eval:0.2.0"
 DEFAULT_SKILLS = REPO_ROOT / ".claude" / "skills"
 TOOL_DIR = "/opt/coolorbit-tool"
 API_KEY_ENV = "ANTHROPIC_API_KEY"
+# Every arm gets the same measured reference values (arm C's Librarian reads this file), read-only.
+CALIBRATION_FILE = REPO_ROOT / "data" / "calibration" / "tier1.json"
+CONTAINER_CALIBRATION = "/data/calibration/tier1.json"
 # What the staged tool layer may contain, relative to the repo / ScienceClaw clone. Nothing else.
 TOOL_FILES = ["coolorbit/__init__.py", "coolorbit/board/__init__.py", "coolorbit/board/_scienceclaw.py",
               "coolorbit/board/schema.py", "coolorbit/board/status.py", "coolorbit/board/store.py"]
@@ -117,8 +121,10 @@ class DockerSandbox:
     """Builds the ``docker run`` command for one session and kills it on timeout."""
 
     def __init__(self, tag: str = DEFAULT_TAG, *, gpus: bool = True, docker: str = "docker",
-                 memory: Optional[str] = None, network: str = "bridge") -> None:
+                 memory: Optional[str] = None, network: str = "bridge",
+                 calibration: Optional[Path] = CALIBRATION_FILE) -> None:
         self.tag, self.gpus, self.docker, self.memory, self.network = tag, gpus, docker, memory, network
+        self.calibration = Path(calibration) if calibration else None
 
     def preflight(self) -> None:
         from coolorbit import llm_keys  # the key itself comes from llm_keys.subprocess_env() at run time
@@ -126,6 +132,8 @@ class DockerSandbox:
             llm_keys.active_key_name()
         except llm_keys.NoUsableKey as exc:
             raise RuntimeError(f"no usable Anthropic key for the container ({exc})") from exc
+        if self.calibration is not None and not self.calibration.is_file():
+            raise RuntimeError(f"calibration file {self.calibration} not found; every arm must get it")
         if not image_exists(self.tag, self.docker):
             raise RuntimeError(f"docker image {self.tag} not found; build it with "
                                f"'python -m coolorbit.eval.sandbox build --tag {self.tag}'")
@@ -143,8 +151,10 @@ class DockerSandbox:
                "--user", f"{os.getuid()}:{os.getgid()}",
                "--tmpfs", "/tmp:rw,exec,size=8g",
                "-v", f"{Path(work_dir).resolve()}:/work:rw",
-               "-v", f"{artifacts}:/board/artifacts:rw",
-               "-w", "/work",
+               "-v", f"{artifacts}:/board/artifacts:rw"]
+        if self.calibration is not None:  # one file, read-only: the measured references every arm gets
+            cmd += ["-v", f"{self.calibration.resolve()}:{CONTAINER_CALIBRATION}:ro"]
+        cmd += ["-w", "/work",
                "-e", API_KEY_ENV]
         if self.gpus:
             cmd += ["--gpus", "all"]

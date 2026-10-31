@@ -28,7 +28,8 @@ the metrics compare like with like.
 - Dollars are computed one way for every arm: `llm_roles.cost_usd(model, usage)` per model in the session
   (`usd` in `costs.jsonl`); Claude Code's own figure is kept as `usd_reported`, and the budget pool is charged
   the larger of the two. Note: `cost_usd` has no price for cache writes, so `usd` can understate.
-- Same wall-clock limit per session, same tools (ALCHEMI skills, web access, the calibration dataset).
+- Same wall-clock limit per session, same tools (ALCHEMI skills, web access, and the calibration dataset
+  `data/calibration/tier1.json`, which arm C's Librarian uses: mounted read-only for arms A and B).
   An arm that runs out of budget stops and records that (`run_record.json` `budget.stopped_by_budget`).
 - **Infrastructure failures are not scored:** if the shared key runs out of credit mid-task, the attempt moves
   to `<repeat>/_infra_failed/` and the task reruns from scratch on the backup key (`coolorbit/llm_keys.py`).
@@ -56,8 +57,9 @@ boards/eval/<run_id>/<arm>-r<repeat>/             arm C: one board per repeat ho
 - **Sandbox (required for real runs):** `--sandbox docker` (default). Build the image once with
   `python -m coolorbit.eval.sandbox build` (python 3.12, nvalchemi-toolkit[cu13,mace,ase]==0.2.0, plotext<6, the
   ALCHEMI skills, Claude Code, and a self-contained board tool; built from a staged context, so `tasks.json`,
-  `CLAUDE.md` and `.env` are never in it). Each session's container mounts only its work dir (`/work`) and its
-  task board's `artifacts/` (`/board/artifacts`), gets only `ANTHROPIC_API_KEY`, `--gpus all`, runs as your
+  `CLAUDE.md` and `.env` are never in it). Each session's container mounts only its work dir (`/work`), its
+  task board's `artifacts/` (`/board/artifacts`) and `data/calibration/tier1.json` **read-only** at
+  `/data/calibration/tier1.json` (the same measured references arm C's Librarian uses; the prompts point to it), gets only `ANTHROPIC_API_KEY`, `--gpus all`, runs as your
   uid with all capabilities dropped, and is `docker kill`ed at the wall-clock limit. No home dir, `~/.ssh`,
   `~/.config/gh`, `~/.brev`, repo or `.env`. `--sandbox none` additionally needs `--allow-unsandboxed` and is for
   laptop development only. `run_record.json` still records a transcript contamination scan.
