@@ -39,6 +39,8 @@ compute. Team names, ScienceClaw hackathon, MIT Media Lab.
 ## Slide 4: The trade-off nobody has solved: heat stored vs heat moved
 All values measured and sourced (our Tier-1 calibration set, `data/calibration/tier1.json`):
 
+Measured values only (we don't simulate Ga reliably: slide 8).
+
 | Material | Melts at | Latent heat | Per litre of container | Thermal conductivity |
 |---|---|---|---|---|
 | n-octadecane (paraffin) | 301 K [S6] | **236 kJ/kg** [S7] | 183 J/cm³ (liquid, 0.7768 g/cm³ [S17]) | **0.49 W/m·K** (solid n-docosane) [S9] |
@@ -110,11 +112,24 @@ A = single agent + NVIDIA's recommended prompt; B = worker + checker pipeline; C
 - The signature trap, live on our data: single-phase heating overshoots the melting point (superheating);
   two-phase coexistence lands near the measurement `[RESULT PENDING: both numbers for one metal]`.
 - Independent classical check (MEAM/LAMMPS) `[RESULT PENDING; only if the Nebius runs happen]`.
+- **Gallium fails both methods, and we say so:** MACE puts Ga's latent heat about 5x too low (15.2 ± 0.3 vs 80.2 kJ/kg
+  measured [S11]; GB10 production run, 512 atoms [S20]), and the only LAMMPS-ready classical potential can't hold
+  alpha-Ga's structure [S15]. Ga appears on slide 4 only with **measured** data; we don't claim to simulate it.
 
-## Slide 9: The shortlist
-`[RESULT PENDING: Ranker's latest ranking, trusted results only, with error bars; Tier-2 entries labeled
-PREDICTION]`. Figure of merit: transition in the operating window, latent heat per kg, conductivity, cycling,
-microgravity friendliness.
+## Slide 9: The shortlist, labelled by trust level
+A "trusted only" ranking will be empty tonight: only In, Sn and Bi can become trusted (via the classical check),
+and they melt above the operating window. So the slide is a table where **every row says how far it can be
+trusted** (final call: Madhan):
+
+| Material | Trust level | What backs it | Numbers |
+|---|---|---|---|
+| In, Sn, Bi | **calibration** (can become *trusted*) | MACE vs measured [tier1.json] + independent MEAM/LAMMPS check | `[RESULT PENDING]`; they melt above the window, so they calibrate the method, not the shortlist |
+| Field's metal (Bi-In-Sn eutectic) | **method check against a measurement** | simulated alloy latent heat vs measured 27.1 kJ/kg [S21] | `[RESULT PENDING]` |
+| In-Bi alloy | **prediction** (no measured latent heat) | MACE only; labelled PREDICTION, ready for lab testing | `[RESULT PENDING]` |
+| Ga | **failed** (both methods) | see slide 8 | measured values only (slide 4) |
+
+Figure of merit (when a row qualifies): transition in the operating window, latent heat per kg, conductivity,
+cycling, microgravity friendliness. `[open team decision: operating window]`
 
 ## Slide 10: What others can reuse
 - `SuperheatingDetectorHook` (ALCHEMI dynamics hook): flags melting points from single-phase heating
@@ -132,6 +147,9 @@ microgravity friendliness.
 - AI force fields have errors; we measure them against data and report them. No exact melting points.
 - MACE-MP is trained on inorganic materials: waxes are out of its domain (our Simulator refuses them and asks
   for classical MD).
+- Gallium: MACE's latent heat is ~5x low and the classical potential can't hold alpha-Ga, so we report Ga as a
+  failure of both methods, not a result [S20, S15].
+- Nothing on the shortlist is "trusted" yet; every row is labelled by trust level (slide 9).
 - Alloy latent heats assume the solid is a mixture of the pure elements (intermetallics would lower them).
 - Materials don't remove radiators; they buffer bursts.
 - `[RESULT PENDING: list every failed run / flagged result category from the board]`.
@@ -185,6 +203,8 @@ Backup: a screen recording, in case the GB10 or network fails on stage.
 | S16 | Paraffin PCM packs (40.69 g n-hexadecane) flown on IceCube in ISS orbit, 2017, instrument "Day-On Every Other Orbit"; "maintained the instrument temperatures at about 18 degrees Centigrade most of the time" | M.K. Choi, "Thermal Assessment of Paraffin Phase Change Material Mini-Packs on IceCube 3U CubeSat in Flight", NASA NTRS 20180004470, https://ntrs.nasa.gov/citations/20180004470 | NTRS record and abstract read |
 | S17 | n-octadecane 0.7768 g/cm³ at 28 °C (used as the liquid) | CRC Handbook 95th ed. p. 3-424, via PubChem/HSDB (secondary), https://pubchem.ncbi.nlm.nih.gov/compound/11635 | PubChem record read. Caveat: 28 °C is at Tm, so the phase isn't stated; 5% below the 0.814 solid value [S8], consistent with liquid |
 | S18 | Ga 5.9037 g/cm³ solid at 29.65 °C; 6.0947 liquid at 29.8 °C | The Merck Index (1996), via PubChem/HSDB (secondary), https://pubchem.ncbi.nlm.nih.gov/compound/5360835 | PubChem record read |
+| S20 | MACE Ga latent heat 15.2 ± 0.3 kJ/kg vs 80.2 measured (production run, 512 atoms) | GB10 run, Madhan, 2026-10-31: `[RESULT FILE PATH PENDING: add once committed]` | reported by Madhan; **cite the committed result file before the slide** |
+| S21 | Field's metal latent heat 27.1 kJ/kg (27,115 J/kg), melting point 333.71 K | Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3 | via calibration set (tier1.json) |
 | S19 | Hook positive control: 3/3 melting crystals flagged `superheating_observed`, 0/4 two-phase boxes flagged; naive heating 1600 ± 100 K (quick settings) | `runs/melting/20261031T171151Z_Cu_heating_quick/result.json`, `runs/agent/e2e-cu-quick/.../20261031T170508Z_Cu_coexistence_quick/result.json`, `runs/hook_heating_cu_quick.log`; commit 2ebedd4 | counted from the result files; measured Cu Tm 1357.77 K from the calibration set |
 
 Judge context (not for slides): Nikita Fedik is thanked in the NVIDIA blog's acknowledgments [S14].
