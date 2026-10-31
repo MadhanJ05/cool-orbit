@@ -279,4 +279,8 @@ def _auto_summary(artifact_type: str, p: dict) -> str:
         return f"ranking of {len(p['entries'])} candidates"
     if artifact_type == "need_claim":
         return f"claims need #{p['need_index']} on {p['target_artifact_id'][:8]}"
+    if artifact_type == "request":
+        return f"request: {p['note'][:100]}" if p["note"] else "request"
+    if artifact_type == "run_report":
+        return f"{p['status']}: {p['task']} ({p['reason'][:100]})"
     return artifact_type

@@ -128,6 +128,27 @@ class NeedClaim(_Strict):
     expires_at: str = Field(min_length=1, description="ISO 8601 UTC")
 
 
+class RunReport(_Strict):
+    """A run that did not produce a result: failed (e.g. bracket missed) or refused (e.g. model out of domain).
+
+    Failures are evidence too: they are posted, never dropped. A report may carry
+    needs (a retry with a shifted bracket, or a request for a different engine).
+    """
+
+    status: Literal["failed", "refused"]
+    task: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
+    run_dir: Optional[str] = None
+    attempt: int = Field(default=1, ge=1)
+    details: dict = Field(default_factory=dict)
+
+
+class Request(_Strict):
+    """A follow-up ask that carries needs, parented to the artifact it is about (e.g. a candidate)."""
+
+    note: str = ""
+
+
 class Need(BaseModel):
     """An open request broadcast on an artifact (keys compatible with ScienceClaw's NeedItem)."""
 
@@ -146,4 +167,6 @@ PAYLOAD_MODELS: dict[str, type[BaseModel]] = {
     "reference_value": ReferenceValue,
     "ranking": Ranking,
     "need_claim": NeedClaim,
+    "run_report": RunReport,
+    "request": Request,
 }

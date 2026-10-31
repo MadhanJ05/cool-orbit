@@ -288,12 +288,14 @@ def run_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict,
     melt_t = [p["T_target_K"] for p in per_t if p["verdict"] == "melting"]
     freeze_t = [p["T_target_K"] for p in per_t if p["verdict"] == "freezing"]
     if not melt_t:
-        result.update(status="failed", reason="no temperature melted: the melting point is above the bracket")
+        result.update(status="failed", failure="above_bracket",
+                      reason="no temperature melted: the melting point is above the bracket")
     elif not freeze_t:
-        result.update(status="failed", reason="no temperature froze: the melting point is below the bracket")
+        result.update(status="failed", failure="below_bracket",
+                      reason="no temperature froze: the melting point is below the bracket")
     elif max(freeze_t) >= min(melt_t):
-        result.update(status="failed", reason="inconsistent: froze at or above a melting temperature "
-                                              "(runs too short or too noisy)")
+        result.update(status="failed", failure="inconsistent",
+                      reason="inconsistent: froze at or above a melting temperature (runs too short or too noisy)")
     else:
         lo, hi = max(freeze_t), min(melt_t)
         pts = [(p["T_target_K"], p["delta_pe_eV_per_atom"]) for p in per_t if lo <= p["T_target_K"] <= hi]
@@ -330,7 +332,8 @@ def run_heating(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Bat
                           uncertainty=(b["T_target_K"] - a["T_target_K"]) / 2, jump_eV_per_atom=jump)
             break
     else:
-        result.update(status="failed", reason=f"no jump > {s.jump_threshold} eV/atom up to {curve[-1]['T_target_K']} K")
+        result.update(status="failed", failure="no_jump",
+                      reason=f"no jump > {s.jump_threshold} eV/atom up to {curve[-1]['T_target_K']} K")
     for c in curve:
         print(f"  T={c['T_target_K']:7.1f} K: PE = {c['pe_per_atom_eV']:.4f} eV/atom", flush=True)
     return result, batch
@@ -382,7 +385,7 @@ def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batc
     if dh <= 0:
         problems.append("non-positive enthalpy difference")
     if problems:
-        result.update(status="failed", reason="; ".join(problems))
+        result.update(status="failed", failure="phase_check", reason="; ".join(problems))
     else:
         result.update(status="ok", property="latent_heat", units="J/kg", value=round(dh * to_j_per_kg),
                       uncertainty=round(dh_err * to_j_per_kg))
@@ -394,27 +397,15 @@ def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batc
 # --------------------------------------------------------------------------- output
 
 
-def post_to_board(args, result: dict, s: Settings, atoms: Atoms, run_dir: Path, flags: list[str]) -> str:
+def post_to_board(args, result: dict, s: Settings, n_atoms: int, run_dir: Path) -> str:
     from coolorbit.board import Board
+    from coolorbit.sim.results import build_property_payload
 
     board = Board(args.board)
     cand = board.snapshot().find(args.candidate_id)
     if cand.artifact_type != "candidate":
         raise SystemExit(f"{args.candidate_id} is a {cand.artifact_type}, not a candidate")
-    protocol = {"coexistence": "two-phase coexistence", "heating": "single-phase heating",
-                "latent": "NPT enthalpy difference (solid vs liquid)"}[s.mode]
-    ensemble = {"coexistence": "NPT anisotropic (MTK + Nose-Hoover chains)",
-                "heating": "NPT isotropic (MTK + Nose-Hoover chains)",
-                "latent": "NPT isotropic (MTK + Nose-Hoover chains)"}[s.mode]
-    payload = {
-        "candidate": cand.payload["name"], "family": cand.payload["family"], "tier": cand.payload["tier"],
-        "property": result["property"], "value": result["value"], "units": result["units"],
-        "uncertainty": result.get("uncertainty"), "flags": flags,
-        "method": {"engine": "ALCHEMI", "model": s.model, "protocol": protocol, "ensemble": ensemble,
-                   "timestep_fs": s.dt_fs, "n_atoms": len(atoms),
-                   "sim_length_ps": s.prod_steps * s.dt_fs / 1000, "seeds": 1,
-                   "temperatures_K": s.temps, "run_dir": str(run_dir)},
-    }
+    payload = build_property_payload(cand.payload, result, s.__dict__, n_atoms, str(run_dir))
     art = board.post(args.agent, "property_result", payload, parents=[cand.artifact_id], skill="coolorbit.sim.melting")
     return art.artifact_id
 
@@ -436,10 +427,10 @@ def main() -> None:
     g.add_argument("--t-melt", type=float, help="temperature used to melt (default 1.6 x T_prep)")
     g.add_argument("--model", default="medium-mpa-0")
     g.add_argument("--dt", type=float, default=2.0, help="timestep (fs); use <= 0.5 with hydrogen")
-    g.add_argument("--equil-steps", type=int, default=4000)
-    g.add_argument("--melt-steps", type=int, default=6000)
-    g.add_argument("--quench-steps", type=int, default=3000)
-    g.add_argument("--prod-steps", type=int, default=25000)
+    g.add_argument("--equil-steps", type=int, help="default 4000 (quick: 500)")
+    g.add_argument("--melt-steps", type=int, help="default 6000 (quick: 1500)")
+    g.add_argument("--quench-steps", type=int, help="default 3000 (quick: 500)")
+    g.add_argument("--prod-steps", type=int, help="default 25000 (quick: 2500)")
     g.add_argument("--record-every", type=int, default=50)
     g.add_argument("--pe-threshold", type=float, default=0.002, help="coexistence: |dPE| (eV/atom) to call melt/freeze")
     g.add_argument("--jump-threshold", type=float, default=0.03, help="heating: PE jump (eV/atom) that marks melting")
@@ -461,8 +452,11 @@ def main() -> None:
         ap.error("--board needs --agent and --candidate-id")
     if not torch.cuda.is_available():
         raise SystemExit("CUDA not available: these runs must use the GPU.")
-    if args.quick:
-        args.equil_steps, args.melt_steps, args.quench_steps, args.prod_steps = 500, 1500, 500, 2500
+    q = args.quick  # explicit step counts always win over the presets
+    args.equil_steps = args.equil_steps or (500 if q else 4000)
+    args.melt_steps = args.melt_steps or (1500 if q else 6000)
+    args.quench_steps = args.quench_steps or (500 if q else 3000)
+    args.prod_steps = args.prod_steps or (2500 if q else 25000)
 
     t_prep = args.t_prep or float(np.mean(temps))
     s = Settings(mode=args.mode, label=args.label or (args.element or Path(args.structure_file).stem),
@@ -509,7 +503,7 @@ def main() -> None:
     for i, a in enumerate(batch_to_atoms(final)):
         ase_write(run_dir / f"final_{i}_T{s.temps[i] if i < m else s.temps[0]:g}.extxyz", a)
     if args.board and result.get("status") == "ok":
-        result["board_artifact_id"] = post_to_board(args, result, s, atoms, run_dir, result["flags"])
+        result["board_artifact_id"] = post_to_board(args, result, s, n, run_dir)
     (run_dir / "result.json").write_text(json.dumps(result, indent=2))
 
     print(f"\nRESULT ({result.get('status')}): " + (

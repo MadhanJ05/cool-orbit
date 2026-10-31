@@ -1,5 +1,5 @@
 test_boards_are_isolated (test_board.BoardTest.test_boards_are_isolated) ... ok
-test_concurrent_posts_from_many_processes (test_board.BoardTest.test_concurrent_posts_from_many_processes) ... /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=173426) is multi-threaded, use of fork() may lead to deadlocks in the child.
+test_concurrent_posts_from_many_processes (test_board.BoardTest.test_concurrent_posts_from_many_processes) ... /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=175423) is multi-threaded, use of fork() may lead to deadlocks in the child.
   self.pid = os.fork()
 ok
 test_disagreement_with_experiment_flags (test_board.BoardTest.test_disagreement_with_experiment_flags) ... ok
@@ -19,12 +19,39 @@ test_trusted_needs_audit_and_independent_agreement (test_board.BoardTest.test_tr
 test_unit_mismatch_flags (test_board.BoardTest.test_unit_mismatch_flags) ... ok
 test_unknown_parent_rejected (test_board.BoardTest.test_unknown_parent_rejected) ... ok
 test_unknown_type_and_bad_payload_rejected (test_board.BoardTest.test_unknown_type_and_bad_payload_rejected) ... ok
+test_bad_structure_source_is_refused (test_simulator_agent.SimulatorAgentTest.test_bad_structure_source_is_refused) ... [simulator_gb10] REFUSED: melting_point of Cu (ALCHEMI): unsupported structure_source 'mp:mp-30'; use ase:<El>:<structure>:<a> or file:<repo path>
+ok
+test_crash_is_reported_not_hidden (test_simulator_agent.SimulatorAgentTest.test_crash_is_reported_not_hidden) ... [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
+[simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): run did not complete: RuntimeError('CUDA out of memory')
+ok
+test_failed_run_posts_report_and_retry_with_shifted_bracket (test_simulator_agent.SimulatorAgentTest.test_failed_run_posts_report_and_retry_with_shifted_bracket) ... [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
+[simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
+[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
+[simulator_gb10] RESULT 069599e6: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+ok
+test_follow_up_request_reaches_the_candidate (test_simulator_agent.SimulatorAgentTest.test_follow_up_request_reaches_the_candidate) ... [simulator_gb10] RUN: latent_heat of Cu via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 256 atoms x 1 temps, preset quick, attempt 1, ~1 min
+[simulator_gb10] RESULT 3168c54e: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
+ok
+test_gives_up_after_max_attempts (test_simulator_agent.SimulatorAgentTest.test_gives_up_after_max_attempts) ... [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
+[simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
+[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
+[simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
+[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 3, ~5 min
+[simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
+ok
+test_organics_are_out_of_domain (test_simulator_agent.SimulatorAgentTest.test_organics_are_out_of_domain) ... ok
+test_success_posts_result_and_trust_needs (test_simulator_agent.SimulatorAgentTest.test_success_posts_result_and_trust_needs) ... [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
+[simulator_gb10] RESULT 3d76f606: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+ok
+test_t_guess_brackets_and_ignores_other_engines (test_simulator_agent.SimulatorAgentTest.test_t_guess_brackets_and_ignores_other_engines) ... [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
+[simulator_gb10] RESULT 316e548f: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+ok
 test_flags_only_the_perfect_crystal_that_melts (test_superheating_hook.SuperheatingHookTest.test_flags_only_the_perfect_crystal_that_melts) ... ok
 test_handles_periodic_wrapping (test_superheating_hook.SuperheatingHookTest.test_handles_periodic_wrapping)
 A crystal shifted by a whole lattice vector (wrapped) must not look mobile. ... ok
 test_raise_action (test_superheating_hook.SuperheatingHookTest.test_raise_action) ... ok
 
 ----------------------------------------------------------------------
-Ran 21 tests in 1.912s
+Ran 29 tests in 0.187s
 
 OK

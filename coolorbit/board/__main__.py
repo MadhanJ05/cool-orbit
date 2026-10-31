@@ -54,6 +54,14 @@ def show(board: Board, rules: dict, verbose: bool) -> None:
     if results:
         print("  " + ", ".join(f"{n} {s}" for s, n in Counter(statuses.values()).most_common()))
 
+    reports = snap.of_type("run_report")
+    if reports:
+        print("\nFAILED / REFUSED RUNS")
+        for r in reports:
+            p = r.payload
+            print(f"  {r.artifact_id[:8]}  {p['status'].upper():<8} attempt {p['attempt']}  {p['task']}  "
+                  f"by {r.producer_agent}\n            - {p['reason']}")
+
     rankings = snap.of_type("ranking")
     if rankings:
         latest = rankings[-1]
