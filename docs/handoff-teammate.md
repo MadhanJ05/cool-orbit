@@ -9,6 +9,11 @@
 
 ---
 
+> **Update (Sat ~17:00 UTC):** a second teammate joined. **T4 (eval harness), T5 (dashboard) and T6 (Nebius
+> inputs) moved to Teammate 2** (`docs/handoff-teammate-2.md`), along with `coolorbit/eval/`, `dashboard/` and
+> `data/nebius/`. **You keep T1, T2, T3** and own `coolorbit/agents/`, `data/calibration/`, `data/structures/`.
+> For T2 (Scouts), use the request format in **`docs/simulation-requests.md`**.
+
 ## 1. Where the project is
 
 | Done (on `main`) | Notes |
