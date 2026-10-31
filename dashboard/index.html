@@ -3,34 +3,123 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cool Orbit · results board</title>
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Cool Orbit: AI agents on NVIDIA ALCHEMI find and cross-check thermal battery materials to cool orbital data centers.">
+  <title>Cool Orbit · thermal batteries for orbital AI</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="top">
-    <div class="brand">
-      <h1>Cool Orbit</h1>
-      <p class="tag">AI agents find and cross-check thermal-battery materials for orbital AI compute</p>
-    </div>
-    <div class="controls">
-      <label for="board-select">Board</label>
-      <select id="board-select"></select>
-      <span id="exported" class="muted"></span>
+  <a class="skip" href="#results">Skip to the results</a>
+
+  <header class="masthead">
+    <div class="wrap bar">
+      <a class="brand" href="#top">Cool Orbit</a>
+      <nav aria-label="Sections">
+        <a href="#burst">Wax vs metals</a>
+        <a href="#how">How it works</a>
+        <a href="#results">Results</a>
+        <a href="#compare">One agent vs many</a>
+        <a href="#failures">Failures</a>
+      </nav>
     </div>
   </header>
 
-  <div id="banners"></div>
+  <main id="top">
+    <div id="banners" class="wrap banners"></div>
 
-  <main id="app">
-    <p class="muted" id="loading">Loading… If this stays, run <code>python -m dashboard.export --board boards/&lt;id&gt;</code>
-      (or <code>python -m dashboard.demo</code> for synthetic demo data) so <code>dashboard/data/data.js</code> exists.</p>
+    <section class="hero" aria-labelledby="question">
+      <div class="wrap hero-grid">
+        <div class="hero-main">
+          <p class="eyebrow">ScienceClaw hackathon · NVIDIA ALCHEMI on the Dell Pro Max GB10</p>
+          <h1 id="question">Which thermal battery best buffers bursty AI-chip heat in orbit, and can we trust the simulations?</h1>
+          <div id="hero-answer">
+            <p class="answer">Loading the latest export. If this message stays, run
+              <code>python -m dashboard.export --board boards/&lt;id&gt;</code> so that <code>dashboard/data/data.js</code> exists.</p>
+          </div>
+          <div id="hero-why"></div>
+        </div>
+        <aside id="hero-status" class="hero-side" aria-label="Live status of the results board"></aside>
+      </div>
+    </section>
+
+    <section class="sec" id="burst" aria-labelledby="burst-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow">The trade-off</p>
+          <h2 id="burst-h">Wax vs metals for a 15-minute burst</h2>
+          <p class="lede" id="burst-lede">How much thermal battery does one compute burst need, and what does the whole device weigh?</p>
+        </header>
+        <div id="burst-body"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="how" aria-labelledby="how-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow">Method</p>
+          <h2 id="how-h">How it works on NVIDIA ALCHEMI</h2>
+          <p class="lede">A team of agents with no boss. Each owns a different job or checking method. They coordinate
+            only through a shared results board, and a result is trusted only when independent evidence agrees.</p>
+        </header>
+        <div id="how-body"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="results" aria-labelledby="results-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow">Evidence</p>
+          <h2 id="results-h">Results by trust level</h2>
+          <p class="lede">Every simulated value next to the measured one, with the referees' reasons. Known materials are
+            checked against measurements; anything nobody has measured is labelled PREDICTION.</p>
+        </header>
+        <div id="results-body"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="compare" aria-labelledby="compare-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow">Collective capability</p>
+          <h2 id="compare-h">Single agent vs pipeline vs our collective</h2>
+          <p class="lede">The same tasks, budget and tools for each set-up, including NVIDIA's own traps: an ill-posed
+            property, thermostat-damped diffusion and superheated crystals. Does a team of referees catch what one agent ships?</p>
+        </header>
+        <div id="compare-body"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="failures" aria-labelledby="failures-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="eyebrow">Reported, not hidden</p>
+          <h2 id="failures-h">What failed</h2>
+          <p class="lede">Failed runs, flagged results and methods that did not hold up. Failures are evidence, so they
+            stay on the page.</p>
+        </header>
+        <div id="failures-body"></div>
+      </div>
+    </section>
   </main>
 
-  <footer class="foot muted">
-    Status is <strong>derived</strong> by the trust rule from the evidence on the board (method audit, an agreeing independent
-    method, and a sourced measured value for the trust tier); no agent can set it.
-    Source: <a href="https://github.com/MadhanJ05/cool-orbit">github.com/MadhanJ05/cool-orbit</a>
+  <footer class="foot">
+    <div class="wrap foot-grid">
+      <div>
+        <p class="brand">Cool Orbit</p>
+        <p><strong>We simulate and rank; we don't claim new materials.</strong> AI force fields have errors, so we
+          measure them against data and report them, failures included.</p>
+        <p>Every status on this page is derived by the trust rule from the evidence on the results board; no agent can
+          set one. Numbers carry numbered sources, listed here.</p>
+        <p><a href="https://github.com/MadhanJ05/cool-orbit">github.com/MadhanJ05/cool-orbit</a></p>
+      </div>
+      <div>
+        <h2 class="foot-h">Sources</h2>
+        <div id="sources"><p class="fine">Sources appear once the export has loaded.</p></div>
+      </div>
+    </div>
   </footer>
+
+  <div id="update" class="update" hidden></div>
 
   <script src="data/data.js"></script>
   <script src="app.js"></script>

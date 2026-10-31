@@ -6,10 +6,13 @@ Writes, into ``--out``:
   <name>.json   one file per board: results with derived status and reasons, open needs,
                 failed/refused runs, lineage (every artifact with parents and children),
                 the latest ranking, and the T4 scorecard if the board was seeded with eval tasks
-  index.json    the list of boards, plus the arm comparison (boards named <arm>-r<repeat>)
-  data.js       the same data as one script, so index.html also works opened from disk (file://)
+  index.json    the list of boards, plus the arm comparison (boards named <arm>-r<repeat>) and the task list
+  data.js       the same data as one script, so index.html also works opened from disk (file://), plus the
+                page's ``context`` (dashboard/context.py: the question, the burst calculation, the methods)
 
-A board whose artifacts mention "SYNTHETIC" is marked synthetic, and the page shows a banner.
+Each result also carries the measured value it is compared with: the latest sourced ``reference_value`` on its
+board, else the sourced record in data/calibration/tier1.json (``origin`` says which; the trust rule itself only
+uses the board's). A board whose artifacts mention "SYNTHETIC" is marked synthetic, and the page shows a banner.
 """
 
 from __future__ import annotations
@@ -25,7 +28,9 @@ from typing import Optional
 from coolorbit.board import Board, derive_status, load_rules
 from coolorbit.board._scienceclaw import REPO_ROOT
 from coolorbit.eval.metrics import is_board, score_board, score_repeat, summarize_arm
-from coolorbit.eval.tasks import TaskSet, load_tasks, task_requests
+from coolorbit.eval.tasks import DEFAULT_CALIBRATION_PATH, TaskSet, load_tasks, task_requests
+from dashboard.context import SCHEMA as CONTEXT_SCHEMA
+from dashboard.context import build_context, load_calibration
 
 SCHEMA = "coolorbit.dashboard/1"
 DEFAULT_OUT = Path(__file__).resolve().parent / "data"
@@ -70,9 +75,46 @@ def discover(path: str | Path) -> list[tuple[Path, Optional[Path]]]:
     return found
 
 
+def _norm(text: object) -> str:
+    return " ".join(str(text or "").lower().split())
+
+
+def _reference(refs: dict, calibration: Optional[dict], candidate: str, prop: str) -> Optional[dict]:
+    """The measured value a result is shown against: the board's latest sourced one, else the calibration set's."""
+    ref = refs.get((_norm(candidate), prop))
+    if ref is not None:
+        rp = ref.payload
+        return {"value": rp["value"], "units": rp.get("units"), "source": rp.get("source"), "origin": "board",
+                "id": ref.artifact_id, "agent": ref.producer_agent}
+    rec = (calibration or {}).get((_norm(candidate), prop))
+    if rec is not None:
+        return {"value": rec["value"], "units": rec.get("units"), "source": rec["source"], "origin": "calibration",
+                "id": None, "agent": None}
+    return None
+
+
+def _scored_task_ids(task_set: TaskSet) -> list[str]:
+    """Task ids named in the task set's pre-registration note ("Scored set: the 8 tasks a, b, ..."), if any."""
+    note = str((getattr(task_set, "model_extra", None) or {}).get("_preregistration") or "")
+    m = re.search(r"Scored set:(.*?)\.(?:\s|$)", note)
+    known = set(task_set.by_id())
+    return [t for t in re.findall(r"[a-z0-9_]+", m.group(1)) if t in known] if m else []
+
+
+def _task_list(task_set: TaskSet) -> list[dict]:
+    out = []
+    for t in task_set.tasks:
+        ref = t.reference
+        out.append({"id": t.id, "origin": t.origin, "kind": t.kind, "trap": t.trap, "expected": t.expected,
+                    "prompt": t.prompt, "material": t.material, "property": t.property, "units": t.units,
+                    "reference": ({"value": ref.value, "low": ref.low, "high": ref.high, "source": ref.source}
+                                  if ref is not None and ref.known else None)})
+    return out
+
+
 def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
                  *, name: Optional[str] = None, now: Optional[datetime] = None,
-                 repeat_dir: Optional[Path] = None) -> dict:
+                 repeat_dir: Optional[Path] = None, calibration: Optional[dict] = None) -> dict:
     snap = board.snapshot()
     ordered = snap.ordered()
     name = name or _board_name(board.root)
@@ -86,6 +128,11 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
             "payload": a.payload, "needs": a.needs,
         }
 
+    refs = {}  # (candidate, property) -> latest sourced reference_value on this board (board order: latest wins)
+    for ref in snap.of_type("reference_value"):
+        if ref.payload.get("value") is not None and str(ref.payload.get("source") or "").strip():
+            refs[(_norm(ref.payload["candidate"]), ref.payload["property"])] = ref
+
     results, status_of = [], {}
     for r in snap.of_type("property_result"):
         rep = derive_status(snap, r, rules)
@@ -97,6 +144,7 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
             "value": p["value"], "uncertainty": p.get("uncertainty"), "units": p["units"],
             "method": p["method"], "flags": p.get("flags", []), "note": p.get("note", ""),
             "status": rep.status, "reasons": rep.reasons, "superseded_by": rep.superseded_by,
+            "reference": _reference(refs, calibration, p["candidate"], p["property"]),
         })
 
     with_results = {pid for r in snap.of_type("property_result") for pid in r.parent_artifact_ids}
@@ -156,16 +204,27 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
     }
 
 
+def _context(rules: dict, calibration_path: Path) -> dict:
+    try:
+        return build_context(rules=rules, calibration_path=calibration_path)
+    except Exception as exc:  # the boards still export; the page shows this error instead of the context sections
+        return {"schema": CONTEXT_SCHEMA, "error": f"{type(exc).__name__}: {exc}"}
+
+
 def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, rules: Optional[dict] = None,
            task_set: Optional[TaskSet] = None, now: Optional[datetime] = None,
-           include_synthetic_in_comparison: bool = False) -> dict:
+           include_synthetic_in_comparison: bool = False,
+           calibration_path: Optional[str | Path] = None, context: Optional[dict] = None) -> dict:
     """Export boards. Arm comparison: repeats are grouped by (run folder, arm), never pooled across runs.
 
     Synthetic boards are left out of the comparison unless ``include_synthetic_in_comparison`` (the demo
     only); a comparison that includes them is marked ``synthetic`` and the page shows a banner.
+    ``context`` defaults to ``dashboard.context.build_context()`` with the same rules and calibration set.
     """
     rules = rules if rules is not None else load_rules()
     task_set = task_set if task_set is not None else load_tasks()
+    calibration_path = Path(calibration_path) if calibration_path else DEFAULT_CALIBRATION_PATH
+    calibration = load_calibration(calibration_path)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     now = now or datetime.now(timezone.utc)
@@ -180,7 +239,7 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
         raise FileNotFoundError(f"no boards under {[str(p) for p in board_paths]}")
     for path, repeat_dir in found:
         board = Board(path)
-        data = export_board(board, rules, task_set, now=now, repeat_dir=repeat_dir)
+        data = export_board(board, rules, task_set, now=now, repeat_dir=repeat_dir, calibration=calibration)
         if data["name"] in boards:
             raise ValueError(f"two boards export to the same name {data['name']!r}")
         boards[data["name"]] = data
@@ -217,9 +276,11 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
     index = {"schema": SCHEMA, "exported_at": now.isoformat(), "boards": entries, "comparison": comparison,
              "excluded_from_comparison": excluded,
              "rules_frozen": bool(rules.get("frozen")), "task_set_frozen": task_set.frozen,
-             "any_synthetic": any(e["synthetic"] for e in entries)}
+             "any_synthetic": any(e["synthetic"] for e in entries),
+             "tasks": _task_list(task_set), "scored_task_ids": _scored_task_ids(task_set)}
     (out / "index.json").write_text(json.dumps(index, indent=1), encoding="utf-8")
-    bundle = {"index": index, "boards": boards}
+    bundle = {"index": index, "boards": boards,
+              "context": context if context is not None else _context(rules, calibration_path)}
     (out / "data.js").write_text("window.COOL_ORBIT_DATA = " + json.dumps(bundle) + ";\n", encoding="utf-8")
     return bundle
 
@@ -233,7 +294,8 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--tasks", help="eval task set (default: coolorbit/eval/tasks.json)")
     ap.add_argument("--calibration", help="calibration JSON (default: data/calibration/tier1.json)")
     args = ap.parse_args(argv)
-    bundle = export(args.board, args.out, rules=load_rules(args.rules), task_set=load_tasks(args.tasks, args.calibration))
+    bundle = export(args.board, args.out, rules=load_rules(args.rules), task_set=load_tasks(args.tasks, args.calibration),
+                    calibration_path=args.calibration)
     for e in bundle["index"]["boards"]:
         print(f"exported {e['name']}{' (SYNTHETIC)' if e['synthetic'] else ''}: {e['counts']['artifacts']} artifacts")
     print(f"wrote {args.out}/index.json and data.js; open dashboard/index.html")
