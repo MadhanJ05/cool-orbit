@@ -104,7 +104,7 @@ class Job:
     def cli_args(self, out_dir: Path) -> list[str]:
         args = [self.mode, *self.structure_args, "--reps", *map(str, self.reps), "--dt", f"{self.dt_fs:g}",
                 "--out", str(out_dir), "--label", self.label()]
-        if self.mode == "latent":
+        if self.mode in ("latent", "alloy-latent"):
             args += ["--temperature", f"{self.temps[0]:g}"]
         else:
             args += ["--temps", *(f"{t:g}" for t in self.temps)]
@@ -155,10 +155,30 @@ def find_rerun_target(snap: BoardSnapshot, art: Artifact, prop: str) -> Optional
 
 
 def parse_structure(source: Optional[str]):
-    """``ase:<El>:<structure>:<a>`` or ``file:<repo-relative path>`` -> (melting CLI args, unit cell Atoms)."""
+    """Structure source -> (melting CLI args, Atoms, kind).
+
+    ``ase:<El>:<structure>:<a>``, ``ref:<El>`` (real crystal of Ga, In, beta-Sn, Bi, Cu, Al),
+    ``alloy:wt:Bi32.5In51Sn16.5`` / ``alloy:at:...`` (Atoms = the mixed liquid-start box), or
+    ``file:<repo-relative path>``.
+    """
     if not source:
         raise JobError("the candidate has no structure_source")
     kind, _, rest = source.partition(":")
+    if kind == "ref":
+        from coolorbit.sim.alloys import element_crystal
+
+        try:
+            return ["--element", rest, "--structure", "ref"], element_crystal(rest), kind
+        except KeyError as exc:
+            raise JobError(str(exc)) from exc
+    if kind == "alloy":
+        from coolorbit.sim.alloys import mixed_alloy_box, parse_composition
+
+        try:
+            fractions = parse_composition(rest)
+        except ValueError as exc:
+            raise JobError(str(exc)) from exc
+        return ["--composition", rest], mixed_alloy_box(fractions, n_atoms=500), kind
     if kind == "ase":
         parts = rest.split(":")
         if len(parts) != 3:
@@ -170,15 +190,16 @@ def parse_structure(source: Optional[str]):
             atoms = bulk(el, structure, a=float(a), cubic=True)
         except Exception as exc:  # unknown element/structure, non-numeric a
             raise JobError(f"ASE could not build {source!r}: {exc}") from exc
-        return ["--element", el, "--structure", structure, "--a", a], atoms
+        return ["--element", el, "--structure", structure, "--a", a], atoms, kind
     if kind == "file":
         path = (REPO_ROOT / rest).resolve()
         if not path.is_relative_to(REPO_ROOT) or not path.is_file():
             raise JobError(f"structure file {rest!r} not found inside the repo (commit it under data/structures/)")
         from ase.io import read
 
-        return ["--structure-file", str(path)], read(path)
-    raise JobError(f"unsupported structure_source {source!r}; use ase:<El>:<structure>:<a> or file:<repo path>")
+        return ["--structure-file", str(path)], read(path), kind
+    raise JobError(f"unsupported structure_source {source!r}; use ase:<El>:<structure>:<a>, ref:<El>, "
+                   "alloy:wt:<composition> or file:<repo path>")
 
 
 def ood_reason(elements: set[str]) -> Optional[str]:
@@ -199,8 +220,20 @@ def build_job(snap: BoardSnapshot, on: OpenNeed) -> Optional[Job]:
     cand = find_candidate(snap, on.artifact)
     if cand is None:
         raise JobError("could not find the candidate this request is about")
-    structure_args, unit = parse_structure(cand.payload.get("structure_source"))
+    structure_args, unit, kind = parse_structure(cand.payload.get("structure_source"))
     elements = set(unit.get_chemical_symbols())
+    if kind == "alloy":
+        if prop != "latent_heat":
+            raise JobError("alloy melting temperatures are not computed here (that needs phase-diagram methods); "
+                           "request latent_heat at the alloy's measured melting temperature instead")
+        if need.get("temperature_K") is None:
+            raise JobError("an alloy latent_heat request needs temperature_K (the measured melting temperature)")
+        n_solid = 300 * len(elements)
+        return Job(target=on.artifact, need_index=on.index, need=need, candidate=cand, property=prop,
+                   mode="alloy-latent", temps=[float(need["temperature_K"])], reps=[1, 1, 1],
+                   dt_fs=float(need.get("dt_fs") or 2.0), preset=need.get("preset", "production"),
+                   prod_steps=need.get("prod_steps"), attempt=int(need.get("attempt", 1)),
+                   structure_args=structure_args, n_atoms=len(unit) + n_solid, elements=elements)
     reason = ood_reason(elements)
     if reason:
         alt = {k: v for k, v in need.items() if k not in ("attempt",)}

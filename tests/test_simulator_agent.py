@@ -199,6 +199,44 @@ class SimulatorAgentTest(unittest.TestCase):
         self.assertNotIn(melt.artifact_id, latent.parent_artifact_ids)
         self.assertEqual(derive_status(snap, melt, RULES).superseded_by, [])
 
+    def test_alloy_latent_heat_request_becomes_an_alloy_job(self) -> None:
+        self.board.post("scout_alloys", "candidate",
+                        {"name": "Field's metal", "family": "low-melting alloy", "tier": "trust",
+                         "structure_source": "alloy:wt:Bi32.5In51Sn16.5"},
+                        needs=[{"artifact_type": "property_result", "property": "latent_heat",
+                                "query": "latent_heat of Field's metal", "rationale": "unmeasured-ish alloy latent heat",
+                                "temperature_K": 335.0, "preset": "quick"}])
+        latent_ok = {"status": "ok", "property": "latent_heat", "value": 3.0e4, "uncertainty": 2.0e3, "units": "J/kg"}
+        runner = FakeRunner(latent_ok)
+        self.assertTrue(self.agent(runner).step())
+        job = runner.jobs[0]
+        args = job.cli_args(Path("x"))
+        self.assertEqual(job.mode, "alloy-latent")
+        self.assertEqual(args[:3], ["alloy-latent", "--composition", "wt:Bi32.5In51Sn16.5"])
+        self.assertIn("--temperature", args)
+        (res,) = self.board.snapshot().of_type("property_result")
+        self.assertEqual(res.payload["method"]["protocol"], "NPT enthalpy difference (liquid alloy vs pure-element solids)")
+
+    def test_alloy_melting_point_is_refused_honestly(self) -> None:
+        self.board.post("scout_alloys", "candidate",
+                        {"name": "EGaIn", "family": "low-melting alloy", "tier": "trust",
+                         "structure_source": "alloy:wt:Ga75.5In24.5"},
+                        needs=[{**REQUEST, "query": "melting_point of EGaIn"}])
+        runner = FakeRunner()
+        self.assertTrue(self.agent(runner).step())
+        self.assertEqual(runner.jobs, [])
+        (report,) = self.board.snapshot().of_type("run_report")
+        self.assertEqual(report.payload["status"], "refused")
+        self.assertIn("phase-diagram", report.payload["reason"])
+
+    def test_reference_crystal_source(self) -> None:
+        self.candidate(source="ref:Ga", need={**REQUEST, "temps_K": [280, 295, 310, 325]})
+        runner = FakeRunner(OK)
+        self.assertTrue(self.agent(runner).step())
+        args = runner.jobs[0].cli_args(Path("x"))
+        self.assertIn("ref", args)
+        self.assertEqual(args[args.index("--element") + 1], "Ga")
+
     def test_organics_are_out_of_domain(self) -> None:
         self.assertIsNotNone(ood_reason({"C", "H"}))
         self.assertIsNotNone(ood_reason({"C", "H", "O"}))

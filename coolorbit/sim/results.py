@@ -6,8 +6,10 @@ PROTOCOLS = {
     "coexistence": "two-phase coexistence",
     "heating": "single-phase heating",
     "latent": "NPT enthalpy difference (solid vs liquid)",
+    "alloy-latent": "NPT enthalpy difference (liquid alloy vs pure-element solids)",
 }
 ENSEMBLES = {
+    "alloy-latent": "NPT isotropic (MTK + Nose-Hoover chains)",
     "coexistence": "NPT anisotropic (MTK + Nose-Hoover chains)",
     "heating": "NPT isotropic (MTK + Nose-Hoover chains)",
     "latent": "NPT isotropic (MTK + Nose-Hoover chains)",
