@@ -11,8 +11,8 @@ import unittest
 from pathlib import Path
 
 from coolorbit.board import Board
-from coolorbit.eval.tasks import load_tasks
-from dashboard.demo import build_all
+from coolorbit.eval.tasks import DEFAULT_TASKS_PATH, load_tasks
+from dashboard.demo import MARKER, build_all, build_eval
 from dashboard.export import export
 
 RULES = {
@@ -87,20 +87,43 @@ class ExportTest(unittest.TestCase):
                 self.assertIn(aid, lin[p]["children"], "parent/child links must be symmetric")
         self.assertEqual(len(self.collective["proposed"]), 1)
 
-    def test_eval_boards_get_scorecard_and_comparison(self) -> None:
+    def test_eval_boards_get_scorecard(self) -> None:
         a = self.boards[str(self.paths[1])]
         c = self.boards[str(self.paths[2])]
         self.assertEqual((a["arm"], a["repeat"], c["arm"]), ("A", 1, "C"))
+        self.assertEqual(a["run"], c["run"])
         self.assertGreater(a["scorecard"]["silent_errors"], 0)
         self.assertEqual(c["scorecard"]["silent_errors"], 0)
-        cmp = self.bundle["index"]["comparison"]
-        self.assertEqual(set(cmp), {"A", "C"})
-        self.assertGreater(cmp["C"]["trap_catch_rate"]["mean"], cmp["A"]["trap_catch_rate"]["mean"])
-        self.assertFalse(cmp["A"]["cost_recorded_on_all_boards"])
+
+    def test_synthetic_boards_are_excluded_from_the_comparison_by_default(self) -> None:
+        self.assertIsNone(self.bundle["index"]["comparison"])
+        self.assertEqual(len(self.bundle["index"]["excluded_from_comparison"]), 2)
+
+    def test_demo_comparison_is_marked_synthetic(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle = export(self.paths, tmp, rules=RULES, task_set=self.tasks, include_synthetic_in_comparison=True)
+        (run,) = bundle["index"]["comparison"]
+        self.assertTrue(run["synthetic"])
+        self.assertEqual(set(run["arms"]), {"A", "C"})
+        self.assertGreater(run["arms"]["C"]["trap_catch_rate"]["mean"], run["arms"]["A"]["trap_catch_rate"]["mean"])
+        self.assertFalse(run["arms"]["A"]["cost_recorded_on_all_boards"])
+
+    def test_repeats_are_grouped_by_run_never_pooled(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            r1, r2 = tmp / "run1" / "A-r1", tmp / "run2" / "A-r1"
+            build_eval(r1, "A")
+            build_eval(r2, "C")  # different behavior, same arm label A
+            bundle = export([r1, r2], tmp / "out", rules=RULES, task_set=self.tasks,
+                            include_synthetic_in_comparison=True)
+        runs = bundle["index"]["comparison"]
+        self.assertEqual(len(runs), 2)
+        self.assertEqual([r["arms"]["A"]["repeats"] for r in runs], [1, 1])
 
     def test_frozen_flags_are_passed_through(self) -> None:
-        self.assertFalse(self.bundle["index"]["rules_frozen"])
-        self.assertFalse(self.bundle["index"]["task_set_frozen"])
+        self.assertEqual(self.bundle["index"]["rules_frozen"], RULES["frozen"])
+        actual = json.loads(DEFAULT_TASKS_PATH.read_text(encoding="utf-8"))["frozen"]
+        self.assertEqual(self.bundle["index"]["task_set_frozen"], actual)
 
     def test_export_is_read_only(self) -> None:
         before = {p: p.read_bytes() for path in self.paths for p in sorted(path.rglob("*")) if p.is_file()}
@@ -113,6 +136,26 @@ class ExportTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(FileNotFoundError):
                 export([Path(tmp) / "nope"], Path(tmp) / "out", rules=RULES, task_set=self.tasks)
+
+
+class DemoSafetyTest(unittest.TestCase):
+    def test_refuses_to_delete_a_folder_it_did_not_create(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            real = Path(tmp) / "boards"
+            Board(real / "real-run").post("scout_x", "candidate", {"name": "x", "family": "f", "tier": "trust"})
+            with self.assertRaises(FileExistsError):
+                build_all(real)
+            self.assertTrue((real / "real-run" / "artifacts").is_dir(), "real board must survive")
+
+    def test_rebuilds_its_own_folder_and_accepts_an_empty_one(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "demo"
+            root.mkdir()
+            build_all(root)
+            self.assertTrue((root / MARKER).is_file())
+            (root / "stale").mkdir()
+            build_all(root)  # marker present: safe to rebuild
+            self.assertFalse((root / "stale").exists())
 
 
 if __name__ == "__main__":

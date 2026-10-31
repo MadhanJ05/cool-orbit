@@ -147,9 +147,27 @@ def build_eval(root: Path, arm: str) -> Board:
     return b
 
 
+MARKER = ".synthetic-demo"
+
+
 def build_all(root: Path = DEFAULT_ROOT) -> list[Path]:
+    """(Re)build the demo boards under ``root``.
+
+    Only ever deletes a folder that this function created earlier (it carries the ``.synthetic-demo``
+    marker). Any other existing, non-empty folder is refused, so ``--root boards`` can't wipe real boards.
+    """
+    root = Path(root)
     if root.exists():
-        shutil.rmtree(root)
+        if (root / MARKER).is_file():
+            shutil.rmtree(root)
+        elif root.is_dir() and not any(root.iterdir()):
+            pass
+        else:
+            raise FileExistsError(f"{root} exists and was not created by the demo (no {MARKER} marker); "
+                                  "refusing to delete it. Pick an empty or new --root.")
+    root.mkdir(parents=True, exist_ok=True)
+    (root / MARKER).write_text("Created by python -m dashboard.demo. SYNTHETIC boards; safe to delete.\n",
+                               encoding="utf-8")
     paths = [root / "collective", root / "eval" / "A-r1", root / "eval" / "C-r1"]
     build_collective(paths[0])
     build_eval(paths[1], "A")
@@ -163,8 +181,11 @@ def main(argv=None) -> None:
     ap.add_argument("--out", default=None, help="export directory (default: dashboard/data)")
     args = ap.parse_args(argv)
     from dashboard.export import DEFAULT_OUT, export
-    paths = build_all(Path(args.root))
-    export(paths, args.out or DEFAULT_OUT)
+    try:
+        paths = build_all(Path(args.root))
+    except FileExistsError as exc:
+        raise SystemExit(f"error: {exc}") from None
+    export(paths, args.out or DEFAULT_OUT, include_synthetic_in_comparison=True)
     print(f"SYNTHETIC demo boards in {args.root}; exported to {args.out or DEFAULT_OUT}. Open dashboard/index.html")
 
 

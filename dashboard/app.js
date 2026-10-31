@@ -59,6 +59,9 @@ function banners() {
   if (board.synthetic) {
     box.append(el("div", { class: "banner synthetic", role: "alert" },
       "SYNTHETIC DEMO DATA: invented numbers for testing the dashboard. Not results; do not cite."));
+  } else if (DATA.index.any_synthetic) {
+    box.append(el("div", { class: "banner synthetic", role: "alert" },
+      "This export also contains SYNTHETIC boards (marked in the board picker). This board is not one of them."));
   }
   if (!board.rules_frozen) {
     box.append(el("div", { class: "banner provisional" },
@@ -196,8 +199,20 @@ function proposed() {
 }
 
 function comparison() {
-  const cmp = DATA.index.comparison;
-  if (!cmp) return null;
+  const runs = DATA.index.comparison;
+  const excluded = DATA.index.excluded_from_comparison || [];
+  if (!runs) {
+    return excluded.length
+      ? card("Arm comparison (collective capability)", 0,
+          empty(`No real comparison runs. Left out as synthetic: ${excluded.join(", ")}.`))
+      : null;
+  }
+  const wanted = board.run ? runs.filter((r) => r.run === board.run) : runs;
+  return el("div", {}, ...(wanted.length ? wanted : runs).map((r) => comparisonRun(r, excluded)));
+}
+
+function comparisonRun(run, excluded) {
+  const cmp = run.arms;
   const arms = Object.keys(cmp);
   const ARM_NAME = { A: "A · single agent", B: "B · worker + checker", C: "C · our collective", D: "D · homogeneous collective" };
   const metric = (label, key, kind, better) => el("tr", {},
@@ -214,8 +229,11 @@ function comparison() {
     arms.map((a) => el("td", {}, cmp[a].cost_recorded_on_all_boards
       ? fmtNum(cmp[a][key])
       : el("span", { class: "warn" }, "not recorded (on at least one repeat), so not comparable"))));
-  return card("Arm comparison (collective capability)", arms.length,
-    el("p", { class: "muted" }, "Same tasks, same budgets. Mean over repeats (range, number of repeats). ",
+  return card(`Arm comparison (collective capability): run ${run.run}`, arms.length,
+    run.synthetic ? el("div", { class: "banner synthetic", role: "alert" },
+      "SYNTHETIC comparison: built from demo boards with invented numbers. Not a result; do not cite.") : null,
+    excluded.length && !run.synthetic ? el("p", { class: "muted" }, `Synthetic boards left out: ${excluded.join(", ")}.`) : null,
+    el("p", { class: "muted" }, "Same tasks, same budgets. Repeats from this run only, never pooled across runs. Mean over repeats (range, number of repeats). ",
       DATA.index.task_set_frozen && DATA.index.rules_frozen ? "Task set and tolerances are pre-registered."
         : el("span", { class: "warn" }, "Not pre-registered yet: the task set or tolerances are not frozen.")),
     el("table", { class: "compare" },

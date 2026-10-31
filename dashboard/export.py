@@ -40,8 +40,8 @@ def _is_synthetic(artifacts) -> bool:
 def _board_name(path: Path) -> str:
     try:
         rel = path.resolve().relative_to(REPO_ROOT)
-    except ValueError:
-        rel = Path(path.name)
+    except ValueError:  # outside the repo: keep enough of the path to tell runs apart (run/arm-repeat)
+        rel = Path(*path.resolve().parts[-3:])
     parts = [p for p in rel.parts if p != "boards"]
     return "__".join(parts) or path.name
 
@@ -113,6 +113,7 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
         "synthetic": _is_synthetic(ordered),
         "rules_frozen": bool(rules.get("frozen")),
         "arm": m.group("arm") if m else None,
+        "run": _board_name(board.root.parent) if m else None,
         "repeat": int(m.group("repeat")) if m else None,
         "agents": sorted({a.producer_agent for a in ordered}),
         "counts": {"artifacts": len(ordered), "by_type": dict(Counter(a.artifact_type for a in ordered)),
@@ -128,14 +129,23 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
 
 
 def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, rules: Optional[dict] = None,
-           task_set: Optional[TaskSet] = None, now: Optional[datetime] = None) -> dict:
+           task_set: Optional[TaskSet] = None, now: Optional[datetime] = None,
+           include_synthetic_in_comparison: bool = False) -> dict:
+    """Export boards. Arm comparison: repeats are grouped by (run folder, arm), never pooled across runs.
+
+    Synthetic boards are left out of the comparison unless ``include_synthetic_in_comparison`` (the demo
+    only); a comparison that includes them is marked ``synthetic`` and the page shows a banner.
+    """
     rules = rules if rules is not None else load_rules()
     task_set = task_set if task_set is not None else load_tasks()
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     now = now or datetime.now(timezone.utc)
 
-    boards, entries, by_arm = {}, [], defaultdict(list)
+    boards, entries = {}, []
+    by_run: dict[str, dict[str, list]] = defaultdict(lambda: defaultdict(list))
+    synthetic_runs: set[str] = set()
+    excluded: list[str] = []
     for path in board_paths:
         path = Path(path)
         if not (path / "artifacts").is_dir():
@@ -149,10 +159,19 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
         entries.append({"name": data["name"], "file": f"{data['name']}.json", "synthetic": data["synthetic"],
                         "arm": data["arm"], "repeat": data["repeat"], "counts": data["counts"]})
         if data["arm"] and data["scorecard"]:
-            by_arm[data["arm"]].append(score_board(board, task_set, rules))
+            if data["synthetic"] and not include_synthetic_in_comparison:
+                excluded.append(data["name"])
+                continue
+            run = data["run"]
+            by_run[run][data["arm"]].append(score_board(board, task_set, rules))
+            if data["synthetic"]:
+                synthetic_runs.add(run)
 
-    comparison = {arm: summarize_arm(scores) for arm, scores in sorted(by_arm.items())} or None
+    comparison = [{"run": run, "synthetic": run in synthetic_runs,
+                   "arms": {arm: summarize_arm(scores) for arm, scores in sorted(arms.items())}}
+                  for run, arms in sorted(by_run.items())] or None
     index = {"schema": SCHEMA, "exported_at": now.isoformat(), "boards": entries, "comparison": comparison,
+             "excluded_from_comparison": excluded,
              "rules_frozen": bool(rules.get("frozen")), "task_set_frozen": task_set.frozen,
              "any_synthetic": any(e["synthetic"] for e in entries)}
     (out / "index.json").write_text(json.dumps(index, indent=1), encoding="utf-8")
