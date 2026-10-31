@@ -87,6 +87,28 @@ class Settings:
     pe_threshold: float
     jump_threshold: float
     seed: int
+    liquid_expansion: float = 0.05
+
+
+MELT_TARGET_FRACTION = 0.8  # share of the melting half that must have moved > 1.5 A
+MAX_MELT_ROUNDS = 3
+
+
+def expand_top_half(atoms: Atoms, frozen: np.ndarray, expansion: float) -> Atoms:
+    """Stretch the non-frozen half (fractional z >= 0.5) along the third cell vector by `expansion`.
+
+    A liquid is less dense than its crystal; melting it inside a box sized for the crystal
+    squeezes it and can leave part of it solid. The frozen half keeps its Cartesian positions;
+    the third cell vector grows by expansion/2 so the stretched half fits exactly.
+    """
+    scaled = atoms.get_scaled_positions(wrap=True)
+    cell = np.asarray(atoms.cell)
+    pos = scaled @ cell
+    top = ~frozen
+    pos[top] += ((scaled[top, 2] - 0.5) * expansion)[:, None] * cell[2]
+    new_cell = cell.copy()
+    new_cell[2] *= 1.0 + expansion / 2.0
+    return Atoms(numbers=atoms.numbers, positions=pos, cell=new_cell, pbc=True)
 
 
 def load_model(name: str):
@@ -235,15 +257,29 @@ def prepare_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[B
 
     solid = batch_to_atoms(batch)[0]
     frozen = solid.get_scaled_positions(wrap=True)[:, 2] < 0.5
-    batch = Batch.from_data_list([make_data(solid, s.t_melt, s.seed + 1, frozen)], device="cuda")
+    box = expand_top_half(solid, frozen, s.liquid_expansion)
+    batch = Batch.from_data_list([make_data(box, s.t_melt, s.seed + 1, frozen)], device="cuda")
     pos0 = batch.positions.detach().clone()
-    for name, temp, steps in (("prep_melt_nvt", s.t_melt, s.melt_steps), ("prep_quench_nvt", s.t_prep, s.quench_steps)):
-        rec = Recorder(name, s.record_every, [temp])
-        batch = run_stage(nvt(model, s, temp, steps, s.seed + 2), batch, model, rec, freeze=True)
-        rows += rec.rows
     free = torch.tensor(~frozen, device=batch.positions.device)
+
+    rounds, melted = 0, 0.0
+    while rounds < MAX_MELT_ROUNDS and (rounds == 0 or melted < MELT_TARGET_FRACTION):
+        steps = s.melt_steps if rounds == 0 else max(s.melt_steps // 2, 1)
+        if rounds:
+            print(f"  liquid half only {melted:.0%} melted; melting {steps} more steps", flush=True)
+        rec = Recorder(f"prep_melt_nvt_r{rounds + 1}", s.record_every, [s.t_melt])
+        batch = run_stage(nvt(model, s, s.t_melt, steps, s.seed + 2 + rounds), batch, model, rec, freeze=True)
+        rows += rec.rows
+        melted = displaced_fraction(pos0, batch.positions, batch.cell[0], free)
+        rounds += 1
+
+    rec = Recorder("prep_quench_nvt", s.record_every, [s.t_prep])
+    batch = run_stage(nvt(model, s, s.t_prep, s.quench_steps, s.seed + 9), batch, model, rec, freeze=True)
+    rows += rec.rows
     cell = batch.cell[0]
     prep = {
+        "liquid_expansion": s.liquid_expansion,
+        "melt_rounds": rounds,
         "frozen_half_moved_fraction": displaced_fraction(pos0, batch.positions, cell, ~free),
         "melted_half_moved_fraction": displaced_fraction(pos0, batch.positions, cell, free),
     }
@@ -276,7 +312,7 @@ def run_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict,
         print(f"  T={t:7.1f} K (measured {t_meas:7.1f}): dPE = {delta:+.4f} eV/atom -> {verdict}", flush=True)
 
     result = {"mode": "coexistence", "prep": prep, "per_temperature": per_t, "flags": []}
-    if prep["melted_half_moved_fraction"] < 0.8:
+    if prep["melted_half_moved_fraction"] < MELT_TARGET_FRACTION:
         result["flags"].append("liquid_half_incompletely_melted")
         print("WARNING: the liquid half was not fully melted before production "
               "(increase --melt-steps or --t-melt); verdicts near the melting point are unreliable.")
@@ -343,7 +379,9 @@ def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batc
     t = s.temps[0]
     print(f"Latent heat at T={t:g} K: preparing liquid at T_melt={s.t_melt:g} K", flush=True)
     rec = Recorder("prep_liquid_nvt", s.record_every, [s.t_melt])
-    liq = Batch.from_data_list([make_data(atoms, s.t_melt, s.seed + 1)], device="cuda")
+    roomy = atoms.copy()  # the liquid needs more volume than the crystal
+    roomy.set_cell(np.asarray(atoms.cell) * (1.0 + s.liquid_expansion) ** (1 / 3), scale_atoms=True)
+    liq = Batch.from_data_list([make_data(roomy, s.t_melt, s.seed + 1)], device="cuda")
     liq = run_stage(nvt(model, s, s.t_melt, s.melt_steps, s.seed + 2), liq, model, rec)
     rows += rec.rows
 
@@ -432,6 +470,8 @@ def main() -> None:
     g.add_argument("--quench-steps", type=int, help="default 3000 (quick: 500)")
     g.add_argument("--prod-steps", type=int, help="default 25000 (quick: 2500)")
     g.add_argument("--record-every", type=int, default=50)
+    g.add_argument("--liquid-expansion", type=float, default=0.05,
+                   help="volume increase on melting used to give the liquid room (metals ~0.05, organics ~0.10-0.15)")
     g.add_argument("--pe-threshold", type=float, default=0.002, help="coexistence: |dPE| (eV/atom) to call melt/freeze")
     g.add_argument("--jump-threshold", type=float, default=0.03, help="heating: PE jump (eV/atom) that marks melting")
     g.add_argument("--seed", type=int, default=2026)
@@ -464,7 +504,7 @@ def main() -> None:
                  t_melt=args.t_melt or 1.6 * t_prep, equil_steps=args.equil_steps, melt_steps=args.melt_steps,
                  quench_steps=args.quench_steps, prod_steps=args.prod_steps, record_every=args.record_every,
                  friction_per_fs=0.01, thermostat_fs=100.0, barostat_fs=1000.0, pe_threshold=args.pe_threshold,
-                 jump_threshold=args.jump_threshold, seed=args.seed)
+                 jump_threshold=args.jump_threshold, seed=args.seed, liquid_expansion=args.liquid_expansion)
 
     atoms = build_atoms(args)
     flags = domain_flags(atoms, s.dt_fs)
