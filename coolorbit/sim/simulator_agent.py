@@ -45,6 +45,19 @@ PRESET_STEPS = {
     "production": {"equil": 4000, "melt": 6000, "quench": 3000, "prod": 25000},
 }
 ORGANIC_ELEMENTS = {"C", "H", "O", "N"}
+# Smallest box the rule referee accepts (coolorbit/agents/audit_rules.json min_atoms: "two-phase coexistence" and
+# "default"); default supercells grow to meet it, so a small-cell crystal (In: 2 atoms/cell) isn't run just to be
+# flagged "system_too_small" and rerun. A test keeps these equal to the audit rules.
+MIN_ATOMS = {"coexistence": 500, "latent": 200}
+DEFAULT_REPS = {"coexistence": [4, 4, 8], "latent": [4, 4, 4]}
+
+
+def default_reps(atoms_per_cell: int, mode: str) -> list[int]:
+    """The default supercell for a mode, grown (smallest axis first) until it has at least MIN_ATOMS[mode]."""
+    reps = list(DEFAULT_REPS[mode])
+    while atoms_per_cell * math.prod(reps) < MIN_ATOMS[mode]:
+        reps[reps.index(min(reps))] += 1
+    return reps
 
 Runner = Callable[["Job", Path, float], tuple[dict, dict, Path]]
 
@@ -254,7 +267,7 @@ def build_job(snap: BoardSnapshot, on: OpenNeed) -> Optional[Job]:
         if need.get("temperature_K") is None:
             raise JobError("a latent_heat request needs temperature_K (ideally the melting point)")
         temps = [need["temperature_K"]]
-    reps = need.get("reps") or ([4, 4, 8] if mode == "coexistence" else [4, 4, 4])
+    reps = need.get("reps") or default_reps(len(unit), mode)
     preset = need.get("preset", "production")
     if preset not in PRESET_STEPS:
         raise JobError(f"unknown preset {preset!r}; use quick or production")
