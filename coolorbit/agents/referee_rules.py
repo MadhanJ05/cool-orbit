@@ -177,7 +177,9 @@ def rerun_need(result: dict, flags: list[str], rules: dict, origin: Optional[dic
     m = result.get("method") or {}
     fl = set(flags)
     protocol = str(m.get("protocol", "")).lower()
-    single_phase = any(p in protocol for p in rules["single_phase_protocols"])
+    # A referee's single_phase_heating flag says the run was single-phase even when the protocol text is
+    # unusual (e.g. "temperature ramp", caught by the LLM referee and upheld by the adjudicator).
+    single_phase = any(p in protocol for p in rules["single_phase_protocols"]) or "single_phase_heating" in fl
     temps = list(m.get("temperatures_K") or [])
     production = "quick_settings_not_production" not in fl
     need = {"artifact_type": "property_result", "property": prop}

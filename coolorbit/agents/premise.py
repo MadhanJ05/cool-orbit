@@ -255,13 +255,13 @@ def make_client() -> Optional[Callable[..., tuple[Any, float]]]:
     return roles_llm
 
 
-def _structured_request(role: str, system: str, user: str) -> dict:
+def _structured_request(role: str, system: str, user: str, schema: Optional[dict] = None) -> dict:
     """Request body for a role with JSON-schema output. The role's output_config (effort) is kept and the
     format added, because llm_roles.create merges request keys shallowly."""
     from coolorbit import llm_roles
 
     output_config = dict(llm_roles.request_kwargs(role).get("output_config", {}))
-    output_config["format"] = {"type": "json_schema", "schema": LLM_SCHEMA}
+    output_config["format"] = {"type": "json_schema", "schema": schema or LLM_SCHEMA}
     return {"system": system, "messages": [{"role": "user", "content": user}], "output_config": output_config}
 
 

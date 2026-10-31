@@ -30,6 +30,8 @@ def main() -> None:
     ap.add_argument("--no-ranker", action="store_true")
     ap.add_argument("--llm", default="inconclusive", choices=["inconclusive", "always", "never"],
                     help="when the premise checker asks Claude (shared keys via coolorbit/llm_keys.py)")
+    ap.add_argument("--llm-referee", action="store_true",
+                    help="add the LLM method-audit referee and the disagreement adjudicator (spends Claude credit)")
     ap.add_argument("--rounds", type=int, default=200)
     ap.add_argument("--eval-only", action="store_true", help="Scouts answer eval tasks only (comparison runs)")
     args = ap.parse_args()
@@ -44,6 +46,10 @@ def main() -> None:
 
         agents.append(FakeSimulatorAgent(args.board, traps=dict(t.split("=", 1) for t in args.trap)))
     agents += [RuleReferee(board), LibrarianAgent(board)]
+    if args.llm_referee:
+        from coolorbit.agents.referee_llm import Adjudicator, LLMReferee
+
+        agents += [LLMReferee(board, include_synthetic=args.fake_sim), Adjudicator(board, include_synthetic=args.fake_sim)]
     if not args.no_ranker:
         agents.append(Ranker(board, include_synthetic=args.fake_sim))  # synthetic entries are labelled
     rounds = run_round_robin(agents, args.rounds)
