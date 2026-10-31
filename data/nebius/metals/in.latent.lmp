@@ -1,0 +1,74 @@
+# Enthalpy of ONE phase at temperature T, for the latent heat (H_liquid - H_solid at the melting point).
+# T must be THIS POTENTIAL's melting point, from the coexistence jobs (not the experimental value). Run twice,
+# from an element folder, same T, one log per job:
+#   lmp -in ../in.latent.lmp -log log_<El>-latent-solid.lammps  -var phase solid  -var T TM_MEAM_K -var seed 2026
+#   lmp -in ../in.latent.lmp -log log_<El>-latent-liquid.lammps -var phase liquid -var T TM_MEAM_K -var seed 2026
+# Like coolorbit/sim/melting.py latent mode: the liquid is the crystal box rescaled by +5% volume and melted (NVT)
+# at Thot = 3 x T, then NPT at T (the barostat then finds the liquid's own density, which is HIGHER than the
+# crystal's for Ga and Bi). H per atom = PE + KE (PV = 0 at P = 0).
+# The SOLID runs with an ANISOTROPIC barostat: Ga, In, Sn and Bi are non-cubic, and an isotropic barostat would
+# keep the starting (experimental) c/a, so the solid's enthalpy would be too high and the latent heat too low.
+# Thot is 3 x T, not 1.6 x T: a perfect periodic crystal has no interface to start melting from and superheats
+# (laptop validation: Ga, In and Bi did not melt at all at 1.6 x in 12 ps). MELT_CHECK reports whether it melted.
+# analyze.py checks the phases stayed what they are, and flags enthalpy drift and box-shape changes.
+
+variable        dt      index 0.002
+variable        tdamp   index 0.1
+variable        pdamp   index 1.0
+variable        melt    index 6000
+variable        prod    index 25000
+variable        every   index 50
+variable        expand  index 0.05
+variable        Thot    index $(3.0*v_T)
+variable        validation index 0      # 1 = laptop validation run: analyze.py refuses it as a result
+
+units           metal
+atom_style      atomic
+boundary        p p p
+read_data       data.solid.lmp
+include         potential.mod
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        ${dt}
+thermo_style    custom step temp pe ke press vol lx ly lz ecouple
+thermo          ${every}
+
+if "${phase} == solid" then "variable couple string aniso" &
+elif "${phase} == liquid" "variable couple string iso" &
+else "print 'phase must be solid or liquid'" "quit 1"
+
+if "${phase} == liquid" then &
+  "change_box all x scale $((1+v_expand)^(1/3)) y scale $((1+v_expand)^(1/3)) z scale $((1+v_expand)^(1/3)) remap" &
+  "compute dsp0 all displace/atom" &
+  "variable moved0 atom 'c_dsp0[4] > 1.5'" &
+  "compute nm0 all reduce sum v_moved0" &
+  "variable fmelt equal c_nm0/atoms" &
+  "thermo_style custom step temp pe ke press vol v_fmelt ecouple" &
+  "velocity all create ${Thot} ${seed} mom yes rot no dist gaussian" &
+  "fix hot all nvt temp ${Thot} ${Thot} ${tdamp}" &
+  "run ${melt}" &
+  "print 'MELT_CHECK liquid_prep_moved_fraction ${fmelt} (want >= 0.8: the liquid really melted at Thot)'" &
+  "unfix hot"
+
+velocity        all create ${T} $(v_seed+3) mom yes rot no dist gaussian
+compute         dsp all displace/atom
+variable        moved atom "c_dsp[4] > 1.5"
+compute         nm all reduce sum v_moved
+variable        fmoved equal c_nm/atoms
+variable        st equal step
+variable        tt equal temp
+variable        pea equal pe/atoms
+variable        kea equal ke/atoms
+variable        vv equal vol
+variable        lxx equal lx
+variable        lyy equal ly
+variable        lzz equal lz
+variable        ec equal ecouple
+thermo_style    custom step temp pe ke press vol lx ly lz v_fmoved ecouple
+fix             npt all npt temp ${T} ${T} ${tdamp} ${couple} 0.0 0.0 ${pdamp}
+# Header via `print` (fix print's title is written literally, without variable substitution), then the data rows.
+print           "# latent phase=${phase} T_target_K=${T} n_atoms=$(atoms) barostat=${couple} validation=${validation} dt_ps=${dt} prod_steps=${prod} seed=${seed} | step T_K pe_per_atom_eV ke_per_atom_eV volume_A3 lx_A ly_A lz_A ecouple_eV" file h_${phase}_T${T}.dat screen no
+fix             log all print ${every} "${st} ${tt} ${pea} ${kea} ${vv} ${lxx} ${lyy} ${lzz} ${ec}" append h_${phase}_T${T}.dat screen no
+run             ${prod}
+print           "PHASE_CHECK phase=${phase} moved_fraction ${fmoved} (liquid wants >= 0.5, solid <= 0.2)"
+write_data      final_${phase}_T${T}.lmp

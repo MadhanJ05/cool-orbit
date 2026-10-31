@@ -1,0 +1,189 @@
+{
+  "element": "Sn",
+  "purpose": "Independent classical-MD check (MEAM) of the GB10's MACE melting point and latent heat.",
+  "status": "inputs only; NOT submitted. Ask Madhan before submitting any Nebius job.",
+  "engine": "LAMMPS (needs the MEAM package: check `lmp -h | grep -i meam` on the Nebius image)",
+  "potential": {
+    "citation": "W.-S. Ko, D.-H. Kim, Y.-J. Kwon, and M. Lee (2018), \"Atomistic Simulations of Pure Tin Based on a New Modified Embedded-Atom Method Interatomic Potential\", Metals 8(11), 900.",
+    "doi": "10.3390/met8110900",
+    "nist_entry": "2018--Ko-W-S-Kim-D-H-Kwon-Y-J-Lee-M--Sn",
+    "nist_implementation": "2018--Ko-W-S--Sn--LAMMPS--ipr1",
+    "pair_coeff": "pair_coeff * * potential/library.meam Sn potential/Sn.meam Sn",
+    "nist_url": "https://www.ctcms.nist.gov/potentials/entry/2018--Ko-W-S-Kim-D-H-Kwon-Y-J-Lee-M--Sn/",
+    "files": {
+      "library.meam": "96ec767178674f624b08135129c72e98927855ac277dd35d7f04b3394e3b94b7",
+      "Sn.meam": "b25add2fed441cf67f5a1ae5c2b165f03b5083f34ada8f783140ea7853f0dac3"
+    },
+    "caveats": [
+      "Starts from beta-Sn (white tin), the phase that melts; alpha-Sn is irrelevant above 286 K."
+    ]
+  },
+  "structure": {
+    "phase": "beta-Sn, white tin (I41/amd, tI4)",
+    "source": "coolorbit/sim/alloys.py ELEMENT_CRYSTALS (Donohue, The Structures of the Elements, 1974; alpha-Ga: Sharma & Donohue 1962). Starting lattice constants; NPT relaxes them.",
+    "orthogonal_unit_cell_atoms": 4,
+    "coexist": {
+      "file": "data.coexist.lmp",
+      "reps": [
+        5,
+        5,
+        19
+      ],
+      "n_atoms": 1900,
+      "box_A": [
+        29.16,
+        29.16,
+        60.458
+      ]
+    },
+    "solid": {
+      "file": "data.solid.lmp",
+      "reps": [
+        4,
+        4,
+        7
+      ],
+      "n_atoms": 448,
+      "box_A": [
+        23.328,
+        23.328,
+        22.274
+      ]
+    }
+  },
+  "melting_point_guess": {
+    "value_K": 505.078,
+    "source": "data/calibration/tier1.json (NIST Temperature Scale Database (SRD 60), ITS-90 Fixed Points Summary, https://its90.nist.gov/FixedpointSummary)",
+    "use": "ONLY to place the temperature bracket. Not a reference value: the calibration references live in data/calibration/ (Teammate 1)."
+  },
+  "settings": {
+    "dt_ps": 0.002,
+    "tdamp_ps": 0.1,
+    "pdamp_ps": 1.0,
+    "equil_steps": 4000,
+    "melt_steps": 6000,
+    "quench_steps": 3000,
+    "prod_steps": 25000,
+    "record_every": 50,
+    "pe_threshold_eV_per_atom": 0.002,
+    "t_melt_factor": 3.0,
+    "latent_t_hot_factor": 3.0,
+    "seed": 2026,
+    "bracket_factors": [
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2
+    ],
+    "T_prep_K": 505.1,
+    "T_melt_K": 1515.3
+  },
+  "jobs": [
+    {
+      "id": "Sn-coexist-T404.1",
+      "kind": "coexistence",
+      "T_K": 404.1,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Sn-coexist-T404.1.lammps -var T 404.1 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026",
+      "outputs": [
+        "pe_T404.1.dat",
+        "log_Sn-coexist-T404.1.lammps"
+      ]
+    },
+    {
+      "id": "Sn-coexist-T454.6",
+      "kind": "coexistence",
+      "T_K": 454.6,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Sn-coexist-T454.6.lammps -var T 454.6 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026",
+      "outputs": [
+        "pe_T454.6.dat",
+        "log_Sn-coexist-T454.6.lammps"
+      ]
+    },
+    {
+      "id": "Sn-coexist-T505.1",
+      "kind": "coexistence",
+      "T_K": 505.1,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Sn-coexist-T505.1.lammps -var T 505.1 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026",
+      "outputs": [
+        "pe_T505.1.dat",
+        "log_Sn-coexist-T505.1.lammps"
+      ]
+    },
+    {
+      "id": "Sn-coexist-T555.6",
+      "kind": "coexistence",
+      "T_K": 555.6,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Sn-coexist-T555.6.lammps -var T 555.6 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026",
+      "outputs": [
+        "pe_T555.6.dat",
+        "log_Sn-coexist-T555.6.lammps"
+      ]
+    },
+    {
+      "id": "Sn-coexist-T606.1",
+      "kind": "coexistence",
+      "T_K": 606.1,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Sn-coexist-T606.1.lammps -var T 606.1 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026",
+      "outputs": [
+        "pe_T606.1.dat",
+        "log_Sn-coexist-T606.1.lammps"
+      ]
+    },
+    {
+      "id": "Sn-latent-solid",
+      "kind": "latent",
+      "phase": "solid",
+      "T_K": "TM_MEAM_K",
+      "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
+      "command": "lmp -in ../in.latent.lmp -log log_Sn-latent-solid.lammps -var phase solid -var T TM_MEAM_K -var seed 2026",
+      "outputs": [
+        "h_solid_TTM_MEAM_K.dat",
+        "log_Sn-latent-solid.lammps"
+      ]
+    },
+    {
+      "id": "Sn-latent-liquid",
+      "kind": "latent",
+      "phase": "liquid",
+      "T_K": "TM_MEAM_K",
+      "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
+      "command": "lmp -in ../in.latent.lmp -log log_Sn-latent-liquid.lammps -var phase liquid -var T TM_MEAM_K -var seed 2026",
+      "outputs": [
+        "h_liquid_TTM_MEAM_K.dat",
+        "log_Sn-latent-liquid.lammps"
+      ]
+    }
+  ],
+  "atomic_mass_amu": 118.71,
+  "method": {
+    "engine": "LAMMPS",
+    "model": "2NN MEAM, NIST IPR 2018--Ko-W-S--Sn--LAMMPS--ipr1",
+    "nist_implementation": "2018--Ko-W-S--Sn--LAMMPS--ipr1",
+    "doi": "10.3390/met8110900",
+    "timestep_fs": 2.0,
+    "seed": 2026,
+    "coexistence": {
+      "protocol": "two-phase coexistence",
+      "ensemble": "NPT (Nose-Hoover, aniso)",
+      "n_atoms": 1900,
+      "sim_length_ps": 50.0
+    },
+    "latent": {
+      "protocol": "solid vs liquid enthalpy at Tm",
+      "ensemble": "NPT (Nose-Hoover; solid aniso, liquid iso)",
+      "n_atoms": 448,
+      "sim_length_ps": 50.0
+    }
+  },
+  "analysis": {
+    "coexistence": "python ../analyze.py coexist pe_T*.dat",
+    "latent": "python ../analyze.py latent h_solid_TTM_MEAM_K.dat h_liquid_TTM_MEAM_K.dat --log-solid log_Sn-latent-solid.lammps --log-liquid log_Sn-latent-liquid.lammps"
+  },
+  "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
+}

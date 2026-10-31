@@ -1,0 +1,313 @@
+LAMMPS (22 Jul 2025 - Update 4)
+# Is alpha-Ga stable under this potential (2NN MEAM, Ga part of the Do-Shin-Lee 2009 Ga-In fit)?
+# Run from metals/Ga/:  lmp -in stability/in.ga_stability.lmp -var T 302.92 -var seed 2026 -log stability/log.ga_stability
+#   1. 0 K: relax alpha-Ga (Cmce, from data.solid.lmp) and fcc Ga, both with box relaxation -> E per atom
+#   2. alpha-Ga NPT (aniso) at T for 20 ps: does it stay alpha-Ga? (displacements, box ratios, the 2.44 A dimer)
+# Prints STABILITY lines that stability/check_ga.py turns into a pass/fail verdict.
+
+variable        steps index 10000
+variable        dt    index 0.002
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+# ---- 1a. alpha-Ga at 0 K
+read_data       data.solid.lmp
+Reading data file ...
+  orthogonal box = (0 0 0) to (22.595 22.977 22.63)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  600 atoms
+  read_data CPU = 0.003 seconds
+include         potential.mod
+# Ga: 2NN MEAM, NIST IPR 2009--Do-E-C--Ga-In--LAMMPS--ipr1 (doi:10.1088/0953-8984/21/32/325801). Needs the MEAM package.
+pair_style meam
+pair_coeff * * potential/library.meam Ga In potential/GaIn.meam Ga
+neighbor        1.0 bin
+print           "STABILITY experimental_box $(lx:%.4f) $(ly:%.4f) $(lz:%.4f)"
+STABILITY experimental_box 22.5950 22.9770 22.6300
+thermo_style    custom step pe lx ly lz press
+fix             br all box/relax aniso 0.0 vmax 0.001
+minimize        1e-12 1e-12 20000 200000
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5
+  ghost atom cutoff = 5
+  binsize = 2.5, bins = 10 10 10
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair meam, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair meam, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+WARNING: Energy due to 3 extra global DOFs will be included in minimizer energies
+ (src/src/min.cpp:222)
+Per MPI rank memory allocation (min/avg/max) = 10.15 | 10.15 | 10.15 Mbytes
+   Step         PotEng           Lx             Ly             Lz           Press     
+         0  -1785.6949      22.595         22.977         22.63         -12579.332    
+       756  -1802.3428      22.578442      21.046218      24.114203     -0.028716597  
+Loop time of 0.737662 on 1 procs for 756 steps with 600 atoms
+
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+     -1785.69487576843  -1802.34282084856  -1802.34282085014
+  Force two-norm initial, final = 197.71357 0.0015451749
+  Force max component initial, final = 160.18084 0.00089644581
+  Final line search alpha, max atom move = 0.16989265 0.00015229956
+  Iterations, force evaluations = 756 1043
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.71779    | 0.71779    | 0.71779    |   0.0 | 97.31
+Neigh   | 0.0023755  | 0.0023755  | 0.0023755  |   0.0 |  0.32
+Comm    | 0.0023881  | 0.0023881  | 0.0023881  |   0.0 |  0.32
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.01511    |            |       |  2.05
+
+Nlocal:            600 ave         600 max         600 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1290 ave        1290 max        1290 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           8700 ave        8700 max        8700 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        17400 ave       17400 max       17400 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 17400
+Ave neighs/atom = 29
+Neighbor list builds = 9
+Dangerous builds = 0
+unfix           br
+variable        ea equal pe/atoms
+variable        a0 equal lx
+variable        b0 equal ly
+variable        c0 equal lz
+print           "STABILITY alpha_E0_eV_per_atom $(v_ea:%.6f) box $(lx:%.4f) $(ly:%.4f) $(lz:%.4f)"
+STABILITY alpha_E0_eV_per_atom -3.003905 box 22.5784 21.0462 24.1142
+write_data      stability/alpha_relaxed.lmp
+System init for write_data ...
+clear
+
+# ---- 1b. fcc Ga at 0 K (start from the potential's fcc reference lattice constant)
+units           metal
+atom_style      atomic
+boundary        p p p
+lattice         fcc 4.2469
+Lattice spacing in x,y,z = 4.2469 4.2469 4.2469
+region          box block 0 5 0 5 0 5
+create_box      1 box
+Created orthogonal box = (0 0 0) to (21.2345 21.2345 21.2345)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 500 atoms
+  using lattice units in orthogonal box = (0 0 0) to (21.2345 21.2345 21.2345)
+  create_atoms CPU = 0.001 seconds
+mass            1 69.723
+include         potential.mod
+# Ga: 2NN MEAM, NIST IPR 2009--Do-E-C--Ga-In--LAMMPS--ipr1 (doi:10.1088/0953-8984/21/32/325801). Needs the MEAM package.
+pair_style meam
+pair_coeff * * potential/library.meam Ga In potential/GaIn.meam Ga
+thermo_style    custom step pe lx press
+fix             br all box/relax iso 0.0 vmax 0.001
+minimize        1e-12 1e-12 20000 200000
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6
+  ghost atom cutoff = 6
+  binsize = 3, bins = 8 8 8
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair meam, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair meam, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+WARNING: Energy due to 1 extra global DOFs will be included in minimizer energies
+ (src/src/min.cpp:222)
+Per MPI rank memory allocation (min/avg/max) = 10.23 | 10.23 | 10.23 Mbytes
+   Step         PotEng           Lx           Press     
+         0  -1450           21.2345       -6.2058736    
+         2  -1450           21.234417     -0.00012650241
+Loop time of 0.0039645 on 1 procs for 2 steps with 500 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+      -1449.9999997811   -1449.9999999995  -1449.99999999964
+  Force two-norm initial, final = 0.11126023 2.2679444e-06
+  Force max component initial, final = 0.11126023 2.2679444e-06
+  Final line search alpha, max atom move = 1 2.2679444e-06
+  Iterations, force evaluations = 2 4
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0039107  | 0.0039107  | 0.0039107  |   0.0 | 98.64
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 1.0333e-05 | 1.0333e-05 | 1.0333e-05 |   0.0 |  0.26
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 4.346e-05  |            |       |  1.10
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1188 ave        1188 max        1188 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          10500 ave       10500 max       10500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        21000 ave       21000 max       21000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 21000
+Ave neighs/atom = 42
+Neighbor list builds = 0
+Dangerous builds = 0
+variable        ef equal pe/atoms
+print           "STABILITY fcc_E0_eV_per_atom $(v_ef:%.6f) a $(lx/5:%.4f)"
+STABILITY fcc_E0_eV_per_atom -2.900000 a 4.2469
+clear
+
+# ---- 2. alpha-Ga at T
+units           metal
+atom_style      atomic
+boundary        p p p
+read_data       stability/alpha_relaxed.lmp
+Reading data file ...
+  orthogonal box = (0.0082788846 0.96539123 -0.74210136) to (22.586721 22.011609 23.372101)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  600 atoms
+  reading velocities ...
+  600 velocities
+  read_data CPU = 0.001 seconds
+include         potential.mod
+# Ga: 2NN MEAM, NIST IPR 2009--Do-E-C--Ga-In--LAMMPS--ipr1 (doi:10.1088/0953-8984/21/32/325801). Needs the MEAM package.
+pair_style meam
+pair_coeff * * potential/library.meam Ga In potential/GaIn.meam Ga
+neighbor        1.0 bin
+timestep        ${dt}
+timestep        0.002
+variable        L0x equal $(lx)
+variable        L0x equal 22.578442230779764088
+variable        L0y equal $(ly)
+variable        L0y equal 21.046217543346255496
+variable        L0z equal $(lz)
+variable        L0z equal 24.114202723936347894
+velocity        all create ${T} ${seed} mom yes rot no dist gaussian
+velocity        all create 302.92 ${seed} mom yes rot no dist gaussian
+velocity        all create 302.92 2026 mom yes rot no dist gaussian
+compute         dsp all displace/atom
+variable        moved atom "c_dsp[4] > 1.5"
+compute         nm all reduce sum v_moved
+compute         cn all coord/atom cutoff 2.6
+compute         cnavg all reduce ave c_cn
+compute         rdf all rdf 200 cutoff 4.0
+fix             rdfout all ave/time 100 50 10000 c_rdf[*] file stability/rdf_T${T}.dat mode vector
+fix             rdfout all ave/time 100 50 10000 c_rdf[*] file stability/rdf_T302.92.dat mode vector
+fix             npt all npt temp ${T} ${T} 0.1 aniso 0.0 0.0 1.0
+fix             npt all npt temp 302.92 ${T} 0.1 aniso 0.0 0.0 1.0
+fix             npt all npt temp 302.92 302.92 0.1 aniso 0.0 0.0 1.0
+thermo_style    custom step temp pe lx ly lz press c_cnavg ecouple
+thermo          500
+run             ${steps}
+run             10000
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5
+  ghost atom cutoff = 5
+  binsize = 2.5, bins = 10 9 10
+  4 neighbor lists, perpetual/occasional/extra = 2 2 0
+  (1) pair meam, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair meam, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (3) compute coord/atom, occasional, copy from (1)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) compute rdf, occasional, copy from (2)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 9.382 | 9.382 | 9.382 Mbytes
+   Step          Temp          PotEng           Lx             Ly             Lz           Press         c_cnavg        Ecouple    
+         0   302.92        -1802.3428      22.578442      21.046218      24.114203      2186.2099      1              0            
+       500   309.4931      -1780.2561      22.427572      21.327067      24.416843      361.89577      1.9266667     -22.58296     
+      1000   303.03458     -1777.1993      22.463514      21.406533      24.326554      99.804629      1.8666667     -25.137777    
+      1500   303.12642     -1779.2128      22.37222       21.342156      24.512986     -600.1175       1.7966667     -23.132771    
+      2000   299.11601     -1777.4553      22.445807      21.547657      24.328878     -2799.613       1.7633333     -24.578291    
+      2500   301.4898      -1778.0472      22.269744      21.452083      24.453872      824.40917      1.94          -24.170736    
+      3000   309.82428     -1778.1544      22.300593      21.494043      24.342752      1407.2264      1.99          -24.709151    
+      3500   292.7859      -1777.7637      22.328384      21.41223       24.455957      220.83958      1.9433333     -23.780273    
+      4000   297.69629     -1778.2049      22.393871      21.433416      24.410002     -1059.0506      1.8533333     -23.720035    
+      4500   294.73286     -1776.726       22.378237      21.349097      24.435705      1256.084       1.94          -24.967697    
+      5000   313.10024     -1778.4707      22.500733      21.356559      24.235415      1677.9919      2.0066667     -24.647155    
+      5500   284.50443     -1778.5153      22.422767      21.310463      24.501186     -1354.0436      1.9533333     -22.388371    
+      6000   305.88566     -1778.058       22.404269      21.389637      24.402815     -19.480299      1.9533333     -24.50028     
+      6500   295.29477     -1779.5781      22.469973      21.303776      24.308435      1586.5802      2.0233333     -22.161916    
+      7000   302.87563     -1778.0387      22.392837      21.285462      24.494816      480.74863      1.91          -24.286458    
+      7500   291.01922     -1778.244       22.484938      21.369949      24.384545     -1500.7865      1.8466667     -23.163145    
+      8000   314.52219     -1777.9884      22.360856      21.328343      24.509027      187.57049      1.9266667     -25.238657    
+      8500   303.63282     -1778.5073      22.3671        21.361817      24.411023      1099.1133      1.97          -23.876605    
+      9000   293.4375      -1778.237       22.400021      21.426267      24.414162     -792.98747      1.9166667     -23.357608    
+      9500   303.95193     -1779.0826      22.326106      21.423289      24.454588     -117.77869      1.8233333     -23.326183    
+     10000   314.39054     -1778.5737      22.331675      21.532938      24.300113      697.82304      1.8966667     -24.643539    
+Loop time of 8.3239 on 1 procs for 10000 steps with 600 atoms
+
+Performance: 207.595 ns/day, 0.116 hours/ns, 1201.360 timesteps/s, 720.816 katom-step/s
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.056      | 8.056      | 8.056      |   0.0 | 96.78
+Neigh   | 0.14173    | 0.14173    | 0.14173    |   0.0 |  1.70
+Comm    | 0.026262   | 0.026262   | 0.026262   |   0.0 |  0.32
+Output  | 0.00088558 | 0.00088558 | 0.00088558 |   0.0 |  0.01
+Modify  | 0.087544   | 0.087544   | 0.087544   |   0.0 |  1.05
+Other   |            | 0.01144    |            |       |  0.14
+
+Nlocal:            600 ave         600 max         600 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1294 ave        1294 max        1294 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           8575 ave        8575 max        8575 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        17150 ave       17150 max       17150 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 17150
+Ave neighs/atom = 28.583333
+Neighbor list builds = 294
+Dangerous builds = 0
+print           "STABILITY alpha_at_T T $(temp:%.1f) moved_fraction $(c_nm/atoms:%.4f) coord_2.6A $(c_cnavg:%.3f) box_ratio $(lx/v_L0x:%.4f) $(ly/v_L0y:%.4f) $(lz/v_L0z:%.4f)"
+STABILITY alpha_at_T T 314.4 moved_fraction 0.0000 coord_2.6A 1.897 box_ratio 0.9891 1.0231 1.0077
+Total wall time: 0:00:09

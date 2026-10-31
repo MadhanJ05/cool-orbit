@@ -1,0 +1,29 @@
+{
+  "relaxed_cell_vs_experiment_abc": [
+    0.9993,
+    0.916,
+    1.0656
+  ],
+  "alpha_E0_eV_per_atom": -3.003905,
+  "fcc_E0_eV_per_atom": -2.9,
+  "alpha_minus_fcc_meV_per_atom": -103.91,
+  "T_K": 314.4,
+  "moved_fraction": 0.0,
+  "coord_within_2.6A": 1.897,
+  "box_ratio_vs_relaxed": [
+    0.9891,
+    1.0231,
+    1.0077
+  ],
+  "rdf_first_local_max_A": 2.67,
+  "pair_distance_running_count_1_A": 2.51,
+  "checks": {
+    "alpha_below_fcc_at_0K": true,
+    "relaxed_cell_within_3pct_of_experiment": false,
+    "atoms_stay_put_at_T": true,
+    "box_shape_kept_at_T": true,
+    "close_pair_survives_at_T": true,
+    "next_shell_stays_beyond_2.6A_at_T": false
+  },
+  "passed": false
+}
