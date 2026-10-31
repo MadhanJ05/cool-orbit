@@ -1,0 +1,1337 @@
+{
+  "_meta": {
+    "description": "Tier-1 calibration set: measured property values with checkable sources. See README.md.",
+    "compiled": "2026-10-31",
+    "rule": "value is null when no verifiable source was found; one record per (candidate, property)"
+  },
+  "records": [
+    {
+      "candidate": "n-hexadecane",
+      "family": "paraffin",
+      "formula": "C16H34",
+      "property": "melting_point",
+      "value": 291.0,
+      "units": "K",
+      "uncertainty": 1.0,
+      "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C544763&Mask=4",
+      "quote": "Tfus 291.0 +/- 1.0 K AVG; Average of 52 out of 54 values",
+      "note": "NIST average; uncertainty is the NIST-stated spread",
+      "alternates": [
+        {
+          "value": 290.7,
+          "source": "Mondieig, Rajabalee, Metivaud, Oonk, Cuevas-Diarte, Chem. Mater. 16(5), 786-798 (2004), doi:10.1021/cm031169p (DSC, via NIST)"
+        },
+        {
+          "value": "290.90 +/- 0.006 K",
+          "source": "Velez, Khayet, Ortiz de Zarate, Applied Energy 143, 383-394 (2015), doi:10.1016/j.apenergy.2015.01.054, Table 1"
+        }
+      ]
+    },
+    {
+      "candidate": "n-hexadecane",
+      "family": "paraffin",
+      "formula": "C16H34",
+      "property": "latent_heat",
+      "value": 234056,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Mondieig, Rajabalee, Metivaud, Oonk, Cuevas-Diarte, Chem. Mater. 16(5), 786-798 (2004), doi:10.1021/cm031169p; DSC; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C544763&Mask=4",
+      "quote": "53.0 | 290.7 | DSC | Mondieig, Rajabalee, et al., 2004",
+      "note": "53.0 kJ/mol x 1e6 / 226.4412 g/mol (NIST molar mass). NIST spread 47.5-53.4 kJ/mol",
+      "alternates": [
+        {
+          "value": "235.13 +/- 0.13 kJ/kg",
+          "source": "Velez, Khayet, Ortiz de Zarate, Applied Energy 143, 383-394 (2015), doi:10.1016/j.apenergy.2015.01.054, Table 1"
+        }
+      ]
+    },
+    {
+      "candidate": "n-hexadecane",
+      "family": "paraffin",
+      "formula": "C16H34",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Velez 2015 measured solid and liquid k but absolute values are only in figures/SI (not retrieved); text gives only the solid-liquid difference"
+    },
+    {
+      "candidate": "n-octadecane",
+      "family": "paraffin",
+      "formula": "C18H38",
+      "property": "melting_point",
+      "value": 301.0,
+      "units": "K",
+      "uncertainty": 0.7,
+      "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C593453&Mask=4",
+      "quote": "Tfus 301.0 +/- 0.7 K AVG; Average of 35 out of 37 values",
+      "note": "NIST average; uncertainty is the NIST-stated spread",
+      "alternates": [
+        {
+          "value": 301.1,
+          "source": "Mondieig, Rajabalee, Metivaud, Oonk, Cuevas-Diarte, Chem. Mater. 16(5), 786-798 (2004), doi:10.1021/cm031169p (DSC, via NIST)"
+        },
+        {
+          "value": "300.22 +/- 0.095 K",
+          "source": "Velez, Khayet, Ortiz de Zarate, Applied Energy 143, 383-394 (2015), doi:10.1016/j.apenergy.2015.01.054, Table 1"
+        }
+      ]
+    },
+    {
+      "candidate": "n-octadecane",
+      "family": "paraffin",
+      "formula": "C18H38",
+      "property": "latent_heat",
+      "value": 236155,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Mondieig, Rajabalee, Metivaud, Oonk, Cuevas-Diarte, Chem. Mater. 16(5), 786-798 (2004), doi:10.1021/cm031169p; DSC; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C593453&Mask=4",
+      "quote": "60.1 | 301.1 | DSC | Mondieig, Rajabalee, et al., 2004",
+      "note": "60.1 kJ/mol x 1e6 / 254.4943 g/mol (NIST molar mass). NIST spread 60.1-61.7 kJ/mol; Mondieig runs ~2-3% below Messerly 1967 and Velez 2015",
+      "alternates": [
+        {
+          "value": "243.68 +/- 0.096 kJ/kg",
+          "source": "Velez, Khayet, Ortiz de Zarate, Applied Energy 143, 383-394 (2015), doi:10.1016/j.apenergy.2015.01.054, Table 1"
+        }
+      ]
+    },
+    {
+      "candidate": "n-octadecane",
+      "family": "paraffin",
+      "formula": "C18H38",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Velez 2015 measured solid and liquid k but absolute values are only in figures/SI (not retrieved); text gives only the solid-liquid difference"
+    },
+    {
+      "candidate": "n-eicosane",
+      "family": "paraffin",
+      "formula": "C20H42",
+      "property": "melting_point",
+      "value": 310.0,
+      "units": "K",
+      "uncertainty": 1.0,
+      "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C112958&Mask=4",
+      "quote": "Tfus 310.0 +/- 1.0 K AVG; Average of 26 out of 30 values",
+      "note": "NIST average; uncertainty is the NIST-stated spread",
+      "alternates": [
+        {
+          "value": 309.7,
+          "source": "Mondieig, Rajabalee, Metivaud, Oonk, Cuevas-Diarte, Chem. Mater. 16(5), 786-798 (2004), doi:10.1021/cm031169p (DSC, via NIST)"
+        },
+        {
+          "value": "308.84 +/- 0.15 K",
+          "source": "Velez, Khayet, Ortiz de Zarate, Applied Energy 143, 383-394 (2015), doi:10.1016/j.apenergy.2015.01.054, Table 1"
+        }
+      ]
+    },
+    {
+      "candidate": "n-eicosane",
+      "family": "paraffin",
+      "formula": "C20H42",
+      "property": "latent_heat",
+      "value": 241021,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Mondieig, Rajabalee, Metivaud, Oonk, Cuevas-Diarte, Chem. Mater. 16(5), 786-798 (2004), doi:10.1021/cm031169p; DSC; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C112958&Mask=4",
+      "quote": "68.1 | 309.7 | DSC | Mondieig, Rajabalee, et al., 2004",
+      "note": "68.1 kJ/mol x 1e6 / 282.5475 g/mol (NIST molar mass). NIST spread 61.5-70.9 kJ/mol. Fusion only: n-eicosane also has a solid-solid transition ~3-4 K below melting (Velez 2015: Tr = 305.42 +/- 0.10 K) whose heat is NOT included here",
+      "alternates": [
+        {
+          "value": "247.05 +/- 0.14 kJ/kg (includes the solid-solid transition)",
+          "source": "Velez, Khayet, Ortiz de Zarate, Applied Energy 143, 383-394 (2015), doi:10.1016/j.apenergy.2015.01.054, Table 1"
+        }
+      ]
+    },
+    {
+      "candidate": "n-eicosane",
+      "family": "paraffin",
+      "formula": "C20H42",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Velez 2015 measured solid and liquid k but absolute values are only in figures/SI (not retrieved); text gives only the solid-liquid difference"
+    },
+    {
+      "candidate": "n-hexadecane",
+      "family": "paraffin",
+      "formula": "C16H34",
+      "property": "density",
+      "value": 0.7701,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "CRC Handbook of Chemistry and Physics 95th ed. as quoted by HSDB in PubChem (secondary), p. 3-294, PubChem CID 11006",
+      "phase": "liquid",
+      "temperature_K": 298.15,
+      "quote": "0.7701 g/cu cm at 25 C",
+      "note": "liquid (25 C is above Tm 291 K)"
+    },
+    {
+      "candidate": "n-octadecane",
+      "family": "paraffin",
+      "formula": "C18H38",
+      "property": "density",
+      "value": 0.814,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Shlosinger & Bentilla (1965), as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, Table 3 'Solid density of PCMs', https://www.osti.gov/servlets/purl/1468092",
+      "phase": "solid",
+      "quote": "n-Octadecane 0.814 55.0 +/- 0.06 Shlosinger and Bentilla (1965)",
+      "note": "solid (Table 3 lists solid-phase densities); temperature not stated; primary 1965 report not opened",
+      "alternates": [
+        {
+          "value": 0.7768,
+          "phase": "ambiguous (at Tm, 28 C)",
+          "source": "CRC 95th ed. via PubChem HSDB"
+        }
+      ]
+    },
+    {
+      "candidate": "n-eicosane",
+      "family": "paraffin",
+      "formula": "C20H42",
+      "property": "density",
+      "value": 0.856,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Shlosinger & Bentilla (1965), as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, Table 3 'Solid density of PCMs', https://www.osti.gov/servlets/purl/1468092",
+      "phase": "solid",
+      "quote": "n-Eicosane 0.856 58.7 +/- 0.03 Shlosinger and Bentilla (1965)",
+      "note": "solid (Table 3 lists solid-phase densities); temperature not stated; primary 1965 report not opened",
+      "alternates": [
+        {
+          "value": 0.7886,
+          "phase": "not stated (20 C; implausibly low for a solid)",
+          "source": "CRC 95th ed. via PubChem HSDB"
+        }
+      ]
+    },
+    {
+      "candidate": "lauric acid",
+      "family": "fatty_acid",
+      "formula": "C12H24O2",
+      "property": "melting_point",
+      "value": 317.0,
+      "units": "K",
+      "uncertainty": 2.0,
+      "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C143077&Mask=4",
+      "quote": "Tfus 317.0 +/- 2.0 K AVG; Average of 8 values",
+      "note": "NIST average; uncertainty is the NIST-stated spread",
+      "alternates": [
+        {
+          "value": 316.6,
+          "source": "Moreno, Cordobilla, Calvet, Cuevas-Diarte, Gbabode, Negrier, Mondieig, Oonk, New J. Chem. 31(6), 947 (2007), doi:10.1039/b700551b (DSC, via NIST)"
+        }
+      ]
+    },
+    {
+      "candidate": "lauric acid",
+      "family": "fatty_acid",
+      "formula": "C12H24O2",
+      "property": "latent_heat",
+      "value": 180214,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Moreno, Cordobilla, Calvet, Cuevas-Diarte, Gbabode, Negrier, Mondieig, Oonk, New J. Chem. 31(6), 947 (2007), doi:10.1039/b700551b; DSC; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C143077&Mask=4",
+      "quote": "36.1 | 316.6 | DSC | Moreno, Cordobilla, et al., 2007",
+      "note": "36.1 kJ/mol x 1e6 / 200.3178 g/mol (NIST molar mass). NIST spread 34.7-36.65 kJ/mol (excluding Stohmann 1885, 44.9)"
+    },
+    {
+      "candidate": "lauric acid",
+      "family": "fatty_acid",
+      "formula": "C12H24O2",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: not searched in v1"
+    },
+    {
+      "candidate": "myristic acid",
+      "family": "fatty_acid",
+      "formula": "C14H28O2",
+      "property": "melting_point",
+      "value": 327.0,
+      "units": "K",
+      "uncertainty": 1.0,
+      "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C544638&Mask=4",
+      "quote": "Tfus 327.0 +/- 1.0 K AVG; Average of 6 values",
+      "note": "NIST average; uncertainty is the NIST-stated spread",
+      "alternates": [
+        {
+          "value": 326.5,
+          "source": "Moreno, Cordobilla, Calvet, Cuevas-Diarte, Gbabode, Negrier, Mondieig, Oonk, New J. Chem. 31(6), 947 (2007), doi:10.1039/b700551b (DSC, via NIST)"
+        }
+      ]
+    },
+    {
+      "candidate": "myristic acid",
+      "family": "fatty_acid",
+      "formula": "C14H28O2",
+      "property": "latent_heat",
+      "value": 197048,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Moreno, Cordobilla, Calvet, Cuevas-Diarte, Gbabode, Negrier, Mondieig, Oonk, New J. Chem. 31(6), 947 (2007), doi:10.1039/b700551b; DSC; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C544638&Mask=4",
+      "quote": "45.0 | 326.5 | DSC | Moreno, Cordobilla, et al., 2007",
+      "note": "45.0 kJ/mol x 1e6 / 228.3709 g/mol (NIST molar mass). NIST spread 40.1-45.75 kJ/mol"
+    },
+    {
+      "candidate": "myristic acid",
+      "family": "fatty_acid",
+      "formula": "C14H28O2",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: not searched in v1"
+    },
+    {
+      "candidate": "palmitic acid",
+      "family": "fatty_acid",
+      "formula": "C16H32O2",
+      "property": "melting_point",
+      "value": 335.0,
+      "units": "K",
+      "uncertainty": 1.0,
+      "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C57103&Mask=4",
+      "quote": "Tfus 335.0 +/- 1.0 K AVG; Average of 21 out of 22 values",
+      "note": "NIST average; uncertainty is the NIST-stated spread",
+      "alternates": [
+        {
+          "value": 334.7,
+          "source": "Moreno, Cordobilla, Calvet, Cuevas-Diarte, Gbabode, Negrier, Mondieig, Oonk, New J. Chem. 31(6), 947 (2007), doi:10.1039/b700551b (DSC, via NIST)"
+        }
+      ]
+    },
+    {
+      "candidate": "palmitic acid",
+      "family": "fatty_acid",
+      "formula": "C16H32O2",
+      "property": "latent_heat",
+      "value": 206689,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Moreno, Cordobilla, Calvet, Cuevas-Diarte, Gbabode, Negrier, Mondieig, Oonk, New J. Chem. 31(6), 947 (2007), doi:10.1039/b700551b; DSC; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C57103&Mask=4",
+      "quote": "53.0 | 334.7 | DSC | Moreno, Cordobilla, et al., 2007",
+      "note": "53.0 kJ/mol x 1e6 / 256.4241 g/mol (NIST molar mass). NIST spread 47.0-54.9 kJ/mol"
+    },
+    {
+      "candidate": "palmitic acid",
+      "family": "fatty_acid",
+      "formula": "C16H32O2",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: not searched in v1"
+    },
+    {
+      "candidate": "stearic acid",
+      "family": "fatty_acid",
+      "formula": "C18H36O2",
+      "property": "melting_point",
+      "value": 341.0,
+      "units": "K",
+      "uncertainty": 3.0,
+      "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C57114&Mask=4",
+      "quote": "Tfus 341.0 +/- 3.0 K AVG; Average of 31 out of 32 values",
+      "note": "NIST average; uncertainty is the NIST-stated spread",
+      "alternates": [
+        {
+          "value": 342.8,
+          "source": "Moreno, Cordobilla, Calvet, Cuevas-Diarte, Gbabode, Negrier, Mondieig, Oonk, New J. Chem. 31(6), 947 (2007), doi:10.1039/b700551b (DSC, via NIST)"
+        }
+      ]
+    },
+    {
+      "candidate": "stearic acid",
+      "family": "fatty_acid",
+      "formula": "C18H36O2",
+      "property": "latent_heat",
+      "value": 222162,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Moreno, Cordobilla, Calvet, Cuevas-Diarte, Gbabode, Negrier, Mondieig, Oonk, New J. Chem. 31(6), 947 (2007), doi:10.1039/b700551b; DSC; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C57114&Mask=4",
+      "quote": "63.2 | 342.8 | DSC | Moreno, Cordobilla, et al., 2007",
+      "note": "63.2 kJ/mol x 1e6 / 284.4772 g/mol (NIST molar mass). NIST spread 50.9-68.45 kJ/mol"
+    },
+    {
+      "candidate": "stearic acid",
+      "family": "fatty_acid",
+      "formula": "C18H36O2",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: not searched in v1"
+    },
+    {
+      "candidate": "lauric acid",
+      "family": "fatty_acid",
+      "formula": "C12H24O2",
+      "property": "density",
+      "value": 0.8679,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Lide (ed.), CRC Handbook 86th ed., p. 3-224, as quoted by HSDB in PubChem CID 3893 (secondary)",
+      "phase": "liquid",
+      "temperature_K": 323.15,
+      "quote": "0.8679 g/cu cm at 50 C",
+      "note": "liquid (50 C is above Tm)"
+    },
+    {
+      "candidate": "myristic acid",
+      "family": "fatty_acid",
+      "formula": "C14H28O2",
+      "property": "density",
+      "value": null,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: only 0.8622 at 54 C/4 C (Lide & Milne via PubChem), i.e. at the melting point; phase ambiguous"
+    },
+    {
+      "candidate": "palmitic acid",
+      "family": "fatty_acid",
+      "formula": "C16H32O2",
+      "property": "density",
+      "value": null,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: only 0.8527 g/cm3 at 62 C (CRC via PubChem), i.e. at the melting point; phase ambiguous"
+    },
+    {
+      "candidate": "stearic acid",
+      "family": "fatty_acid",
+      "formula": "C18H36O2",
+      "property": "density",
+      "value": 0.9408,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "CRC Handbook of Chemistry and Physics 95th ed. as quoted by HSDB in PubChem (secondary), p. 3-488, PubChem CID 5281",
+      "phase": "solid",
+      "temperature_K": 293.15,
+      "quote": "0.9408 g/cu cm at 20 C",
+      "note": "solid (20 C is far below Tm 341 K)"
+    },
+    {
+      "candidate": "erythritol",
+      "family": "sugar_alcohol",
+      "formula": "C4H10O4",
+      "property": "melting_point",
+      "value": 390.9,
+      "units": "K",
+      "uncertainty": 0.2,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C149326&Mask=4",
+      "quote": "Tfus 390.9 K Barone, DellaGatta, et al., 1990; Uncertainty assigned by TRC = 0.2 K",
+      "note": "uncertainty is TRC-assigned"
+    },
+    {
+      "candidate": "erythritol",
+      "family": "sugar_alcohol",
+      "formula": "C4H10O4",
+      "property": "latent_heat",
+      "value": 322634,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C149326&Mask=4",
+      "quote": "39.400 | 390.9 | Barone and Della Gatta, 1990 | DH",
+      "note": "39.4 kJ/mol x 1e6 / 122.1198 g/mol. spread 38.9-42.359 kJ/mol (Lopes Jesus 2005 to Spaght 1932)"
+    },
+    {
+      "candidate": "xylitol",
+      "family": "sugar_alcohol",
+      "formula": "C5H12O5",
+      "property": "melting_point",
+      "value": 365.7,
+      "units": "K",
+      "uncertainty": 0.2,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C87990&Mask=4",
+      "quote": "Tfus 365.7 K Barone, DellaGatta, et al., 1990; Uncertainty assigned by TRC = 0.2 K",
+      "note": "uncertainty is TRC-assigned"
+    },
+    {
+      "candidate": "xylitol",
+      "family": "sugar_alcohol",
+      "formula": "C5H12O5",
+      "property": "latent_heat",
+      "value": 245817,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C87990&Mask=4",
+      "quote": "37.400 | 365.7 | Barone and Della Gatta, 1990 | DH",
+      "note": "37.4 kJ/mol x 1e6 / 152.1458 g/mol. spread 33.26-40.02 kJ/mol (Tong 2007 to Zhang 2017)"
+    },
+    {
+      "candidate": "d-mannitol",
+      "family": "sugar_alcohol",
+      "formula": "C6H14O6",
+      "property": "melting_point",
+      "value": 439.1,
+      "units": "K",
+      "uncertainty": 0.1,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C69658&Mask=4",
+      "quote": "Tfus 439.1 K Barone, DellaGatta, et al., 1990; Uncertainty assigned by TRC = 0.1 K",
+      "note": "uncertainty is TRC-assigned"
+    },
+    {
+      "candidate": "d-mannitol",
+      "family": "sugar_alcohol",
+      "formula": "C6H14O6",
+      "property": "latent_heat",
+      "value": 307951,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C69658&Mask=4",
+      "quote": "56.100 | 439.1 | Barone and Della Gatta, 1990 | DH",
+      "note": "56.1 kJ/mol x 1e6 / 182.1718 g/mol. spread 53.58-56.1 kJ/mol; mannitol has known polymorphs"
+    },
+    {
+      "candidate": "erythritol",
+      "family": "sugar_alcohol",
+      "formula": "C4H10O4",
+      "property": "conductivity",
+      "value": 0.589,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Gunasekara et al., Int. J. Energy Res. 43(5), 1785-1801 (2019), doi:10.1002/er.4403 (abstract via OpenAlex)",
+      "phase": "solid",
+      "quote": "the thermal conductivities of xylitol, 25 mol% erythritol, 80 mol% erythritol, and erythritol were here found for respectively in the solid state to be 0.373, 0.394, 0.535, and 0.589 W m-1 K-1",
+      "note": "transient plane source; temperature not stated in the abstract; literature values for sugar alcohols disagree widely",
+      "alternates": [
+        {
+          "value": 0.321,
+          "phase": "liquid",
+          "source": "Gunasekara et al., Int. J. Energy Res. 43(5), 1785-1801 (2019), doi:10.1002/er.4403 (abstract via OpenAlex)"
+        }
+      ]
+    },
+    {
+      "candidate": "xylitol",
+      "family": "sugar_alcohol",
+      "formula": "C5H12O5",
+      "property": "conductivity",
+      "value": 0.373,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Gunasekara et al., Int. J. Energy Res. 43(5), 1785-1801 (2019), doi:10.1002/er.4403 (abstract via OpenAlex)",
+      "phase": "solid",
+      "quote": "...xylitol... in the solid state to be 0.373 ... W m-1 K-1",
+      "note": "LARGE literature spread: Zhang 2017 reports 1.3 +/- 0.16 W/m/K (solid, 298.15 K). Same paper/method as erythritol chosen for consistency",
+      "alternates": [
+        {
+          "value": 1.3,
+          "uncertainty": 0.16,
+          "phase": "solid",
+          "temperature_K": 298.15,
+          "source": "Zhang, Duquesne, Godin et al., Fluid Phase Equilib. 436, 55-68 (2017), doi:10.1016/j.fluid.2016.12.020; data via NIST TRC ThermoML https://trc.nist.gov/ThermoML/10.1016/j.fluid.2016.12.020.xml"
+        },
+        {
+          "value": 0.42,
+          "uncertainty": 0.04,
+          "phase": "liquid (supercooled)",
+          "temperature_K": 303.15,
+          "source": "Zhang, Duquesne, Godin et al., Fluid Phase Equilib. 436, 55-68 (2017), doi:10.1016/j.fluid.2016.12.020; data via NIST TRC ThermoML https://trc.nist.gov/ThermoML/10.1016/j.fluid.2016.12.020.xml"
+        },
+        {
+          "value": 0.433,
+          "phase": "liquid",
+          "source": "Gunasekara et al., Int. J. Energy Res. 43(5), 1785-1801 (2019), doi:10.1002/er.4403 (abstract via OpenAlex)"
+        }
+      ]
+    },
+    {
+      "candidate": "d-mannitol",
+      "family": "sugar_alcohol",
+      "formula": "C6H14O6",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Seppala et al. 2022 (doi:10.1016/j.solmat.2022.111796) has it but returned 403"
+    },
+    {
+      "candidate": "erythritol",
+      "family": "sugar_alcohol",
+      "formula": "C4H10O4",
+      "property": "density",
+      "value": 1.451,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "CRC Handbook 88th ed., p. 3-72, as quoted by HSDB in PubChem CID 222285 (secondary)",
+      "phase": "solid",
+      "temperature_K": 293.15,
+      "quote": "1.451 g/cu cm at 20 C",
+      "note": ""
+    },
+    {
+      "candidate": "xylitol",
+      "family": "sugar_alcohol",
+      "formula": "C5H12O5",
+      "property": "density",
+      "value": 1.4971,
+      "units": "g/cm3",
+      "uncertainty": 0.0151,
+      "source": "Zhang, Duquesne, Godin et al., Fluid Phase Equilib. 436, 55-68 (2017), doi:10.1016/j.fluid.2016.12.020; data via NIST TRC ThermoML https://trc.nist.gov/ThermoML/10.1016/j.fluid.2016.12.020.xml",
+      "phase": "solid",
+      "temperature_K": 303.15,
+      "quote": "Mass density, kg/m3 ... crystal ... 303.15 K ... 1497.1",
+      "note": "",
+      "alternates": [
+        {
+          "value": 1.3746,
+          "uncertainty": 0.0149,
+          "phase": "liquid (supercooled)",
+          "temperature_K": 313.15,
+          "source": "Zhang, Duquesne, Godin et al., Fluid Phase Equilib. 436, 55-68 (2017), doi:10.1016/j.fluid.2016.12.020; data via NIST TRC ThermoML https://trc.nist.gov/ThermoML/10.1016/j.fluid.2016.12.020.xml"
+        }
+      ]
+    },
+    {
+      "candidate": "d-mannitol",
+      "family": "sugar_alcohol",
+      "formula": "C6H14O6",
+      "property": "density",
+      "value": 1.52,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Merck Index (1996) p. 979, as quoted by HSDB in PubChem CID 6251 (secondary)",
+      "phase": "solid",
+      "temperature_K": 293.15,
+      "quote": "1.52 @ 20 C",
+      "note": ""
+    },
+    {
+      "candidate": "neopentyl glycol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O2",
+      "property": "transition_temperature",
+      "value": 314.8,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Zhang, Zou, Yang, Gaodeng Xuexiao Huaxue Xuebao 9(10), 1085-1087 (1988); as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C126307&Mask=4",
+      "quote": "12.410 | 314.8 | crystaline, II -> crystaline, I | Zhang, Zou, et al., 1988",
+      "note": "solid-solid (crystal II -> plastic crystal I). Murrill & Breed 1970 give 314 K"
+    },
+    {
+      "candidate": "neopentyl glycol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O2",
+      "property": "transition_latent_heat",
+      "value": 119158,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Zhang, Zou, Yang, Gaodeng Xuexiao Huaxue Xuebao 9(10), 1085-1087 (1988); as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C126307&Mask=4",
+      "quote": "12.410 kJ/mol 314.8 K crystaline, II -> crystaline, I",
+      "note": "solid-solid. 12.410 kJ/mol x 1e6 / 104.1476. Murrill & Breed 1970: 13.639 kJ/mol (130958 J/kg)"
+    },
+    {
+      "candidate": "neopentyl glycol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O2",
+      "property": "melting_point",
+      "value": 403.3,
+      "units": "K",
+      "uncertainty": 0.1,
+      "source": "Zhang, Zou, Yang, Gaodeng Xuexiao Huaxue Xuebao 9(10), 1085-1087 (1988); as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C126307&Mask=4",
+      "quote": "Ttriple 403.3 K Zhang, Zou, et al., 1988; Uncertainty assigned by TRC = 0.1 K",
+      "note": "triple point; NIST Tfus entries span 398.7-403 K"
+    },
+    {
+      "candidate": "neopentyl glycol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O2",
+      "property": "latent_heat",
+      "value": 42632,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Zhang, Zou, Yang, Gaodeng Xuexiao Huaxue Xuebao 9(10), 1085-1087 (1988); as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C126307&Mask=4",
+      "quote": "4.440 kJ/mol 403.3 K crystaline, I -> liquid",
+      "note": "fusion only (the solid-solid transition carries ~3x more heat). 4.440 kJ/mol x 1e6 / 104.1476. DSC spread 4.23-4.706 kJ/mol"
+    },
+    {
+      "candidate": "neopentyl glycol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O2",
+      "property": "conductivity",
+      "value": 0.4,
+      "units": "W/m/K",
+      "uncertainty": 0.01,
+      "source": "Bayram, Aksoz, Marasli, Thermochim. Acta 531, 12-20 (2012), doi:10.1016/j.tca.2011.12.021; data via NIST TRC ThermoML https://trc.nist.gov/ThermoML/10.1016/j.tca.2011.12.021.xml",
+      "phase": "solid",
+      "temperature_K": 323.0,
+      "quote": "pure NPG: 323 K 0.40 (+/- 0.01) W/m/K",
+      "note": "plastic phase I (above the 314.8 K transition); series falls to 0.29-0.31 W/m/K at 373-393 K"
+    },
+    {
+      "candidate": "neopentyl glycol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O2",
+      "property": "density",
+      "value": 1.06,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "U.S. DOE PAC Chemical Database as quoted in PubChem CID 31344 (secondary)",
+      "phase": "solid",
+      "temperature_K": 298.15,
+      "quote": "1.06 @25 C",
+      "note": "HSDB/ICSC list 1.1 g/cm3"
+    },
+    {
+      "candidate": "pentaerythritol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O4",
+      "property": "transition_temperature",
+      "value": 458.3,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C115775&Mask=4",
+      "quote": "40.500 | 458.3 | crystaline, II -> crystaline, I | Barone and Della Gatta, 1990",
+      "note": "solid-solid; literature spread 455-461.6 K"
+    },
+    {
+      "candidate": "pentaerythritol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O4",
+      "property": "transition_latent_heat",
+      "value": 297474,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C115775&Mask=4",
+      "quote": "40.500 kJ/mol 458.3 K crystaline, II -> crystaline, I",
+      "note": "solid-solid. 40.500 kJ/mol x 1e6 / 136.1464. Spread 35.146-43.930 kJ/mol"
+    },
+    {
+      "candidate": "pentaerythritol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O4",
+      "property": "melting_point",
+      "value": 531.2,
+      "units": "K",
+      "uncertainty": 1.2,
+      "source": "Barone, Della Gatta, Ferro, Piacente, J. Chem. Soc. Faraday Trans. 86(1), 75-79 (1990), doi:10.1039/ft9908600075; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C115775&Mask=4",
+      "quote": "Tfus 531.20 K Barone, DellaGatta, et al., 1990; Uncertainty assigned by TRC = 1.2 K",
+      "note": "spread 529-538.7 K"
+    },
+    {
+      "candidate": "pentaerythritol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O4",
+      "property": "latent_heat",
+      "value": 38929,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Granzow, J. Mol. Struct. 381, 127-131 (1996), doi:10.1016/0022-2860(96)09232-0; DSC; as listed in NIST WebBook https://webbook.nist.gov/cgi/cbook.cgi?ID=C115775&Mask=4",
+      "quote": "5.3 | 532.3 | DSC | Granzow, 1996",
+      "note": "fusion only. 5.3 kJ/mol x 1e6 / 136.1464. Spread 4.6-7.11 kJ/mol"
+    },
+    {
+      "candidate": "pentaerythritol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O4",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Zhang & Xu 2001 (doi:10.1021/je000366r) measured it but numbers not accessible"
+    },
+    {
+      "candidate": "pentaerythritol",
+      "family": "plastic_crystal",
+      "formula": "C5H12O4",
+      "property": "density",
+      "value": 1.399,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "HSDB as quoted in PubChem CID 8285 (secondary)",
+      "phase": "solid",
+      "temperature_K": 298.15,
+      "quote": "1.399 at 25 C/4 C",
+      "note": ""
+    },
+    {
+      "candidate": "calcium chloride hexahydrate",
+      "family": "salt_hydrate",
+      "formula": "CaCl2.6H2O",
+      "property": "melting_point",
+      "value": 302.15,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Lorsch, Kauffman, Denton, Energy Conversion 15, 1-8 (1975), as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 1",
+      "quote": "Calcium Chloride Hexahydrate CaCl2.6H2O 29 170 - Lorsch et al. (1975)",
+      "note": "semi-congruent melting, strong supercooling. Literature spread 25.2-30 C (298.35-303.15 K)",
+      "alternates": [
+        {
+          "value": 298.35,
+          "source": "Thakkar et al., Buildings 12, 1762 (2022), doi:10.3390/buildings12101762 (DSC onset)"
+        },
+        {
+          "value": 302.85,
+          "source": "Abhat 1983 via Hirschey"
+        }
+      ]
+    },
+    {
+      "candidate": "calcium chloride hexahydrate",
+      "family": "salt_hydrate",
+      "formula": "CaCl2.6H2O",
+      "property": "latent_heat",
+      "value": 170000,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Lorsch et al. 1975, as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 1",
+      "quote": "29 170 - Lorsch et al. (1975)",
+      "note": "170 kJ/kg. Spread 170-174 kJ/kg (most sources); Feilchenfeld 1984 reported 209 J/g"
+    },
+    {
+      "candidate": "calcium chloride hexahydrate",
+      "family": "salt_hydrate",
+      "formula": "CaCl2.6H2O",
+      "property": "density",
+      "value": 1.71,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Abhat, Solar Energy 30(4), 313-332 (1983), as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 3",
+      "phase": "solid",
+      "quote": "Calcium Chloride Hexahydrate 1.710 77.40 +/- 10.90 Abhat (1983)",
+      "note": "Xie 2017 gives 1.80; Thakkar 2022 gives liquid 1.56 g/cm3"
+    },
+    {
+      "candidate": "calcium chloride hexahydrate",
+      "family": "salt_hydrate",
+      "formula": "CaCl2.6H2O",
+      "property": "conductivity",
+      "value": 1.08,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Thakkar et al., Buildings 12, 1762 (2022), doi:10.3390/buildings12101762, citing Kamidollayev et al., Energies 15, 5552 (2022)",
+      "phase": "solid",
+      "quote": "Thermal conductivity of this PCM for solid and liquid is 1.08 and 0.56 Wm-1K-1, respectively",
+      "note": "temperature not stated",
+      "alternates": [
+        {
+          "value": 0.56,
+          "phase": "liquid",
+          "source": "Thakkar et al., Buildings 12, 1762 (2022), doi:10.3390/buildings12101762"
+        },
+        {
+          "value": 1.088,
+          "phase": "solid",
+          "source": "Xie et al., Appl. Sci. 7, 1317 (2017), doi:10.3390/app7121317, Table 1"
+        }
+      ]
+    },
+    {
+      "candidate": "sodium sulfate decahydrate",
+      "family": "salt_hydrate",
+      "formula": "Na2SO4.10H2O",
+      "property": "melting_point",
+      "value": 305.55,
+      "units": "K",
+      "uncertainty": null,
+      "source": "De Paola, Arcuri, Calabro, De Simone, Energies 10, 354 (2017), doi:10.3390/en10030354",
+      "quote": "the enthalpy of fusion is equal to 251.2 kJ/kg, the phase transition temperature is 32.4 C",
+      "note": "INCONGRUENT (peritectic) melting. Same 32.4 C in Gawron & Schroder 1977, Abhat 1983, Cantor 1979 (via Hirschey)"
+    },
+    {
+      "candidate": "sodium sulfate decahydrate",
+      "family": "salt_hydrate",
+      "formula": "Na2SO4.10H2O",
+      "property": "latent_heat",
+      "value": 251200,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "De Paola, Arcuri, Calabro, De Simone, Energies 10, 354 (2017), doi:10.3390/en10030354",
+      "quote": "the enthalpy of fusion is equal to 251.2 kJ/kg",
+      "note": "spread 239 (Cantor 1979, DSC) - 254 (Abhat 1983) kJ/kg"
+    },
+    {
+      "candidate": "sodium sulfate decahydrate",
+      "family": "salt_hydrate",
+      "formula": "Na2SO4.10H2O",
+      "property": "density",
+      "value": 1.485,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Abhat 1983, as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 3",
+      "phase": "solid",
+      "quote": "Sodium Sulfate Decahydrate 1.485 101.75 +/- 3.16 Abhat (1983)",
+      "note": ""
+    },
+    {
+      "candidate": "sodium sulfate decahydrate",
+      "family": "salt_hydrate",
+      "formula": "Na2SO4.10H2O",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: no source found"
+    },
+    {
+      "candidate": "disodium hydrogen phosphate dodecahydrate",
+      "family": "salt_hydrate",
+      "formula": "Na2HPO4.12H2O",
+      "property": "melting_point",
+      "value": 309.65,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Guion, Sauzade, Laugt, Thermochim. Acta 67, 167-179 (1983); DSC; as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 1",
+      "quote": "36.5 279 DSC Guion et al. (1983)",
+      "note": "spread 35-36.5 C; congruence not verified"
+    },
+    {
+      "candidate": "disodium hydrogen phosphate dodecahydrate",
+      "family": "salt_hydrate",
+      "formula": "Na2HPO4.12H2O",
+      "property": "latent_heat",
+      "value": 279000,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Guion, Sauzade, Laugt, Thermochim. Acta 67, 167-179 (1983); DSC; as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 1",
+      "quote": "36.5 279 DSC Guion et al. (1983)",
+      "note": "spread 279-281 kJ/kg"
+    },
+    {
+      "candidate": "disodium hydrogen phosphate dodecahydrate",
+      "family": "salt_hydrate",
+      "formula": "Na2HPO4.12H2O",
+      "property": "density",
+      "value": 1.52,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Abhat 1983, as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 3",
+      "phase": "solid",
+      "quote": "Disodium Phosphate Dodecahydrate 1.520 118.22 +/- 0.42 Abhat (1983)",
+      "note": ""
+    },
+    {
+      "candidate": "disodium hydrogen phosphate dodecahydrate",
+      "family": "salt_hydrate",
+      "formula": "Na2HPO4.12H2O",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: only Xie 2017 Table 1 (0.514, solid) whose columns are misaligned for neighbouring rows; low confidence, not used"
+    },
+    {
+      "candidate": "sodium acetate trihydrate",
+      "family": "salt_hydrate",
+      "formula": "CH3COONa.3H2O",
+      "property": "melting_point",
+      "value": 331.15,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Guion, Sauzade, Laugt, Thermochim. Acta 67, 167-179 (1983); DSC; as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 1",
+      "quote": "Sodium Acetate Trihydrate C2H3NaO2.3H2O 58 289 DSC Guion et al. (1983)",
+      "note": "all compiled sources give 58 C; supercools strongly (to -12.7 C per Hirschey)"
+    },
+    {
+      "candidate": "sodium acetate trihydrate",
+      "family": "salt_hydrate",
+      "formula": "CH3COONa.3H2O",
+      "property": "latent_heat",
+      "value": 289000,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Guion, Sauzade, Laugt, Thermochim. Acta 67, 167-179 (1983); DSC; as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 1",
+      "quote": "58 289 DSC Guion et al. (1983)",
+      "note": "WIDE spread 226-289 kJ/kg (T-history 226-248, Zhang 1999; Bajnoczy 1995 226-252); this DSC value is the top of the range"
+    },
+    {
+      "candidate": "sodium acetate trihydrate",
+      "family": "salt_hydrate",
+      "formula": "CH3COONa.3H2O",
+      "property": "density",
+      "value": 1.45,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Bajnoczy et al., Periodica Polytechnica Chem. Eng. 39(2), 129-135 (1995), as compiled in Hirschey, Gluesenkamp, Mallow, Graham, 5th Int. High Performance Buildings Conf. at Purdue (2018) paper 3653, https://www.osti.gov/servlets/purl/1468092, Table 3",
+      "phase": "solid",
+      "quote": "Sodium Acetate Trihydrate 1.45 101.57 +/- 14.84 Bajnoczy et al. (1995)",
+      "note": ""
+    },
+    {
+      "candidate": "sodium acetate trihydrate",
+      "family": "salt_hydrate",
+      "formula": "CH3COONa.3H2O",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Xie 2017 lists 1.97 under k but it is very likely a misplaced specific heat"
+    },
+    {
+      "candidate": "magnesium nitrate hexahydrate",
+      "family": "salt_hydrate",
+      "formula": "Mg(NO3)2.6H2O",
+      "property": "melting_point",
+      "value": 363.05,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Xie et al., Appl. Sci. 7, 1317 (2017), doi:10.3390/app7121317, Table 1, citing Cabeza et al. RSER 15, 1675 (2011)",
+      "quote": "Mg(NO3).6H2O 89.9 163 1.636 1.81 0.669 [1]",
+      "note": "LOW CONFIDENCE: single secondary compilation. Martinez et al., Heliyon (2024) doi:10.1016/j.heliyon.2024.e41025 gives 89 C"
+    },
+    {
+      "candidate": "magnesium nitrate hexahydrate",
+      "family": "salt_hydrate",
+      "formula": "Mg(NO3)2.6H2O",
+      "property": "latent_heat",
+      "value": 163000,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Xie et al., Appl. Sci. 7, 1317 (2017), doi:10.3390/app7121317, Table 1, citing Cabeza et al. 2011",
+      "quote": "Mg(NO3).6H2O 89.9 163 ...",
+      "note": "LOW CONFIDENCE: only verified value. Primary lead Sadovska et al. 2015 (doi:10.1007/s10973-015-5159-y) could not be opened"
+    },
+    {
+      "candidate": "magnesium nitrate hexahydrate",
+      "family": "salt_hydrate",
+      "formula": "Mg(NO3)2.6H2O",
+      "property": "density",
+      "value": 1.636,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": "Xie et al., Appl. Sci. 7, 1317 (2017), doi:10.3390/app7121317, Table 1, citing Cabeza et al. 2011",
+      "phase": "solid",
+      "quote": "Mg(NO3).6H2O 89.9 163 1.636 ...",
+      "note": "LOW CONFIDENCE: single secondary compilation"
+    },
+    {
+      "candidate": "magnesium nitrate hexahydrate",
+      "family": "salt_hydrate",
+      "formula": "Mg(NO3)2.6H2O",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Xie 2017 values (1.81 / 0.669) look column-swapped with cp"
+    },
+    {
+      "candidate": "Cu",
+      "family": "validation_metal",
+      "formula": "Cu",
+      "property": "melting_point",
+      "value": 1357.77,
+      "units": "K",
+      "uncertainty": 0.03,
+      "source": "ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint",
+      "quote": "the freezing point of copper at 1357.77(3) K",
+      "note": "ITS-90 freezing point",
+      "aliases": [
+        "copper"
+      ]
+    },
+    {
+      "candidate": "Cu",
+      "family": "validation_metal",
+      "formula": "Cu",
+      "property": "latent_heat",
+      "value": 206748,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt",
+      "quote": "1358.000 ... 29.660 CRYSTAL <--> LIQUID / 1358.000 ... 42.798 TRANSITION",
+      "note": "H-H(Tr) jump: 42.798 - 29.660 = 13.138 kJ/mol; x 1e6 / 63.546 g/mol",
+      "aliases": [
+        "copper"
+      ]
+    },
+    {
+      "candidate": "Cu",
+      "family": "validation_metal",
+      "formula": "Cu",
+      "property": "conductivity",
+      "value": 401.0,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Ho, Powell, Liley, J. Phys. Chem. Ref. Data 1, 279 (1972), doi:10.1063/1.3253100 (read from OCR of the scanned PDF)",
+      "phase": "solid",
+      "temperature_K": 300.0,
+      "quote": "300 4.01 (W/cm/K)",
+      "note": "+/-2% near room temperature per HPL; liquid at 1357.6 K: 166 W/m/K",
+      "aliases": [
+        "copper"
+      ]
+    },
+    {
+      "candidate": "Cu",
+      "family": "validation_metal",
+      "formula": "Cu",
+      "property": "density",
+      "value": null,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: not looked up (low priority)",
+      "aliases": [
+        "copper"
+      ]
+    },
+    {
+      "candidate": "Al",
+      "family": "validation_metal",
+      "formula": "Al",
+      "property": "melting_point",
+      "value": 933.45,
+      "units": "K",
+      "uncertainty": null,
+      "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
+      "quote": "933.450 ... CRYSTAL <--> LIQUID",
+      "note": "ITS-90 freezing point is 933.473 K (seen only on its-90.com, not an official copy)",
+      "alternates": [
+        {
+          "value": 933.473,
+          "source": "ITS-90 via https://its-90.com/fixed-points (unofficial)"
+        }
+      ],
+      "aliases": [
+        "aluminum",
+        "aluminium"
+      ]
+    },
+    {
+      "candidate": "Al",
+      "family": "validation_metal",
+      "formula": "Al",
+      "property": "latent_heat",
+      "value": 396975,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
+      "quote": "933.450 ... 17.982 CRYSTAL <--> LIQUID / 933.450 ... 28.693 TRANSITION",
+      "note": "H-H(Tr) jump: 28.693 - 17.982 = 10.711 kJ/mol; x 1e6 / 26.9815386 g/mol",
+      "aliases": [
+        "aluminum",
+        "aluminium"
+      ]
+    },
+    {
+      "candidate": "Al",
+      "family": "validation_metal",
+      "formula": "Al",
+      "property": "conductivity",
+      "value": 237.0,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Ho, Powell, Liley, J. Phys. Chem. Ref. Data 1, 279 (1972), doi:10.1063/1.3253100 (read from OCR of the scanned PDF)",
+      "phase": "solid",
+      "temperature_K": 300.0,
+      "quote": "300 2.37 (W/cm/K)",
+      "note": "+/-2-3% per HPL; 208 W/m/K at 933.52 K (solid)",
+      "aliases": [
+        "aluminum",
+        "aluminium"
+      ]
+    },
+    {
+      "candidate": "Al",
+      "family": "validation_metal",
+      "formula": "Al",
+      "property": "density",
+      "value": null,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: not looked up (low priority)",
+      "aliases": [
+        "aluminum",
+        "aluminium"
+      ]
+    },
+    {
+      "candidate": "Ga",
+      "family": "low_melting_metal",
+      "formula": "Ga",
+      "property": "melting_point",
+      "value": 302.92,
+      "units": "K",
+      "uncertainty": 0.004,
+      "source": "NIST Chemistry WebBook, https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440553&Mask=4",
+      "quote": "302.92 K ... Uncertainty assigned by TRC = 0.004 K; recommended as calibration standard",
+      "note": "ITS-90 melting point 302.9146 K",
+      "aliases": [
+        "gallium"
+      ]
+    },
+    {
+      "candidate": "Ga",
+      "family": "low_melting_metal",
+      "formula": "Ga",
+      "property": "latent_heat",
+      "value": 80174,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Ga-001.txt",
+      "quote": "302.920 ... 0.124 CRYSTAL <--> LIQUID / 302.920 ... 5.714 TRANSITION",
+      "note": "H-H(Tr) jump: 5.714 - 0.124 = 5.590 kJ/mol; x 1e6 / 69.723 g/mol",
+      "aliases": [
+        "gallium"
+      ]
+    },
+    {
+      "candidate": "Ga",
+      "family": "low_melting_metal",
+      "formula": "Ga",
+      "property": "density",
+      "value": 6.077,
+      "units": "g/cm3",
+      "uncertainty": 0.024,
+      "source": "Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2",
+      "phase": "liquid",
+      "temperature_K": 302.914,
+      "quote": "Gallium 303-1500 6077 0.611 302.914 (Ref. 73) 0.4",
+      "note": "rho = c1 at Tref; 0.4% (2 sigma)",
+      "aliases": [
+        "gallium"
+      ]
+    },
+    {
+      "candidate": "Ga",
+      "family": "low_melting_metal",
+      "formula": "Ga",
+      "property": "conductivity",
+      "value": 28.1,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Ho, Powell, Liley, J. Phys. Chem. Ref. Data 1, 279 (1972), doi:10.1063/1.3253100 (read from OCR of the scanned PDF)",
+      "phase": "liquid",
+      "temperature_K": 302.93,
+      "quote": "302.93 0.281 (W/cm/K)",
+      "note": "+/-10% near the melting point per HPL. Solid is anisotropic: a 40.6, b 88.3, c 15.9 W/m/K at 302.93 K",
+      "aliases": [
+        "gallium"
+      ]
+    },
+    {
+      "candidate": "In",
+      "family": "low_melting_metal",
+      "formula": "In",
+      "property": "melting_point",
+      "value": 429.748,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90",
+      "quote": "Indium 430-1100 7022 0.762 429.748 (Ref. 73) 0.5",
+      "note": "ITS-90 freezing point 429.7485 K",
+      "aliases": [
+        "indium"
+      ]
+    },
+    {
+      "candidate": "In",
+      "family": "low_melting_metal",
+      "formula": "In",
+      "property": "latent_heat",
+      "value": 28662.4,
+      "units": "J/kg",
+      "uncertainty": 7.6,
+      "source": "Archer & Rudtsch, J. Chem. Eng. Data 48(5) (2003), NIST certified reference material; https://www.nist.gov/publications/enthalpy-fusion-indium-certified-reference-material-differential-scanning-calorimetry",
+      "quote": "delta_fusH = (28.6624 +/- 0.0076) J g-1",
+      "note": "adiabatic calorimetry; 95% CI",
+      "aliases": [
+        "indium"
+      ]
+    },
+    {
+      "candidate": "In",
+      "family": "low_melting_metal",
+      "formula": "In",
+      "property": "density",
+      "value": 7.022,
+      "units": "g/cm3",
+      "uncertainty": 0.035,
+      "source": "Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2",
+      "phase": "liquid",
+      "temperature_K": 429.748,
+      "quote": "Indium 430-1100 7022 0.762 429.748",
+      "note": "0.5% (2 sigma)",
+      "aliases": [
+        "indium"
+      ]
+    },
+    {
+      "candidate": "In",
+      "family": "low_melting_metal",
+      "formula": "In",
+      "property": "conductivity",
+      "value": 81.8,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": "Ho, Powell, Liley, J. Phys. Chem. Ref. Data 1, 279 (1972), doi:10.1063/1.3253100 (read from OCR of the scanned PDF)",
+      "phase": "solid",
+      "temperature_K": 298.2,
+      "quote": "298.2 0.818 (W/cm/K)",
+      "note": "+/-5% per HPL; liquid at 429.784 K: 38.2 W/m/K (provisional, +/-15%)",
+      "aliases": [
+        "indium"
+      ]
+    },
+    {
+      "candidate": "field's metal",
+      "family": "low_melting_metal",
+      "formula": "In51Bi32.5Sn16.5 (wt%)",
+      "property": "melting_point",
+      "value": 333.71,
+      "units": "K",
+      "uncertainty": null,
+      "source": "Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3",
+      "quote": "Solid | 287.0 | 333.71 | 27.115",
+      "note": "DSC 10 K/min; single source"
+    },
+    {
+      "candidate": "field's metal",
+      "family": "low_melting_metal",
+      "formula": "In51Bi32.5Sn16.5 (wt%)",
+      "property": "latent_heat",
+      "value": 27115,
+      "units": "J/kg",
+      "uncertainty": null,
+      "source": "Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3",
+      "quote": "Solid | 287.0 | 333.71 | 27.115 (kJ/kg)",
+      "note": "DSC; single source, no cross-check found"
+    },
+    {
+      "candidate": "field's metal",
+      "family": "low_melting_metal",
+      "formula": "In51Bi32.5Sn16.5 (wt%)",
+      "property": "density",
+      "value": null,
+      "units": "g/cm3",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: Zamora 2021 uses 7880 kg/m3 as an unsourced input, not a measurement"
+    },
+    {
+      "candidate": "field's metal",
+      "family": "low_melting_metal",
+      "formula": "In51Bi32.5Sn16.5 (wt%)",
+      "property": "conductivity",
+      "value": null,
+      "units": "W/m/K",
+      "uncertainty": null,
+      "source": null,
+      "note": "NOT FOUND: no openable source"
+    }
+  ]
+}

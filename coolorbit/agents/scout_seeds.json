@@ -1,0 +1,89 @@
+{
+  "_note": "Seed candidates per Scout (one Scout per material family). Names match data/calibration/tier1.json so trust-tier results find their measured values. structure_source follows docs/simulation-requests.md: ase:/file: sources go to the ALCHEMI Simulator; 'pubchem:<CID>' is an identifier for the classical-MD route only (not runnable by ALCHEMI). Candidates with no route are still posted (so the board shows the gap) but request nothing. Melting-point brackets are centred on the literature value (t_guess from tier1.json); two-phase coexistence decides the answer. Budgets are per-Scout caps on candidates, pending the GB10 throughput decision.",
+  "scouts": {
+    "scout_metals": {
+      "budget": 6,
+      "candidates": [
+        {"name": "Cu", "family": "validation_metal", "tier": "trust", "formula": "Cu",
+         "structure_source": "ase:Cu:fcc:3.61", "route": "ALCHEMI",
+         "rationale": "method validation: well-measured metal, MACE-MPA-0 in domain",
+         "requests": ["melting_point", "latent_heat"]},
+        {"name": "Al", "family": "validation_metal", "tier": "trust", "formula": "Al",
+         "structure_source": "ase:Al:fcc:4.05", "route": "ALCHEMI",
+         "rationale": "method validation: second well-measured fcc metal",
+         "requests": ["melting_point", "latent_heat"]},
+        {"name": "Ga", "family": "low_melting_metal", "tier": "trust", "formula": "Ga",
+         "structure_source": null, "route": null,
+         "rationale": "low-melting metal PCM candidate (melts near 303 K); needs a periodic alpha-Ga cell in data/structures/",
+         "requests": []},
+        {"name": "In", "family": "low_melting_metal", "tier": "trust", "formula": "In",
+         "structure_source": null, "route": null,
+         "rationale": "low-melting metal, high conductivity; needs a periodic tetragonal In cell in data/structures/",
+         "requests": []}
+      ]
+    },
+    "scout_paraffin": {
+      "budget": 4,
+      "candidates": [
+        {"name": "n-eicosane", "family": "paraffin", "tier": "trust", "formula": "C20H42",
+         "structure_source": "pubchem:8222", "route": "classical_md",
+         "rationale": "flight-heritage paraffin class; MACE-MP is out of domain for molecular crystals, so classical MD",
+         "requests": ["melting_point"]},
+        {"name": "n-octadecane", "family": "paraffin", "tier": "trust", "formula": "C18H38",
+         "structure_source": "pubchem:11635", "route": "classical_md",
+         "rationale": "the default paraffin PCM baseline to beat",
+         "requests": ["melting_point"]},
+        {"name": "n-hexadecane", "family": "paraffin", "tier": "trust", "formula": "C16H34",
+         "structure_source": "pubchem:11006", "route": "classical_md",
+         "rationale": "shorter paraffin; brackets the chain-length trend",
+         "requests": ["melting_point"]}
+      ]
+    },
+    "scout_fatty_acid": {
+      "budget": 4,
+      "candidates": [
+        {"name": "lauric acid", "family": "fatty_acid", "tier": "trust", "formula": "C12H24O2",
+         "structure_source": "pubchem:3893", "route": "classical_md",
+         "rationale": "fatty-acid PCM in the 300-360 K range", "requests": ["melting_point"]},
+        {"name": "stearic acid", "family": "fatty_acid", "tier": "trust", "formula": "C18H36O2",
+         "structure_source": "pubchem:5281", "route": "classical_md",
+         "rationale": "fatty-acid PCM near the top of the candidate window", "requests": ["melting_point"]}
+      ]
+    },
+    "scout_sugar_alcohol": {
+      "budget": 3,
+      "candidates": [
+        {"name": "erythritol", "family": "sugar_alcohol", "tier": "trust", "formula": "C4H10O4",
+         "structure_source": "pubchem:222285", "route": "classical_md",
+         "rationale": "high latent heat per kg (~320 kJ/kg) but melts near 391 K", "requests": ["melting_point"]},
+        {"name": "xylitol", "family": "sugar_alcohol", "tier": "trust", "formula": "C5H12O5",
+         "structure_source": null, "route": null,
+         "rationale": "sugar alcohol melting near 366 K; strong supercooling is a known issue; no structure yet",
+         "requests": []}
+      ]
+    },
+    "scout_salt_hydrate": {
+      "budget": 3,
+      "candidates": [
+        {"name": "calcium chloride hexahydrate", "family": "salt_hydrate", "tier": "trust", "formula": "CaCl2.6H2O",
+         "structure_source": null, "route": null,
+         "rationale": "cheap high-density salt hydrate near 302 K; needs a periodic cell in data/structures/",
+         "requests": []},
+        {"name": "sodium sulfate decahydrate", "family": "salt_hydrate", "tier": "trust", "formula": "Na2SO4.10H2O",
+         "structure_source": null, "route": null,
+         "rationale": "Glauber's salt; melts incongruently, a stability risk to flag", "requests": []}
+      ]
+    },
+    "scout_plastic_crystal": {
+      "budget": 2,
+      "_note": "Solid-solid PCMs: inclusion is an open team decision (CLAUDE.md section 14.1). Disabled until the chemistry lead approves.",
+      "enabled": false,
+      "candidates": [
+        {"name": "neopentyl glycol", "family": "plastic_crystal", "tier": "trust", "formula": "C5H12O2",
+         "structure_source": "pubchem:31344", "route": "classical_md",
+         "rationale": "solid-solid transition near 315 K: no liquid to contain in microgravity",
+         "requests": ["melting_point"]}
+      ]
+    }
+  }
+}
