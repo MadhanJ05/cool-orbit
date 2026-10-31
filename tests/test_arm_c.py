@@ -128,6 +128,28 @@ class ArmCRunTest(unittest.TestCase):
         self.assertEqual(out.shipped_id, new.artifact_id)
         self.assertTrue(out.confident)
 
+    def test_llm_false_alarm_overruled_by_the_adjudicator_needs_no_rerun(self) -> None:
+        replies = {"referee_llm_audit": {"verdict": "flawed", "flags": ["imagined_flaw"], "reasoning": "SYNTHETIC",
+                                         "suggested_fix": "none"},
+                   "adjudicator": {"verdict": "sound", "flags": [], "reasoning": "the objection does not hold",
+                                   "suggested_fix": ""},
+                   "premise_checker": {"verdict": "well_posed", "flags": [], "reasoning": "SYNTHETIC",
+                                       "suggested_fix": ""}}
+
+        def fake_llm(role, **request):  # same signature as premise.roles_llm; no network
+            text = json.dumps(replies[role])
+            return SimpleNamespace(stop_reason="end_turn", model=f"fake-{role}",
+                                   content=[SimpleNamespace(type="text", text=text)],
+                                   usage=SimpleNamespace(input_tokens=10, output_tokens=10)), 0.0
+
+        rec = self.run_task(LI_LIQUID, llm_mode="inconclusive", premise_client=fake_llm)
+        self.assertEqual(rec["agent_errors"], [])
+        self.assertEqual(len(rec["sessions"]), 1)  # the overruled false alarm triggered no rerun
+        out, snap = self.outcome(rec, LI_LIQUID)
+        self.assertTrue(out.confident)
+        self.assertEqual({k.producer_agent for k in snap.of_type("check") if k.payload["check_type"] == "method_audit"},
+                         {"referee_rules", "referee_llm", "adjudicator"})
+
     def test_out_of_budget_stops_the_task(self) -> None:
         # The premise checker's LLM caller is llm_roles.create: with $0 left it refuses before any network call.
         rec = self.run_task(LI_LIQUID, budget_usd=0.0, llm_mode="always",

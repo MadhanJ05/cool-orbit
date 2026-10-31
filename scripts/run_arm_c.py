@@ -46,9 +46,10 @@ if str(REPO_ROOT) not in sys.path:
 
 from coolorbit import llm_keys, llm_roles  # noqa: E402
 from coolorbit.agents.referee_rules import rerun_depth  # noqa: E402
-from coolorbit.board import Board, BoardSnapshot, OpenNeed  # noqa: E402
+from coolorbit.board import Board, BoardSnapshot, OpenNeed, load_rules  # noqa: E402
 from coolorbit.board._scienceclaw import Artifact  # noqa: E402
 from coolorbit.board.schema import NEGATIVE_VERDICTS  # noqa: E402
+from coolorbit.board.status import settled_audits  # noqa: E402
 from coolorbit.eval.tasks import HARNESS_AGENT, Task, TaskSet, load_tasks, seed_board  # noqa: E402
 from coolorbit.sim.simulator_agent import (JobError, SimulatorAgent, build_job, find_rerun_target,  # noqa: E402
                                            subprocess_runner)
@@ -189,6 +190,7 @@ class WorkerDispatcher:
         self.board, self.task, self.request_id, self.session_fn = board, task, request_id, session_fn
         self.sim, self.deadline, self.usd_left, self.worker_usd = sim, deadline, usd_left, worker_usd
         self.wait_for_premise = wait_for_premise
+        self.trust_rules = load_rules()
         self.name = WORKER
         self.done: set[tuple] = set()
         self.sessions: list[dict] = []
@@ -258,8 +260,10 @@ class WorkerDispatcher:
             if any(k.artifact_type == "property_result" and k.payload["property"] == res.payload["property"]
                    for k in kids):
                 continue  # already superseded
+            settled = settled_audits([k for k in kids if k.artifact_type == "check"], self.trust_rules, WORKER)
             bad = [k for k in kids if k.artifact_type == "check" and k.payload["check_type"] == "method_audit"
-                   and k.payload["verdict"] in NEGATIVE_VERDICTS and k.producer_agent != WORKER]
+                   and k.payload["verdict"] in NEGATIVE_VERDICTS and k.producer_agent != WORKER
+                   and k.artifact_id not in settled]  # an adjudicator ruling overrode it
             if not bad or any(n.get("artifact_type") == "property_result" for k in bad for n in k.needs):
                 continue  # nothing failed, or the referee asked for a rerun as a need (handled above)
             if rerun_depth(snap, res) >= MAX_WORKER_RERUNS:
@@ -391,10 +395,11 @@ def claude_code_session_fn(board_root: Path, task: Task, *, work_dir: Path, mode
 def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd: float, timeout_min: float,
              preset: str, llm_mode: str, worker_usd: float, model: str,
              session_fn_factory: Callable[[Path], SessionFn], sim_runner: Callable = subprocess_runner,
-             premise_client: Any = "auto", seeds: Optional[dict] = None,
+             premise_client: Any = "auto", seeds: Optional[dict] = None, llm_referee: bool = True,
              runs_root: Path = REPO_ROOT / "runs" / "arm_c", max_rounds: int = 500, sandbox: str = "docker") -> dict:
     from coolorbit.agents.librarian import LibrarianAgent
     from coolorbit.agents.premise import PremiseChecker
+    from coolorbit.agents.referee_llm import Adjudicator, LLMReferee
     from coolorbit.agents.referee_rules import RuleReferee
     from coolorbit.agents.scout import Scout, load_seeds
 
@@ -425,10 +430,12 @@ def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd
         dispatcher = WorkerDispatcher(board, task, req_id, session_fn_factory(board_root), sim=sim,
                                       deadline=deadline, worker_usd=worker_usd,
                                       usd_left=lambda: budget_usd - llm_roles.spent_usd(costs, task.id))
-        agents = ([PremiseChecker(board, client=None if llm_mode == "never" else premise_client, llm_mode=llm_mode,
-                                  verbose=False)]
+        llm_client = None if llm_mode == "never" else premise_client  # every call via llm_roles: in the budget
+        llm_referees = ([LLMReferee(board, client=llm_client, verbose=False),
+                         Adjudicator(board, client=llm_client, verbose=False)] if llm_referee else [])
+        agents = ([PremiseChecker(board, client=llm_client, llm_mode=llm_mode, verbose=False)]
                   + [Scout(board, s, seeds=seeds, preset=preset, eval_only=True, verbose=False) for s in seeds]
-                  + [RuleReferee(board, verbose=False), LibrarianAgent(board), sim, dispatcher])
+                  + [RuleReferee(board, verbose=False)] + llm_referees + [LibrarianAgent(board), sim, dispatcher])
         while rounds < max_rounds:
             if time.time() >= deadline:
                 stopped = "deadline"
@@ -525,6 +532,8 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--preset", choices=["quick", "production"], default="production")
     ap.add_argument("--llm", choices=["inconclusive", "always", "never"], default="inconclusive",
                     help="when the premise checker asks Claude")
+    ap.add_argument("--no-llm-referee", action="store_true",
+                    help="leave out the LLM method-audit referee and the adjudicator (ablation)")
     ap.add_argument("--boards-root", default=str(DEFAULT_BOARDS_ROOT))
     ap.add_argument("--work-root", default=str(DEFAULT_WORK_ROOT))
     ap.add_argument("--image", help="sandbox image tag (default: the runner's)")
@@ -576,7 +585,8 @@ def main(argv: Optional[list[str]] = None) -> None:
                 rec = run_task(t, run=args.run, repeat=args.repeat, boards_root=Path(args.boards_root),
                                budget_usd=args.budget_usd, timeout_min=args.timeout_min, preset=args.preset,
                                llm_mode=args.llm, worker_usd=args.worker_usd, model=args.model,
-                               session_fn_factory=factory, sandbox=args.sandbox)
+                               session_fn_factory=factory, sandbox=args.sandbox,
+                               llm_referee=not args.no_llm_referee)
             except FileExistsError as exc:
                 print(f"SKIP {t.id}: {exc}")
                 break

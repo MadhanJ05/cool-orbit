@@ -13,6 +13,12 @@ Any negative check, numeric disagreement or unit mismatch makes it **flagged**
 (rerun needed). It is **rejected** only when enough *distinct* referees reject it,
 so no single referee is a gatekeeper. Agreement is judged from the numbers, not
 from the referee's verdict text.
+
+Disputes between method audits: when an adjudicator (``rules["adjudicators"]``, default
+``["adjudicator"]``) posts a decisive ``method_audit`` ruling (pass or fail) on a result, the
+method audits by other referees posted *before* that ruling are settled by it: they stop
+counting and the ruling counts instead. An inconclusive ruling settles nothing. Audits posted
+after the ruling, premise checks and independent-method checks always count.
 """
 
 from __future__ import annotations
@@ -57,6 +63,21 @@ def _within(value: float, ref: float, tol: dict) -> bool:
     return abs(value - ref) <= max(tol.get("abs") or 0.0, (tol.get("rel") or 0.0) * abs(ref))
 
 
+def settled_audits(checks: list["Artifact"], rules: dict, producer: str) -> dict[str, str]:
+    """{method_audit id: id of the adjudicator ruling that settles it}. ``checks`` are in board order."""
+    adjudicators = set(rules.get("adjudicators", ["adjudicator"]))
+    rulings = [c for c in checks if c.producer_agent in adjudicators and c.producer_agent != producer
+               and c.payload["check_type"] == "method_audit"
+               and c.payload["verdict"] in (NEGATIVE_VERDICTS | POSITIVE_VERDICTS)]
+    if not rulings:
+        return {}
+    ruling = rulings[-1]  # the latest decisive ruling settles everything before it
+    key = (ruling.timestamp, ruling.artifact_id)
+    return {c.artifact_id: ruling.artifact_id for c in checks
+            if c.payload["check_type"] == "method_audit" and c.producer_agent not in adjudicators
+            and (c.timestamp, c.artifact_id) < key}
+
+
 def derive_status(snap: "BoardSnapshot", result: "Artifact | str", rules: dict) -> StatusReport:
     if isinstance(result, str):
         result = snap.artifacts[result]
@@ -92,6 +113,8 @@ def derive_status(snap: "BoardSnapshot", result: "Artifact | str", rules: dict) 
         reasons.insert(0, f"rejected by {len(rejecters)} independent referees: {', '.join(rejecters)}")
         return report
 
+    settled = settled_audits(checks, rules, result.producer_agent)
+
     audit_pass = independent_agree = False
     for c in checks:
         cp, who = c.payload, c.producer_agent
@@ -100,6 +123,9 @@ def derive_status(snap: "BoardSnapshot", result: "Artifact | str", rules: dict) 
                           f" ({cp['note']})" if cp.get("note") else ""])
         if who == result.producer_agent:
             reasons.append(f"{tag}: ignored (agents cannot check their own results)")
+            continue
+        if c.artifact_id in settled:
+            reasons.append(f"{tag}: {cp['verdict']}, settled by adjudicator ruling {settled[c.artifact_id][:8]}")
             continue
         if cp["verdict"] in NEGATIVE_VERDICTS:
             failing = True
