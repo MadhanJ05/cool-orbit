@@ -2,8 +2,8 @@
   "_note": "Inputs for scripts/burst_calc.py. Every value needs a source; null = not yet sourced (the material is skipped, never guessed). Values marked 'pending: chemistry lead' are being sourced by the Fable chemistry-lead review. SI units.",
   "fin_material": {
     "name": "aluminium (fin/foam material)",
-    "density_kg_m3": {"value": null, "source": null, "note": "pending: chemistry lead"},
-    "conductivity_W_mK": {"value": null, "source": null, "note": "pending: chemistry lead"}
+    "density_kg_m3": {"value": 2699, "source": "NIST X-ray mass attenuation coefficients, Table 1 (aluminium, 2.699 g/cm3); via chemistry-lead memo 2026-10-31 [S18]"},
+    "conductivity_W_mK": {"value": 155, "source": "NIST cryogenic materials property page, 6061-T6 aluminium at 300 K (reviewer's evaluation of NIST's fit); via chemistry-lead memo [S19]. Not used by the model (fin efficiency taken as 1)."}
   },
   "materials": [
     {
@@ -12,7 +12,7 @@
       "latent_heat_J_per_kg": {"value": 236155, "source": "Mondieig et al., Chem. Mater. 16, 786 (2004), doi:10.1021/cm031169p (via tier1.json)"},
       "density_solid_kg_m3": {"value": 814, "source": "Shlosinger & Bentilla 1965, as compiled in Hirschey et al. 2018 (via tier1.json)"},
       "density_liquid_kg_m3": {"value": 776.8, "source": "CRC Handbook 95th ed. p. 3-424 via PubChem/HSDB, 0.7768 g/cm3 at 28 C (pitch claims register S17; secondary; phase at Tm not stated)"},
-      "conductivity_liquid_W_mK": {"value": null, "source": null, "note": "pending: chemistry lead (liquid n-octadecane near 310 K). Only solid n-docosane 0.49 W/m/K (Paul et al. 2023) is sourced so far; using a solid value for the melted layer would favour paraffin."}
+      "conductivity_liquid_W_mK": {"value": 0.149, "source": "Velez et al., Appl. Energy 143, 383 (2015), doi:10.1016/j.apenergy.2015.01.054, Fig. 6b inset, liquid n-octadecane 303-318 K (read from the figure, +/-2%); via chemistry-lead memo [S17]"}
     },
     {
       "name": "gallium",

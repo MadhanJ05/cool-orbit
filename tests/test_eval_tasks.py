@@ -60,9 +60,19 @@ class TaskSetFileTest(unittest.TestCase):
             if t.reference is not None and t.reference.known:
                 self.assertTrue(t.reference.source, t.id)
 
-    def test_not_frozen_until_preregistration(self) -> None:
-        # Flip this test in the pre-registration commit, together with frozen=true.
-        self.assertFalse(RAW["frozen"])
+    SCORED = {"nvidia_si_lattice_constant", "nvidia_o_cu111_adsorption", "nvidia_li_liquid_diffusion_800k",
+              "control_li_liquid_diffusion_nve_800k", "nvidia_lif_crystal_diffusion", "team_cu_crystal_diffusion_300k",
+              "tier1_al_melting", "tier1_eicosane_melting_mace"}
+
+    def test_preregistered(self) -> None:
+        # Flipped in the pre-registration commit (2026-10-31): frozen, with the scored set named and no
+        # placeholder tolerance left on any scored task.
+        self.assertTrue(RAW["frozen"])
+        self.assertIn("_preregistration", RAW)
+        for task in RAW["tasks"]:
+            if task["id"] in self.SCORED:
+                self.assertIn(task["id"], RAW["_preregistration"])
+                self.assertNotIn("PLACEHOLDER", json.dumps(task.get("tolerance")), task["id"])
 
 
 class TaskValidationTest(unittest.TestCase):

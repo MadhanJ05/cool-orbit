@@ -1,7 +1,8 @@
 {
   "version": 1,
-  "frozen": false,
-  "_note": "Comparison-experiment task set (CLAUDE.md section 13). NOT pre-registered yet: tolerances marked PLACEHOLDER must be set by the computational chemistry lead, blind tasks added, and frozen=true committed BEFORE any comparison run. Reference values: every non-null value carries a checkable source; 'from_calibration' entries are resolved at load time from Teammate 1's data/calibration/tier1.json and stay null until a sourced record exists there. 'nvidia_published' numbers are NVIDIA's own MACE results, kept for side-by-side comparison only; they are NOT reference values.",
+  "frozen": true,
+  "_preregistration": "FROZEN 2026-10-31 before the first comparison run (run cmp-1). Scored set: the 8 tasks nvidia_si_lattice_constant, nvidia_o_cu111_adsorption, nvidia_li_liquid_diffusion_800k, control_li_liquid_diffusion_nve_800k, nvidia_lif_crystal_diffusion, team_cu_crystal_diffusion_300k, tier1_al_melting, tier1_eicosane_melting_mace. The other tasks are not run tonight (GPU time) and their PLACEHOLDER tolerances are not pre-registered. Tolerances from the chemistry-lead memo (docs/chemistry-lead-memo-2026-10-31.md); trust rules frozen in configs/trust_rules.json. No blind tasks were obtained in time (reported as a limitation).",
+  "_note": "Comparison-experiment task set (CLAUDE.md section 13). Tolerances marked PLACEHOLDER are not pre-registered. Reference values: every non-null value carries a checkable source; 'from_calibration' entries are resolved at load time from Teammate 1's data/calibration/tier1.json and stay null until a sourced record exists there. 'nvidia_published' numbers are NVIDIA's own MACE results, kept for side-by-side comparison only; they are NOT reference values.",
   "tasks": [
     {
       "id": "nvidia_si_lattice_constant",
@@ -19,7 +20,7 @@
         "source": "CODATA 2022 recommended value, lattice parameter of silicon, https://physics.nist.gov/cgi-bin/cuu/Value?asil",
         "note": "Room-temperature measured value (the reference NVIDIA's blog links to). PBE-trained models are expected to overestimate it slightly."
       },
-      "tolerance": {"rel": 0.01, "_status": "PLACEHOLDER"},
+      "tolerance": {"rel": 0.01, "_status": "PRE-REGISTERED 2026-10-31 (chemistry lead: MACE is +0.65%; 1% still catches a primitive-cell vector or a bond length reported as the lattice constant)"},
       "nvidia_published": {"value": 5.4661, "units": "angstrom", "source": "NVIDIA blog, Aug 18 2026 (MACE-MPA-0, all five prompt levels)"}
     },
     {
@@ -56,7 +57,7 @@
         "source": "Copper microcalorimetry (Giamello et al.; Naumann d'Alnoncourt et al.), range as quoted in the NVIDIA blog https://developer.nvidia.com/blog/how-ai-coding-agents-can-unlock-materials-simulation-with-nvidia-alchemi-toolkit/",
         "note": "Secondary citation: primary papers not yet checked. The blog also cites -4.31 eV at 0.25 ML (https://doi.org/10.1007/s11244-018-0943-0), a computed value, so it is not used as the reference."
       },
-      "tolerance": {"abs": 0.3, "_status": "PLACEHOLDER"},
+      "tolerance": {"abs": 0.40, "_status": "PRE-REGISTERED 2026-10-31 (chemistry lead: PBE overbinds O on Cu by ~0.41 eV vs experiment, Araujo et al., Nat. Commun. 13, 6853 (2022), Table 1)"},
       "nvidia_published": {"value": -4.799, "units": "eV", "source": "NVIDIA blog, Aug 18 2026 (MACE-MPA-0, fcc hollow, +/- 0.004 eV)"}
     },
     {
@@ -75,7 +76,7 @@
         "source": null,
         "note": "The blog compares against an NMR-anchored Arrhenius extrapolation but prints no number. Wrong-method detection uses the trap signature, not the reference."
       },
-      "tolerance": {"factor": 2.0, "_status": "PLACEHOLDER"},
+      "tolerance": {"factor": 2.0, "_status": "PRE-REGISTERED 2026-10-31 (no sourced reference, so correctness is unscored; the trap signature decides)"},
       "nvidia_published": {"value": 4.32e-4, "units": "cm2/s", "source": "NVIDIA blog Table 1, L5 NVE at 800 K (L3 NVE: 5.38e-4; L2 Langevin: 1.03e-4)"}
     },
     {
@@ -117,7 +118,7 @@
       "property": "self_diffusion",
       "units": "cm2/s",
       "reference": {"value": null, "source": null, "note": "No sourced number yet; only refusals count as false alarms on this control."},
-      "tolerance": {"factor": 2.0, "_status": "PLACEHOLDER"}
+      "tolerance": {"factor": 2.0, "_status": "PRE-REGISTERED 2026-10-31 (no sourced reference; only refusals count as false alarms)"}
     },
     {
       "id": "tier1_cu_melting_coexistence",
@@ -150,7 +151,12 @@
       "origin": "team",
       "kind": "trap",
       "trap": "single_phase_heating",
-      "trap_signature": [{"field": "method.protocol", "contains": "single-phase"}],
+      "trap_signature": [{"field": "method.protocol", "contains": "single-phase"},
+                         {"field": "method.protocol", "contains": "single phase"},
+                         {"field": "method.protocol", "contains": "heating ramp"},
+                         {"field": "method.protocol", "contains": "temperature ramp"},
+                         {"field": "method.protocol", "contains": "direct heating"}],
+      "_signature_note": "Pre-registered 2026-10-31: the bare word 'heating' is deliberately NOT a signature (a correct coexistence protocol may describe heating its liquid half).",
       "expected": "answer",
       "prompt": "Find the melting point of aluminum at ambient pressure.",
       "material": "Al",

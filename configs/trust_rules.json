@@ -1,12 +1,14 @@
 {
-  "frozen": false,
-  "_note": "PLACEHOLDER tolerances, pending the computational chemistry lead. Set real values, set frozen=true and commit BEFORE any comparison run (pre-registration). 'agree' = independent method vs result; 'tier1' = result vs sourced measured value. A value agrees if |delta| <= max(abs, rel * |reference|).",
+  "frozen": true,
+  "_note": "PRE-REGISTERED 2026-10-31 by the chemistry lead (Claude Fable 5.1 literature review, docs/chemistry-lead-memo-2026-10-31.md), before any comparison run. 'agree' = independent method vs result; 'tier1' = result vs sourced measured value. A value agrees if |delta| <= max(abs, rel * |reference|). Melting points: rel 0.10 (MLIP error dominates: published MACE-MPA-0 coexistence errors ~12-15%; superheating overshoots +8-43%). Latent heats: rel 0.15 (DSC spread 6.5-7%; dH = Tm dS propagates the ~10% Tm error). Density and conductivity were not reviewed (not used in tonight's comparison). An independent check counts only if its method recovers the sourced value of that material within tier1 (scripts/post_classical_checks.py gate). Adjudicator rulings settle the disputed method audits before them (coolorbit/board/status.py).",
   "independent_check_types": ["second_mlip", "classical_md"],
   "rejection_min_referees": 2,
+  "adjudicators": ["adjudicator"],
   "properties": {
-    "melting_point":          {"units": ["K"],     "agree": {"abs": 20.0}, "tier1": {"abs": 25.0}},
-    "transition_temperature": {"units": ["K"],     "agree": {"abs": 20.0}, "tier1": {"abs": 25.0}},
-    "latent_heat":            {"units": ["J/kg"],  "agree": {"rel": 0.15}, "tier1": {"rel": 0.20}},
+    "melting_point":          {"units": ["K"],     "agree": {"rel": 0.10}, "tier1": {"rel": 0.10}},
+    "transition_temperature": {"units": ["K"],     "agree": {"rel": 0.10}, "tier1": {"rel": 0.10}},
+    "latent_heat":            {"units": ["J/kg"],  "agree": {"rel": 0.15}, "tier1": {"rel": 0.15}},
+    "transition_latent_heat": {"units": ["J/kg"],  "agree": {"rel": 0.15}, "tier1": {"rel": 0.15}},
     "density":                {"units": ["g/cm3"], "agree": {"rel": 0.03}, "tier1": {"rel": 0.05}},
     "conductivity":           {"units": ["W/m/K"], "agree": {"rel": 0.30}, "tier1": {"rel": 0.30}}
   }

@@ -1,0 +1,40 @@
+{
+ "scenario": {
+  "power_W": 1000.0,
+  "minutes": 15.0,
+  "dT_K": 10.0,
+  "fin_mm": 0.5
+ },
+ "results": [
+  {
+   "material": "n-octadecane (paraffin)",
+   "pcm_kg": 3.811,
+   "area_m2": 1.8146,
+   "melt_depth_mm": 2.7,
+   "fin_kg": 1.224,
+   "total_kg": 5.035,
+   "pcm_volume_L": 4.906,
+   "figure_rhoLk": 27333335.395999998
+  },
+  {
+   "material": "gallium",
+   "pcm_kg": 11.226,
+   "area_m2": 0.0811,
+   "melt_depth_mm": 22.78,
+   "fin_kg": 0.055,
+   "total_kg": 11.28,
+   "pcm_volume_L": 1.901,
+   "figure_rhoLk": 13690808883.800001
+  }
+ ],
+ "skipped_unsourced": [
+  {
+   "material": "Field's metal (Bi32.5In51Sn16.5 wt%)",
+   "missing": [
+    "density_solid_kg_m3",
+    "density_liquid_kg_m3",
+    "conductivity_liquid_W_mK"
+   ]
+  }
+ ]
+}

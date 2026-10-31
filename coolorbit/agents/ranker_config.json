@@ -1,7 +1,8 @@
 {
   "_note": "Figure of merit (CLAUDE.md section 5). The operating window is an OPEN TEAM DECISION (section 14.2): these bounds are PLACEHOLDERS so the pipeline runs. Set decided=true when the team picks real values.",
-  "decided": false,
-  "window_K": {"min": 290.0, "max": 370.0},
+  "decided": true,
+  "_decision": "2026-10-31, chemistry lead (docs/chemistry-lead-memo-2026-10-31.md): 315-345 K (42-72 C), SOFT (+/-10 K). Upper: HBM accelerator max operating 80 C (353 K) minus >=8 K junction-to-PCM; lower: the PCM must refreeze against a ~40 C radiator. One 2026 orbital design targets ~40 C junctions, which would move it to ~295-310 K.",
+  "window_K": {"min": 315.0, "max": 345.0},
   "transition_pairs": [
     {"temperature": "melting_point", "latent_heat": "latent_heat", "kind": "solid-liquid"},
     {"temperature": "transition_temperature", "latent_heat": "transition_latent_heat", "kind": "solid-solid"}
