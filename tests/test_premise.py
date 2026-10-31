@@ -88,6 +88,17 @@ class Rules(unittest.TestCase):
         defective = {**LIF, "description": "Li diffusion in LiF with 2% Li vacancies", "defects": "vacancies"}
         self.assertNotEqual(premise_rules(defective).verdict, "fail")
 
+    def test_perfect_crystal_wording_and_thermal_conductivity(self):
+        cu = {"material": "Cu", "formula": "Cu", "property": "self_diffusion", "temperature_K": 300,
+              "description": "Compute the self-diffusion coefficient of copper atoms in a perfect fcc copper crystal "
+                             "at 300 K using molecular dynamics."}
+        self.assertIn("ill_posed_timescale", premise_rules(cu).flags)
+        k = {"material": "Cu", "property": "conductivity", "state": "crystal",
+             "description": "thermal conductivity of a perfect copper crystal", "method": {"ensemble": "NVE"}}
+        self.assertNotEqual(premise_rules(k).verdict, "fail")  # phonon/electron transport: not timescale-limited
+        k_lang = {**k, "method": {"ensemble": "NVT-Langevin"}}
+        self.assertIn("langevin_transport", premise_rules(k_lang).flags)  # still needs NVE production
+
     def test_method_traps(self):
         heat = {**CONTROLS["Cu melting (coexistence)"]}
         heat["method"] = {**heat["method"], "protocol": "single-phase heating"}

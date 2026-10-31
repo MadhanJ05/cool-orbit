@@ -198,6 +198,7 @@ class LibrarianAgent(Agent):
         super().__init__(board, name, **kw)
         self.records = records if records is not None else load_calibration(data_path)
         self.index = index_records(self.records)
+        self._declined: set[tuple[str, int]] = set()
 
     @staticmethod
     def _wants(on: OpenNeed) -> bool:
@@ -217,6 +218,11 @@ class LibrarianAgent(Agent):
             if not name or not prop:
                 self.log("skip", target=on.artifact.artifact_id[:8], reason="cannot tell which candidate/property")
                 continue
+            if prop not in PROPERTY_UNITS:  # decide before claiming, so another agent can take it
+                if (on.artifact.artifact_id, on.index) not in self._declined:
+                    self._declined.add((on.artifact.artifact_id, on.index))
+                    self.log("decline", target=on.artifact.artifact_id[:8], reason=f"unknown property {prop!r}")
+                continue
             if not self.claim(on, ttl_minutes=10):
                 continue
             rec = self.index.get((_norm(name), prop))
@@ -225,14 +231,11 @@ class LibrarianAgent(Agent):
                 why = "found in curated dataset" if rec["value"] is not None else "dataset records it as not found"
             else:
                 payload = to_reference_payload(
-                    {"candidate": name, "property": prop, "value": None, "units": PROPERTY_UNITS.get(prop, "unknown"),
+                    {"candidate": name, "property": prop, "value": None, "units": PROPERTY_UNITS[prop],
                      "source": None,
                      "note": f"NOT FOUND: no measured {prop} for {name!r} in data/calibration/tier1.json; "
-                             "the Librarian only serves curated, sourced values"}) if prop in PROPERTY_UNITS else None
+                             "the Librarian only serves curated, sourced values"})
                 why = "not in curated dataset"
-            if payload is None:
-                self.log("decline", target=on.artifact.artifact_id[:8], reason=f"unknown property {prop!r}")
-                continue
             self.post("reference_value", payload, fulfills=(on.artifact.artifact_id, on.index),
                       skill="coolorbit.librarian.tier1")
             self.log("decision", candidate=name, property=prop, value=payload["value"], reason=why)

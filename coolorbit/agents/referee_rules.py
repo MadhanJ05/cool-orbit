@@ -13,6 +13,11 @@ result's ``method_audit`` need when it can claim it. Checks (thresholds in ``aud
 
 Verdict ``fail`` if any rule fires, else ``pass``. It never checks its own results.
 
+A failing check also carries a **rerun need** when the flaw is fixable (docs/simulation-requests.md,
+"Reruns"): two-phase coexistence instead of single-phase heating, the production preset instead of quick
+or undersized settings, ``engine: classical_md`` for an out-of-domain model. The Simulator links the rerun's
+result to the flawed one, which marks the old result superseded. At most ``max_reruns`` per lineage.
+
     python -m coolorbit.agents.referee_rules --board boards/<id> [--once]
 """
 
@@ -92,12 +97,71 @@ def audit(result: dict, rules: dict, candidate: Optional[dict] = None) -> tuple[
     return flags, reasons
 
 
+SUPERHEATING_FLAGS = {"single_phase_heating", "superheating_risk", "superheating_observed",
+                      "unexpected_superheating_signal"}
+PRODUCTION_FLAGS = {"quick_settings_not_production", "system_too_small", "run_too_short",
+                    "liquid_half_incompletely_melted", "crystal_half_disturbed"}
+DOMAIN_FLAGS = {"model_out_of_domain", "timestep_too_large_for_hydrogen"}
+TYPICAL_SUPERHEATING = 1.2  # single-phase heating of a perfect crystal overshoots Tm by roughly 20%
+
+
+def rerun_depth(snap: BoardSnapshot, res: Artifact) -> int:
+    """How many earlier same-property results this one supersedes (its rerun chain length)."""
+    depth, cur = 0, res
+    while True:
+        prev = next((snap.artifacts[p] for p in cur.parent_artifact_ids if p in snap.artifacts
+                     and snap.artifacts[p].artifact_type == "property_result"
+                     and snap.artifacts[p].payload["property"] == res.payload["property"]), None)
+        if prev is None:
+            return depth
+        depth, cur = depth + 1, prev
+
+
+def rerun_need(result: dict, flags: list[str]) -> Optional[dict]:
+    """The request that would fix this result's flaws, or None if a rerun can't fix them."""
+    prop, name = result["property"], result["candidate"]
+    m = result.get("method") or {}
+    temps = m.get("temperatures_K") or []
+    need = {"artifact_type": "property_result", "property": prop}
+    fixes = []
+    if DOMAIN_FLAGS & set(flags):
+        need["engine"] = "classical_md"
+        fixes.append("classical MD (the MLIP is outside its training domain)")
+    if prop in ("melting_point", "transition_temperature"):
+        if SUPERHEATING_FLAGS & set(flags):
+            need["t_guess_K"] = round(result["value"] / TYPICAL_SUPERHEATING)
+            fixes.append(f"two-phase coexistence (bracket around {need['t_guess_K']} K, the heating value "
+                         f"corrected for ~{round((TYPICAL_SUPERHEATING - 1) * 100)}% superheating)")
+        elif len(temps) >= 2:
+            need["temps_K"] = list(temps)
+        else:
+            need["t_guess_K"] = round(result["value"])
+    elif prop in ("latent_heat", "transition_latent_heat"):
+        t = temps[0] if temps else None
+        if t is None:
+            return None
+        need["temperature_K"] = t
+    else:
+        return None  # the Simulator only runs melting points and latent heats
+    if PRODUCTION_FLAGS & set(flags) or SUPERHEATING_FLAGS & set(flags):
+        need["preset"] = "production"
+        if PRODUCTION_FLAGS & set(flags):
+            fixes.append("production settings")
+    if not fixes:
+        return None
+    need["query"] = f"rerun {prop} of {name} with " + " and ".join(fixes)
+    need["rationale"] = "method audit failed on " + ", ".join(flags) + "; a corrected rerun supersedes this result"
+    return need
+
+
 class RuleReferee(Agent):
     role = "referee"
 
-    def __init__(self, board: Board, name: str = AGENT_NAME, *, rules: Optional[dict] = None, **kw) -> None:
+    def __init__(self, board: Board, name: str = AGENT_NAME, *, rules: Optional[dict] = None,
+                 max_reruns: int = 2, **kw) -> None:
         super().__init__(board, name, **kw)
         self.rules = rules if rules is not None else load_audit_rules()
+        self.max_reruns = max_reruns
 
     def _audited(self, snap: BoardSnapshot, res: Artifact) -> bool:
         return any(k.artifact_type == "check" and k.producer_agent == self.name
@@ -121,10 +185,18 @@ class RuleReferee(Agent):
             on = audit_needs.get(res.artifact_id)
             if on is not None and self.claim(on, ttl_minutes=5):
                 fulfills = (on.artifact.artifact_id, on.index)
+            needs = []
+            if flags:
+                rerun = rerun_need(res.payload, flags)
+                if rerun is not None and rerun_depth(snap, res) >= self.max_reruns:
+                    note += f" [no rerun requested: {self.max_reruns} reruns already in this lineage]"
+                    rerun = None
+                needs = [rerun] if rerun else []
             self.post("check", {"check_type": "method_audit", "verdict": verdict, "flags": flags, "note": note[:2000]},
-                      parents=[res.artifact_id], fulfills=fulfills, skill="coolorbit.referee.rules")
+                      parents=[res.artifact_id], fulfills=fulfills, needs=needs, skill="coolorbit.referee.rules")
             self.log("decision", result=res.artifact_id[:8], candidate=res.payload["candidate"],
-                     property=res.payload["property"], verdict=verdict, flags=flags)
+                     property=res.payload["property"], verdict=verdict, flags=flags,
+                     rerun=needs[0]["query"] if needs else None)
             return True
         return False
 

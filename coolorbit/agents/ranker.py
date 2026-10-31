@@ -28,12 +28,18 @@ def load_ranker_config(path: str | Path = CONFIG_PATH) -> dict:
     return json.loads(Path(path).read_text())
 
 
-def rank(snap: BoardSnapshot, trust_rules: dict, cfg: dict) -> tuple[list[dict], list[str]]:
-    """Pure function: (entries best-first, exclusion notes)."""
+SYNTHETIC_FLAG = "synthetic_test_data"
+
+
+def rank(snap: BoardSnapshot, trust_rules: dict, cfg: dict, include_synthetic: bool = False) -> tuple[list[dict], list[str]]:
+    """Pure function: (entries best-first, exclusion notes). Synthetic (FakeSimulator) results are skipped
+    unless ``include_synthetic`` (dev boards only); then every entry using one is labelled SYNTHETIC."""
     trusted: dict[str, dict[str, Artifact]] = defaultdict(dict)
     names: dict[str, str] = {}
     for art, report in summarize(snap, trust_rules):
         if report.status != "trusted" or report.superseded_by:
+            continue
+        if SYNTHETIC_FLAG in art.payload.get("flags", []) and not include_synthetic:
             continue
         key = norm(art.payload["candidate"])
         names.setdefault(key, art.payload["candidate"])
@@ -69,6 +75,8 @@ def rank(snap: BoardSnapshot, trust_rules: dict, cfg: dict) -> tuple[list[dict],
         k_text = f"{k.payload['value']:g} W/m/K" if k else "not trusted yet"
         note = (f"{best['pair']['kind']}: T = {best['t'].payload['value']:g} K, "
                 f"L = {best['score']:.1f} kJ/kg, k = {k_text}")
+        if any(SYNTHETIC_FLAG in best[x].payload.get("flags", []) for x in ("t", "lh")):
+            note += " [SYNTHETIC test data, not a result]"
         if best["t"].payload.get("tier") == "discovery" or best["lh"].payload.get("tier") == "discovery":
             note += " [PREDICTION: discovery tier, not measured]"
         entries.append({"candidate": name, "score": round(best["score"], 3), "result_ids": ids, "note": note,
@@ -83,8 +91,9 @@ class Ranker(Agent):
     role = "ranker"
 
     def __init__(self, board: Board, name: str = AGENT_NAME, *, trust_rules: Optional[dict] = None,
-                 config: Optional[dict] = None, **kw) -> None:
+                 config: Optional[dict] = None, include_synthetic: bool = False, **kw) -> None:
         super().__init__(board, name, **kw)
+        self.include_synthetic = include_synthetic
         self.trust_rules = trust_rules
         self.cfg = config if config is not None else load_ranker_config()
         self._last_excluded: Optional[list[str]] = None
@@ -96,7 +105,7 @@ class Ranker(Agent):
     def step(self) -> bool:
         snap = self.board.snapshot()
         rules = self.trust_rules if self.trust_rules is not None else load_rules()
-        entries, excluded = rank(snap, rules, self.cfg)
+        entries, excluded = rank(snap, rules, self.cfg, self.include_synthetic)
         if excluded != self._last_excluded:
             self._last_excluded = excluded
             if excluded:
