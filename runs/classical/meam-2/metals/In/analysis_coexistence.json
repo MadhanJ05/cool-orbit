@@ -1,0 +1,76 @@
+{
+  "mode": "coexistence",
+  "per_temperature": [
+    {
+      "delta_pe_eV_per_atom": -0.02719207703106763,
+      "block_noise_eV_per_atom": 0.0040111123374488526,
+      "threshold_eV_per_atom": 0.012033337012346558,
+      "verdict": "freezing",
+      "file": "pe_T540.dat",
+      "T_target_K": 540.0,
+      "T_measured_K": 539.7,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 45.4164469128747
+    },
+    {
+      "delta_pe_eV_per_atom": -0.02878429039319741,
+      "block_noise_eV_per_atom": 0.003554774502652066,
+      "threshold_eV_per_atom": 0.010664323507956198,
+      "verdict": "freezing",
+      "file": "pe_T580.dat",
+      "T_target_K": 580.0,
+      "T_measured_K": 579.5,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 44.3539469587345
+    },
+    {
+      "delta_pe_eV_per_atom": -0.03152024366883355,
+      "block_noise_eV_per_atom": 0.004259899524629494,
+      "threshold_eV_per_atom": 0.012779698573888481,
+      "verdict": "freezing",
+      "file": "pe_T620.dat",
+      "T_target_K": 620.0,
+      "T_measured_K": 619.5,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 42.5690871265593
+    },
+    {
+      "delta_pe_eV_per_atom": -0.03334252580311059,
+      "block_noise_eV_per_atom": 0.0030591482055967053,
+      "threshold_eV_per_atom": 0.009177444616790115,
+      "verdict": "freezing",
+      "file": "pe_T660.dat",
+      "T_target_K": 660.0,
+      "T_measured_K": 660.5,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 34.6671317106398
+    },
+    {
+      "delta_pe_eV_per_atom": -0.03893385232487212,
+      "block_noise_eV_per_atom": 0.0030610722094912366,
+      "threshold_eV_per_atom": 0.00918321662847371,
+      "verdict": "freezing",
+      "file": "pe_T700.dat",
+      "T_target_K": 700.0,
+      "T_measured_K": 700.4,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 35.4450866379628
+    }
+  ],
+  "method": {
+    "engine": "LAMMPS",
+    "model": "2NN MEAM, NIST IPR 2008--Do-E-C--In--LAMMPS--ipr1",
+    "nist_implementation": "2008--Do-E-C--In--LAMMPS--ipr1",
+    "doi": "10.1016/j.calphad.2007.08.004",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT (Nose-Hoover, aniso)",
+    "timestep_fs": 2.0,
+    "n_atoms": 1408,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "seed": 2026
+  },
+  "status": "failed",
+  "failure": "above_bracket",
+  "reason": "no temperature melted: Tm is above the bracket"
+}

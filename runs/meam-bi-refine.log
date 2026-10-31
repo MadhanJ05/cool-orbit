@@ -1,0 +1,18 @@
+Bi-coexist-T565          cwd=runs/classical/meam-bi-refine/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T565.lammps -var T 565 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+Bi-coexist-T576          cwd=runs/classical/meam-bi-refine/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T576.lammps -var T 576 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+Bi-coexist-T586          cwd=runs/classical/meam-bi-refine/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T586.lammps -var T 586 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+Bi-coexist-T598          cwd=runs/classical/meam-bi-refine/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T598.lammps -var T 598 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+Bi-coexist-T610          cwd=runs/classical/meam-bi-refine/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T610.lammps -var T 610 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+Bi-coexist-T610: exit 0, 3.5 min
+Bi-coexist-T598: exit 0, 3.5 min
+Bi-coexist-T586: exit 0, 3.5 min
+Bi-coexist-T576: exit 0, 3.6 min
+Bi-coexist-T565: exit 0, 3.6 min
+[
+ {
+  "element": "Bi",
+  "kind": "coexistence",
+  "exit": 0,
+  "stdout_tail": "-LAMMPS--ipr1\",\n    \"doi\": \"10.1088/1361-651x/ac095c\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1728,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 586.7,\n  \"uncertainty\": 17.0,\n  \"bracket_K\": [\n    576.0,\n    610.0\n  ]\n}\n"
+ }
+]

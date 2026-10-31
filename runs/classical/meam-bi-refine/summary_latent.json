@@ -1,0 +1,24 @@
+{
+ "run": "meam-bi-refine",
+ "kind": "latent",
+ "jobs": [
+  {
+   "id": "Bi-latent-solid",
+   "exit": 0,
+   "wall_min": 0.6
+  },
+  {
+   "id": "Bi-latent-liquid",
+   "exit": 0,
+   "wall_min": 0.5
+  }
+ ],
+ "analysis": [
+  {
+   "element": "Bi",
+   "kind": "latent",
+   "exit": 0,
+   "stdout_tail": "d vs liquid enthalpy at Tm\",\n    \"ensemble\": \"NPT (Nose-Hoover; solid aniso, liquid iso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 360,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"solid_moved_fraction\": 0.00277777777777778,\n  \"liquid_moved_fraction\": 0.997222222222222,\n  \"status\": \"ok\",\n  \"property\": \"latent_heat\",\n  \"units\": \"J/kg\",\n  \"value\": 59906,\n  \"uncertainty\": 223\n}\n"
+  }
+ ]
+}

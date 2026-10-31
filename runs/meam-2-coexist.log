@@ -1,0 +1,32 @@
+In-coexist-T540          cwd=runs/classical/meam-2/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T540.lammps -var T 540 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+In-coexist-T580          cwd=runs/classical/meam-2/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T580.lammps -var T 580 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+In-coexist-T620          cwd=runs/classical/meam-2/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T620.lammps -var T 620 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+In-coexist-T660          cwd=runs/classical/meam-2/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T660.lammps -var T 660 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+In-coexist-T700          cwd=runs/classical/meam-2/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T700.lammps -var T 700 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+Sn-coexist-T300          cwd=runs/classical/meam-2/metals/Sn  -in ../in.coexist.lmp -log log_Sn-coexist-T300.lammps -var T 300 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
+Sn-coexist-T330          cwd=runs/classical/meam-2/metals/Sn  -in ../in.coexist.lmp -log log_Sn-coexist-T330.lammps -var T 330 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
+Sn-coexist-T360          cwd=runs/classical/meam-2/metals/Sn  -in ../in.coexist.lmp -log log_Sn-coexist-T360.lammps -var T 360 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
+Sn-coexist-T390          cwd=runs/classical/meam-2/metals/Sn  -in ../in.coexist.lmp -log log_Sn-coexist-T390.lammps -var T 390 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
+In-coexist-T540: exit 0, 2.0 min
+In-coexist-T620: exit 0, 2.0 min
+In-coexist-T700: exit 0, 2.0 min
+In-coexist-T660: exit 0, 2.0 min
+In-coexist-T580: exit 0, 2.7 min
+Sn-coexist-T300: exit 0, 3.5 min
+Sn-coexist-T360: exit 0, 3.5 min
+Sn-coexist-T390: exit 0, 3.5 min
+Sn-coexist-T330: exit 0, 3.5 min
+[
+ {
+  "element": "In",
+  "kind": "coexistence",
+  "exit": 1,
+  "stdout_tail": "mentation\": \"2008--Do-E-C--In--LAMMPS--ipr1\",\n    \"doi\": \"10.1016/j.calphad.2007.08.004\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1408,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"failed\",\n  \"failure\": \"above_bracket\",\n  \"reason\": \"no temperature melted: Tm is above the bracket\"\n}\n"
+ },
+ {
+  "element": "Sn",
+  "kind": "coexistence",
+  "exit": 1,
+  "stdout_tail": "\"nist_implementation\": \"2018--Ko-W-S--Sn--LAMMPS--ipr1\",\n    \"doi\": \"10.3390/met8110900\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1900,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"failed\",\n  \"failure\": \"above_bracket\",\n  \"reason\": \"no temperature melted: Tm is above the bracket\"\n}\n"
+ }
+]

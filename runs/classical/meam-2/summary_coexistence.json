@@ -1,0 +1,65 @@
+{
+ "run": "meam-2",
+ "kind": "coexistence",
+ "jobs": [
+  {
+   "id": "In-coexist-T540",
+   "exit": 0,
+   "wall_min": 2.0
+  },
+  {
+   "id": "In-coexist-T580",
+   "exit": 0,
+   "wall_min": 2.7
+  },
+  {
+   "id": "In-coexist-T620",
+   "exit": 0,
+   "wall_min": 2.0
+  },
+  {
+   "id": "In-coexist-T660",
+   "exit": 0,
+   "wall_min": 2.0
+  },
+  {
+   "id": "In-coexist-T700",
+   "exit": 0,
+   "wall_min": 2.0
+  },
+  {
+   "id": "Sn-coexist-T300",
+   "exit": 0,
+   "wall_min": 3.5
+  },
+  {
+   "id": "Sn-coexist-T330",
+   "exit": 0,
+   "wall_min": 3.5
+  },
+  {
+   "id": "Sn-coexist-T360",
+   "exit": 0,
+   "wall_min": 3.5
+  },
+  {
+   "id": "Sn-coexist-T390",
+   "exit": 0,
+   "wall_min": 3.5
+  }
+ ],
+ "analysis": [
+  {
+   "element": "In",
+   "kind": "coexistence",
+   "exit": 1,
+   "stdout_tail": "mentation\": \"2008--Do-E-C--In--LAMMPS--ipr1\",\n    \"doi\": \"10.1016/j.calphad.2007.08.004\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1408,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"failed\",\n  \"failure\": \"above_bracket\",\n  \"reason\": \"no temperature melted: Tm is above the bracket\"\n}\n"
+  },
+  {
+   "element": "Sn",
+   "kind": "coexistence",
+   "exit": 1,
+   "stdout_tail": "\"nist_implementation\": \"2018--Ko-W-S--Sn--LAMMPS--ipr1\",\n    \"doi\": \"10.3390/met8110900\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1900,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"failed\",\n  \"failure\": \"above_bracket\",\n  \"reason\": \"no temperature melted: Tm is above the bracket\"\n}\n"
+  }
+ ]
+}

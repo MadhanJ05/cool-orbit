@@ -1,0 +1,43 @@
+{
+  "mode": "coexistence",
+  "per_temperature": [
+    {
+      "delta_pe_eV_per_atom": 0.00035358154188047664,
+      "block_noise_eV_per_atom": 0.00045812921633227354,
+      "threshold_eV_per_atom": 0.002,
+      "verdict": "stable",
+      "file": "pe_T390.dat",
+      "T_target_K": 390.0,
+      "T_measured_K": 390.1,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 6.75242989118226
+    },
+    {
+      "delta_pe_eV_per_atom": 0.002690639099805381,
+      "block_noise_eV_per_atom": 0.0004111111734734807,
+      "threshold_eV_per_atom": 0.002,
+      "verdict": "melting",
+      "file": "pe_T420.dat",
+      "T_target_K": 420.0,
+      "T_measured_K": 419.8,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 10.5502416546674
+    }
+  ],
+  "method": {
+    "engine": "LAMMPS",
+    "model": "2NN MEAM, NIST IPR 2018--Ko-W-S--Sn--LAMMPS--ipr1",
+    "nist_implementation": "2018--Ko-W-S--Sn--LAMMPS--ipr1",
+    "doi": "10.3390/met8110900",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT (Nose-Hoover, aniso)",
+    "timestep_fs": 2.0,
+    "n_atoms": 1900,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "seed": 2026
+  },
+  "status": "failed",
+  "failure": "below_bracket",
+  "reason": "no temperature froze: Tm is below the bracket"
+}

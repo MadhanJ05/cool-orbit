@@ -1,0 +1,82 @@
+{
+  "mode": "coexistence",
+  "per_temperature": [
+    {
+      "delta_pe_eV_per_atom": -0.013513394533397838,
+      "block_noise_eV_per_atom": 0.0018948432860424816,
+      "threshold_eV_per_atom": 0.005684529858127445,
+      "verdict": "freezing",
+      "file": "pe_T565.dat",
+      "T_target_K": 565.0,
+      "T_measured_K": 565.1,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 29.3938385299366
+    },
+    {
+      "delta_pe_eV_per_atom": -0.0058516920808238115,
+      "block_noise_eV_per_atom": 0.0013443739034637615,
+      "threshold_eV_per_atom": 0.004033121710391285,
+      "verdict": "freezing",
+      "file": "pe_T576.dat",
+      "T_target_K": 576.0,
+      "T_measured_K": 576.5,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 21.2983796692639
+    },
+    {
+      "delta_pe_eV_per_atom": 0.004292191288026048,
+      "block_noise_eV_per_atom": 0.001821439029645307,
+      "threshold_eV_per_atom": 0.005464317088935921,
+      "verdict": "stable",
+      "file": "pe_T586.dat",
+      "T_target_K": 586.0,
+      "T_measured_K": 586.0,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -2.18880311610762
+    },
+    {
+      "delta_pe_eV_per_atom": 0.0011294867135498432,
+      "block_noise_eV_per_atom": 0.0013044602927701828,
+      "threshold_eV_per_atom": 0.003913380878310549,
+      "verdict": "stable",
+      "file": "pe_T598.dat",
+      "T_target_K": 598.0,
+      "T_measured_K": 598.3,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 0.672318729089979
+    },
+    {
+      "delta_pe_eV_per_atom": 0.008057320149766234,
+      "block_noise_eV_per_atom": 0.0017254945556859711,
+      "threshold_eV_per_atom": 0.005176483667057913,
+      "verdict": "melting",
+      "file": "pe_T610.dat",
+      "T_target_K": 610.0,
+      "T_measured_K": 610.3,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -12.3822943929817
+    }
+  ],
+  "method": {
+    "engine": "LAMMPS",
+    "model": "2NN MEAM, NIST IPR 2021--Zhou-H--Bi--LAMMPS--ipr1",
+    "nist_implementation": "2021--Zhou-H--Bi--LAMMPS--ipr1",
+    "doi": "10.1088/1361-651x/ac095c",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT (Nose-Hoover, aniso)",
+    "timestep_fs": 2.0,
+    "n_atoms": 1728,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "seed": 2026
+  },
+  "status": "ok",
+  "property": "melting_point",
+  "units": "K",
+  "value": 586.7,
+  "uncertainty": 17.0,
+  "bracket_K": [
+    576.0,
+    610.0
+  ]
+}

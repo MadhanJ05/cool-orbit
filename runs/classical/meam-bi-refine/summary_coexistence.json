@@ -1,0 +1,39 @@
+{
+ "run": "meam-bi-refine",
+ "kind": "coexistence",
+ "jobs": [
+  {
+   "id": "Bi-coexist-T565",
+   "exit": 0,
+   "wall_min": 3.6
+  },
+  {
+   "id": "Bi-coexist-T576",
+   "exit": 0,
+   "wall_min": 3.6
+  },
+  {
+   "id": "Bi-coexist-T586",
+   "exit": 0,
+   "wall_min": 3.5
+  },
+  {
+   "id": "Bi-coexist-T598",
+   "exit": 0,
+   "wall_min": 3.5
+  },
+  {
+   "id": "Bi-coexist-T610",
+   "exit": 0,
+   "wall_min": 3.5
+  }
+ ],
+ "analysis": [
+  {
+   "element": "Bi",
+   "kind": "coexistence",
+   "exit": 0,
+   "stdout_tail": "-LAMMPS--ipr1\",\n    \"doi\": \"10.1088/1361-651x/ac095c\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1728,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 586.7,\n  \"uncertainty\": 17.0,\n  \"bracket_K\": [\n    576.0,\n    610.0\n  ]\n}\n"
+  }
+ ]
+}

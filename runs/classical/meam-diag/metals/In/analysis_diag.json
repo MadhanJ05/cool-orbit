@@ -1,0 +1,49 @@
+{
+  "mode": "coexistence",
+  "per_temperature": [
+    {
+      "delta_pe_eV_per_atom": -0.042775798910235974,
+      "block_noise_eV_per_atom": 0.003328432555168943,
+      "threshold_eV_per_atom": 0.009985297665506829,
+      "verdict": "freezing",
+      "file": "pe_T700.dat",
+      "T_target_K": 700.0,
+      "T_measured_K": 700.2,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 82.8053449062768
+    },
+    {
+      "delta_pe_eV_per_atom": 0.008711788700810352,
+      "block_noise_eV_per_atom": 0.0021610647927562416,
+      "threshold_eV_per_atom": 0.006483194378268725,
+      "verdict": "melting",
+      "file": "pe_T900.dat",
+      "T_target_K": 900.0,
+      "T_measured_K": 899.5,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -19.8874053416413
+    }
+  ],
+  "method": {
+    "engine": "LAMMPS",
+    "model": "2NN MEAM, NIST IPR 2008--Do-E-C--In--LAMMPS--ipr1",
+    "nist_implementation": "2008--Do-E-C--In--LAMMPS--ipr1",
+    "doi": "10.1016/j.calphad.2007.08.004",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT (Nose-Hoover, aniso)",
+    "timestep_fs": 2.0,
+    "n_atoms": 1408,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "seed": 2026
+  },
+  "status": "ok",
+  "property": "melting_point",
+  "units": "K",
+  "value": 866.2,
+  "uncertainty": 100.0,
+  "bracket_K": [
+    700.0,
+    900.0
+  ]
+}

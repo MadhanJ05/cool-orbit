@@ -511,8 +511,9 @@ def run_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batc
 def run_alloy_latent(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batch]:
     """Latent heat of an alloy: H(liquid alloy) - sum_i x_i H(solid element i), all at the alloy's melting T.
 
-    Assumes the alloy's solid is a mixture of the pure elements (true for e.g. Ga-In; intermetallics such as
-    BiIn2 in Field's metal would lower the real latent heat). Flagged in every result.
+    Assumes the alloy's solid is a mixture of the pure elements (true for e.g. Ga-In). Where the real eutectic
+    solid contains intermetallics (e.g. BiIn2 in Field's metal), they are more stable than the separate metals, so
+    the real latent heat is likely higher and this estimate an underestimate. Flagged in every result.
     """
     fractions = parse_composition(s.composition)
     t = s.temps[0]
