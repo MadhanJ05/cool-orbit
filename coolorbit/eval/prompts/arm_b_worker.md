@@ -20,9 +20,11 @@ anything:
 2. **Validation:** recover an independent known result with the same setup before trusting your number.
 3. **Uncertainty:** report an uncertainty and what it covers.
 You may search the web.
+Measured reference values you may use: `{calibration_path}` (JSON records of measured melting points, latent heats, densities and conductivities of known phase-change materials and metals, each with its source).
 
 ## How to record your work (required)
-Record everything on the results board at `{board_path}` as agent `worker`, following
-`coolorbit/eval/arms.md` section 3 (candidate with parent `{task_request_id}`, then `property_result` or a
-`run_report`). On a rerun, post the new `property_result` with the old one as parent. Never edit or delete
-anything on the board. Never invent experimental values or citations.
+Record everything on the results board with `./board` (see "The board tool" below; you post as `worker`):
+a `candidate` fulfilling need #0 of the task request `{task_request_id}`, then a `property_result` (parent = the
+candidate, full method metadata and any flags) or a `run_report` (`refused` / `failed`, with the reason). On a
+rerun, post the new `property_result` with the old one as parent. Never edit or delete anything on the board.
+Never invent experimental values or citations.

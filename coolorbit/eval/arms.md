@@ -17,20 +17,52 @@ the metrics compare like with like.
 | **C. Decentralized collective** | Our Scouts, Simulators, Referees, Ranker (Teammate 1 + GB10 stream) | Any referee, via needs and claims; status from the trust rule | Each agent's own prompt (`coolorbit/agents/`); the task arrives only as a board need |
 | D. (optional) Homogeneous collective | As C, every agent on one model family | As C | As C |
 
-**Equal resources for every arm** (TBD numbers, same for all): LLM token budget per task, GPU-hours per
-task, wall-clock limit, the same tools (ALCHEMI skills, web access, Nebius classical MD if any arm gets it,
-the calibration dataset). An arm that runs out of budget stops and records that (see section 3).
+**Equal resources for every arm**, all from `configs/llm_roles.json` (one source of truth):
+- **LLM dollars: $1.50 per task per arm** (`comparison_budget_usd_per_task_per_arm`), the same for A, B and
+  **C (our collective)**. Arm A: its one session may spend it all. Arm B: worker and checker share it; each
+  session may spend at most half of what is left, the last possible one (the re-check) the rest, so the
+  checker is never starved and the total never exceeds $1.50. Arm C must stay within $1.50 per task too
+  (summed over all its agents, from `costs.jsonl`).
+- **Model: the `arm_baseline` role** (`claude-opus-5-5`, effort `high`) for every arm A/B session
+  (`claude -p --model ... --effort ...`).
+- Dollars charged = Claude Code's own `total_cost_usd` per session (it prices cache writes), the same for every
+  arm (`usd` in `costs.jsonl`). A session that left no report (killed at the time limit) is charged its cap.
+  `llm_roles.cost_usd(model, usage)` is logged per session as a cross-check only (`usd_check_cost_usd`).
+- Same wall-clock limit per session, same tools (ALCHEMI skills, web access, and the calibration dataset
+  `data/calibration/tier1.json`, which arm C's Librarian uses: mounted read-only for arms A and B).
+  An arm that runs out of budget stops and records that (`run_record.json` `budget.stopped_by_budget`).
+- **Infrastructure failures are not scored:** if the shared key runs out of credit mid-task, the attempt moves
+  to `<repeat>/_infra_failed/` and the task reruns from scratch on the backup key (`coolorbit/llm_keys.py`).
 
-## 2. Boards: one per arm and repeat
+## 2. Boards and runners
 
 ```
-boards/eval/<run_id>/<arm>-r<repeat>/      e.g. boards/eval/2026-11-01a/A-r1/
+boards/eval/<run_id>/<arm>-r<repeat>/<task_id>/   arms A and B (runner): one fresh board per task
+boards/eval/<run_id>/<arm>-r<repeat>/             arm C: one board per repeat holding all tasks (or per-task too)
 ```
 
-- Fresh board per (arm, repeat); nothing is shared across arms. `seed_board()` refuses an already-seeded board.
-- Before the arm starts, the harness seeds the board: `eval_harness` posts one `request` per task with
-  note `eval_task:<task_id>` and one need (`artifact_type: "candidate"`, query = the task prompt).
+- Arms A and B: `python -m coolorbit.eval.runner --arm A|B --run <run_id> --repeat <k> --budget-usd <$> --timeout-min <m>`
+  (`--dry-run` first). For each task it seeds a fresh board with that one task, opens a fresh sandbox
+  **outside the repo** (`~/coolorbit-eval-work/...`; only the ALCHEMI skills and a `./board` tool with a fixed
+  agent name), and runs a headless Claude Code session (`claude -p`) with the arm's prompt. Arm B runs
+  worker → checker → (one worker rerun + one more check if the verdict is negative). Each task ends with
+  `run_record.json` (sessions, limits, exit codes, timeouts, contamination scan) and the full transcripts.
+- Fresh board per task or per (arm, repeat); nothing is shared across arms or tasks. `seed_board()` refuses an
+  already-seeded board.
+- The harness seeds each board: `eval_harness` posts one `request` per task with note `eval_task:<task_id>`
+  and one need (`artifact_type: "candidate"`, query = the task prompt).
+- Score a repeat with `python -m coolorbit.eval.metrics --repeat boards/eval/<run>/<arm>-r<k>` (a board or a
+  folder of per-task boards).
 - These are evidence boards: commit them after the run (only `boards/dev-*` is gitignored).
+- **Sandbox (required for real runs):** `--sandbox docker` (default). Build the image once with
+  `python -m coolorbit.eval.sandbox build` (python 3.12, nvalchemi-toolkit[cu13,mace,ase]==0.2.0, plotext<6, the
+  ALCHEMI skills, Claude Code, and a self-contained board tool; built from a staged context, so `tasks.json`,
+  `CLAUDE.md` and `.env` are never in it). Each session's container mounts only its work dir (`/work`), its
+  task board's `artifacts/` (`/board/artifacts`) and `data/calibration/tier1.json` **read-only** at
+  `/data/calibration/tier1.json` (the same measured references arm C's Librarian uses; the prompts point to it), gets only `ANTHROPIC_API_KEY`, `--gpus all`, runs as your
+  uid with all capabilities dropped, and is `docker kill`ed at the wall-clock limit. No home dir, `~/.ssh`,
+  `~/.config/gh`, `~/.brev`, repo or `.env`. `--sandbox none` additionally needs `--allow-unsandboxed` and is for
+  laptop development only. `run_record.json` still records a transcript contamination scan.
 
 ## 3. Recording contract (all arms)
 
@@ -54,7 +86,8 @@ Rules:
   refusals and flags are counted by the metrics directly (refusals and result flags), not through status.
   This keeps arm A from being penalized just for being one agent.
 - **Never edit or delete** anything on a board, including failures. Failures are evidence.
-- **Cost:** each arm's runner appends one line per LLM call / GPU job to `<board>/costs.jsonl`:
+- **Cost:** each arm's runner appends one line per LLM session / GPU job to `<board>/costs.jsonl`
+  (`input_tokens` includes cache reads and writes; the breakdown is kept alongside):
   `{"agent": "...", "task_id": "...", "kind": "llm" | "gpu", "model": "...", "input_tokens": 0,
   "output_tokens": 0, "gpu_hours": 0.0, "usd": null}`. (A sidecar file, because the board has no cost
   artifact type; if Madhan adds one, the metrics will read that instead.)
@@ -72,7 +105,7 @@ Rules:
 - **Cost:** tokens and GPU-hours from `costs.jsonl`.
 
 ## 5. Open items (not decided here)
-- Budget numbers per task (tokens, GPU-hours, wall clock). **TBD, Madhan.**
+- Wall-clock limit per session and GPU-hours per task. **TBD, Madhan.** (Dollars: decided, $1.50 per task per arm.)
 - Tolerances marked `PLACEHOLDER` in `tasks.json`; PCM tasks reuse `configs/trust_rules.json`. **TBD, chemistry lead.**
 - Repeats per arm (suggest ≥ 3) and seeds. **TBD.**
 - Baseline strength: arms A and B get NVIDIA's own guidance, but **not** our trap catalog (`CLAUDE.md`
