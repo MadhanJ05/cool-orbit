@@ -14,6 +14,9 @@ __pycache__/
 nvalchemi-toolkit/
 scienceclaw/
 
+# Developer scratch boards (real experiment boards are committed as evidence)
+boards/dev-*/
+
 # Large simulation outputs (keep small JSON/CSV/log results)
 *.zarr/
 *.traj
