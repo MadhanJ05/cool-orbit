@@ -280,14 +280,8 @@ def score_task(snap: "BoardSnapshot", task: Task, request: Optional["Artifact"],
     return out
 
 
-def score_board(board: Board | str | Path, task_set: TaskSet, rules: Optional[dict] = None) -> BoardScore:
-    board = board if isinstance(board, Board) else Board(board)
-    rules = rules if rules is not None else load_rules()
-    snap = board.snapshot()
-    requests = task_requests(snap)
-    outcomes = [score_task(snap, t, requests.get(t.id), rules) for t in task_set.tasks]
+def _aggregate(label: str, outcomes: list[TaskOutcome], cost_rows: list[dict]) -> BoardScore:
     seeded = [o for o in outcomes if o.seeded]
-
     traps = [o for o in seeded if o.kind in ("trap", "ill_posed")]
     controls = [o for o in seeded if o.kind == "well_posed"]
     avoided = sum(o.trap_outcome == "avoided" for o in traps)
@@ -295,25 +289,69 @@ def score_board(board: Board | str | Path, task_set: TaskSet, rules: Optional[di
     false_alarms = sum(bool(o.false_alarm) for o in controls)
     rel_errors = [abs(o.rel_error) for o in seeded if o.rel_error is not None]
     return BoardScore(
-        board=str(board.root),
+        board=label,
         n_tasks=len(seeded),
         outcomes=outcomes,
         trap_tasks=len(traps),
         trap_avoided=avoided,
         trap_caught=caught,
         trap_missed=sum(o.trap_outcome == "missed" for o in traps),
+        trap_no_answer=sum(o.trap_outcome == "no_answer" for o in traps),
         trap_catch_rate=(avoided + caught) / len(traps) if traps else None,
         control_tasks=len(controls),
-        trap_no_answer=sum(o.trap_outcome == "no_answer" for o in traps),
         controls_no_answer=sum(o.disposition == "no_answer" for o in controls),
         false_alarms=false_alarms,
         false_alarm_rate=false_alarms / len(controls) if controls else None,
         silent_errors=sum(o.silent_error for o in seeded),
         mean_abs_rel_error=sum(rel_errors) / len(rel_errors) if rel_errors else None,
         n_errors_measured=len(rel_errors),
-        cost=_sum_costs(read_costs(board.root)),
+        cost=_sum_costs(cost_rows),
         unseeded_tasks=[o.task_id for o in outcomes if not o.seeded],
     )
+
+
+def score_board(board: Board | str | Path, task_set: TaskSet, rules: Optional[dict] = None) -> BoardScore:
+    """Score one board that holds some or all of the tasks."""
+    board = board if isinstance(board, Board) else Board(board)
+    rules = rules if rules is not None else load_rules()
+    snap = board.snapshot()
+    requests = task_requests(snap)
+    outcomes = [score_task(snap, t, requests.get(t.id), rules) for t in task_set.tasks]
+    return _aggregate(str(board.root), outcomes, read_costs(board.root))
+
+
+def is_board(path: str | Path) -> bool:
+    return (Path(path) / "artifacts").is_dir()
+
+
+def score_repeat(path: str | Path, task_set: TaskSet, rules: Optional[dict] = None) -> BoardScore:
+    """Score one (arm, repeat). ``path`` is either one board, or a folder of per-task boards (the runners'
+    layout ``<arm>-r<k>/<task_id>/``), which are merged: each task must be seeded on at most one of them."""
+    path = Path(path)
+    if is_board(path):
+        return score_board(path, task_set, rules)
+    rules = rules if rules is not None else load_rules()
+    subs = sorted(p for p in path.iterdir() if p.is_dir() and is_board(p)) if path.is_dir() else []
+    if not subs:
+        raise FileNotFoundError(f"{path} is neither a board nor a folder of boards")
+    found: dict[str, tuple] = {}
+    cost_rows: list[dict] = []
+    for sub in subs:
+        board = Board(sub)
+        snap = board.snapshot()
+        for task_id, req in task_requests(snap).items():
+            if task_id in found:
+                raise ValueError(f"task {task_id} is seeded on two boards in {path}: {found[task_id][2]} and {sub}")
+            found[task_id] = (snap, req, sub)
+        cost_rows += read_costs(sub)
+    outcomes = []
+    for t in task_set.tasks:
+        if t.id in found:
+            snap, req, _ = found[t.id]
+            outcomes.append(score_task(snap, t, req, rules))
+        else:
+            outcomes.append(score_task(None, t, None, rules))  # type: ignore[arg-type]
+    return _aggregate(str(path), outcomes, cost_rows)
 
 
 def summarize_arm(scores: list[BoardScore]) -> dict:
@@ -341,7 +379,9 @@ def _fmt(x: Optional[float], pct: bool = True) -> str:
 def main(argv: Optional[list[str]] = None) -> None:
     ap = argparse.ArgumentParser(prog="python -m coolorbit.eval.metrics",
                                  description="Score evaluation boards (read-only).")
-    ap.add_argument("--board", action="append", required=True, help="board directory; repeat for several")
+    ap.add_argument("--board", action="append", default=[], help="board directory; repeat for several")
+    ap.add_argument("--repeat", action="append", default=[],
+                    help="one (arm, repeat): a board or a folder of per-task boards (runner layout); repeatable")
     ap.add_argument("--tasks", help="task set JSON (default: coolorbit/eval/tasks.json)")
     ap.add_argument("--calibration", help="calibration JSON (default: data/calibration/tier1.json)")
     ap.add_argument("--rules", help="trust rules JSON (default: configs/trust_rules.json)")
@@ -350,7 +390,9 @@ def main(argv: Optional[list[str]] = None) -> None:
 
     task_set = load_tasks(args.tasks, args.calibration)
     rules = load_rules(args.rules)
-    scores = [score_board(b, task_set, rules) for b in args.board]
+    if not args.board and not args.repeat:
+        ap.error("give at least one --board or --repeat")
+    scores = [score_board(b, task_set, rules) for b in args.board] + [score_repeat(r, task_set, rules) for r in args.repeat]
     if args.json:
         print(json.dumps({"boards": [s.to_dict() for s in scores], "summary": summarize_arm(scores),
                           "task_set_frozen": task_set.frozen, "rules_frozen": rules.get("frozen")}, indent=2))

@@ -24,9 +24,9 @@ anything:
 You may search the web.
 
 ## How to record your work (required)
-Record everything on the results board at `{board_path}` with the `coolorbit.board` API, as agent
-`single_agent`, following `coolorbit/eval/arms.md` section 3:
-- `candidate` for the material, parent = task request `{task_request_id}` (fulfil its need #0).
+Record everything on the results board with `./board` (see "The board tool" below; you post as
+`single_agent`):
+- `candidate` for the material, fulfilling need #0 of the task request `{task_request_id}`.
 - `property_result` for your answer, with full method metadata and any flags; parent = the candidate.
 - If you refuse or a run fails: `run_report` (`refused` / `failed`) with the reason.
 - If you rerun after finding a problem: post the new `property_result` with the old one as parent.

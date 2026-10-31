@@ -1,0 +1,385 @@
+"""Runners for comparison arms A (single agent) and B (worker + checker). See arms.md.
+
+    python -m coolorbit.eval.runner --arm A --run 2026-11-01a --repeat 1 \\
+        --budget-usd 2 --timeout-min 45 [--model ...] [--task ID ...] [--dry-run]
+
+For every task: a **fresh board** ``boards/eval/<run>/<arm>-r<repeat>/<task_id>/`` seeded with
+that one task, and a fresh **sandbox** working directory *outside the repo*
+(``~/coolorbit-eval-work/...`` by default) holding only the ALCHEMI skills and a ``./board``
+wrapper (fixed board and agent name). The agent is a headless Claude Code session
+(``claude -p``) with the arm's prompt; each session's token use and cost go to the board's
+``costs.jsonl`` and its full transcript to ``<board>/transcripts/``.
+
+- Arm A: one ``single_agent`` session per task.
+- Arm B: ``worker`` session; if it posted a result, a ``checker`` session on it; if the
+  checker's verdict is negative, one worker rerun and one more check. Fixed order, no
+  board needs involved.
+
+Limits per session: ``--max-budget-usd`` (Claude Code stops itself) and a wall-clock timeout
+(the runner kills it). A task is complete once ``run_record.json`` exists; reruns skip complete
+tasks and refuse to touch an incomplete board (delete it yourself if you want to redo it).
+
+**Not a security sandbox.** The agent runs as the same OS user and could read the repo,
+including ``tasks.json`` (references and trap labels). The runner scans every transcript for
+such paths and records hits in ``run_record.json`` (``contamination``); use a container or
+separate user for stronger isolation.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import time
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Callable, Optional, Protocol
+
+from coolorbit.board import Board
+from coolorbit.board._scienceclaw import REPO_ROOT
+from coolorbit.board.schema import NEGATIVE_VERDICTS
+from coolorbit.eval.metrics import COSTS_FILE
+from coolorbit.eval.tasks import Task, TaskSet, load_tasks, seed_board, task_requests
+
+PROMPTS_DIR = Path(__file__).with_name("prompts")
+DEFAULT_BOARDS_ROOT = REPO_ROOT / "boards" / "eval"
+DEFAULT_WORK_ROOT = Path.home() / "coolorbit-eval-work"
+DEFAULT_SKILLS = REPO_ROOT / ".claude" / "skills"
+RECORD_FILE = "run_record.json"
+# Paths an arm-A/B agent should never read: answers, trap labels, our referees' logic, the brief.
+CONTAMINATION_PATTERNS = ("coolorbit/eval", "tasks.json", "trust_rules", "coolorbit/agents", "CLAUDE.md",
+                          "data/calibration", "BLIND_TASKS")
+
+BOARD_TOOL_HELP = """
+## The board tool
+Your working directory has a `./board` command (already set up for this task and for you):
+- `./board show`: everything on the board, with ids and open needs.
+- `./board get <id>`: one artifact in full.
+- `./board schema`: the exact fields of each artifact type.
+- `./board post candidate '{{"name": "...", "family": "...", "tier": "trust"}}' --fulfills {task_request_id}:0`
+- `./board post property_result '{{...}}' --parent <candidate id>` (fields: candidate, family, tier, property,
+  value, units, uncertainty, method {{engine, model, protocol, ensemble, timestep_fs, n_atoms, sim_length_ps}},
+  flags, note)
+- `./board post run_report '{{"status": "refused", "task": "...", "reason": "..."}}' --parent <candidate id>`
+- `./board post check '{{"check_type": "...", "verdict": "...", "note": "..."}}' --parent <result id>`
+A payload can also be a file: `./board post property_result @result.json --parent <id>`.
+"""
+
+
+# ------------------------------------------------------------------ executors
+
+@dataclass
+class Budget:
+    usd: float
+    timeout_s: float
+    model: Optional[str] = None
+
+
+@dataclass
+class SessionResult:
+    exit_code: Optional[int]
+    timed_out: bool
+    wall_s: float
+    input_tokens: Optional[int] = None          # all input incl. cache reads/writes
+    output_tokens: Optional[int] = None
+    cache_read_input_tokens: Optional[int] = None
+    cache_creation_input_tokens: Optional[int] = None
+    usd: Optional[float] = None
+    num_turns: Optional[int] = None
+    model: Optional[str] = None
+    error: Optional[str] = None
+    transcript: Optional[str] = None
+
+
+class Executor(Protocol):
+    def run(self, prompt: str, *, cwd: Path, budget: Budget, transcript_path: Path) -> SessionResult: ...
+
+
+def _parse_stream(text: str) -> dict:
+    """The last ``{"type": "result"}`` line of Claude Code's stream-json output (or {})."""
+    final = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("type") == "result":
+            final = obj
+    return final
+
+
+def _usage_fields(final: dict) -> dict:
+    u = final.get("usage") or {}
+    def num(k):
+        v = u.get(k)
+        return int(v) if isinstance(v, (int, float)) else None
+    parts = [num("input_tokens"), num("cache_read_input_tokens"), num("cache_creation_input_tokens")]
+    models = list((final.get("modelUsage") or {}).keys())
+    return {
+        "input_tokens": sum(p for p in parts if p is not None) if any(p is not None for p in parts) else None,
+        "output_tokens": num("output_tokens"),
+        "cache_read_input_tokens": parts[1],
+        "cache_creation_input_tokens": parts[2],
+        "usd": final.get("total_cost_usd"),
+        "num_turns": final.get("num_turns"),
+        "model": ",".join(models) or None,
+    }
+
+
+class ClaudeCodeExecutor:
+    """Runs one headless Claude Code session: ``claude -p <prompt>`` in the sandbox."""
+
+    def __init__(self, claude_bin: str = "claude", extra_args: tuple[str, ...] = ()) -> None:
+        self.claude_bin = claude_bin
+        self.extra_args = tuple(extra_args)
+
+    def command(self, prompt: str, budget: Budget) -> list[str]:
+        cmd = [self.claude_bin, "-p", prompt, "--output-format", "stream-json", "--verbose",
+               "--max-budget-usd", f"{budget.usd:g}",
+               "--setting-sources", "project",          # only the sandbox's .claude/ (ALCHEMI skills)
+               "--permission-mode", "bypassPermissions",  # headless; the sandbox is the boundary
+               "--no-session-persistence"]
+        if budget.model:
+            cmd += ["--model", budget.model]
+        return cmd + list(self.extra_args)
+
+    def run(self, prompt: str, *, cwd: Path, budget: Budget, transcript_path: Path) -> SessionResult:
+        transcript_path.parent.mkdir(parents=True, exist_ok=True)
+        start = time.monotonic()
+        timed_out, code, error = False, None, None
+        with open(transcript_path, "w", encoding="utf-8") as log:
+            try:
+                proc = subprocess.run(self.command(prompt, budget), cwd=cwd, stdout=log, stderr=subprocess.STDOUT,
+                                      stdin=subprocess.DEVNULL, timeout=budget.timeout_s, env=os.environ.copy())
+                code = proc.returncode
+            except subprocess.TimeoutExpired:
+                timed_out, error = True, f"killed after {budget.timeout_s:g} s wall-clock limit"
+            except OSError as exc:
+                error = f"could not start {self.claude_bin}: {exc}"
+        wall = time.monotonic() - start
+        text = transcript_path.read_text(encoding="utf-8", errors="replace")
+        final = _parse_stream(text)
+        if final.get("is_error") and not error:
+            error = str(final.get("subtype") or "session reported an error")
+        return SessionResult(exit_code=code, timed_out=timed_out, wall_s=wall, error=error, transcript=text,
+                             **_usage_fields(final))
+
+
+# ------------------------------------------------------------------ sandbox + prompts
+
+def prepare_sandbox(work_dir: Path, board_root: Path, agent: str, skills_dir: Optional[Path] = DEFAULT_SKILLS,
+                    python: str = sys.executable) -> Path:
+    try:
+        Path(work_dir).resolve().relative_to(REPO_ROOT)
+        inside = True
+    except ValueError:
+        inside = False
+    if inside:
+        raise ValueError(f"sandbox {work_dir} is inside the repo; agents must not start next to tasks.json")
+    if work_dir.exists():
+        raise FileExistsError(f"sandbox {work_dir} already exists; use a fresh --work-root or delete it yourself")
+    work_dir.mkdir(parents=True)
+    if skills_dir and Path(skills_dir).is_dir():
+        shutil.copytree(skills_dir, work_dir / ".claude" / "skills")
+    wrapper = work_dir / "board"
+    wrapper.write_text(
+        "#!/bin/sh\n"
+        f"COOLORBIT_BOARD='{board_root.resolve()}' COOLORBIT_AGENT='{agent}' PYTHONPATH='{REPO_ROOT}' "
+        f"exec '{python}' -m coolorbit.eval.board_tool \"$@\"\n", encoding="utf-8")
+    wrapper.chmod(wrapper.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    return work_dir
+
+
+_COMMENT = re.compile(r"<!--.*?-->", re.S)
+
+
+def render_prompt(name: str, **fields: str) -> str:
+    text = _COMMENT.sub("", (PROMPTS_DIR / name).read_text(encoding="utf-8"))
+    text = re.sub(r"^# .*\n", "", text, count=1).strip()  # drop the file's title line
+    return (text + "\n" + BOARD_TOOL_HELP).format(**fields).strip() + "\n"
+
+
+def contamination(transcript: Optional[str]) -> list[str]:
+    if not transcript:
+        return []
+    return sorted({p for p in CONTAMINATION_PATTERNS if p in transcript})
+
+
+# ------------------------------------------------------------------ runs
+
+@dataclass
+class SessionRecord:
+    role: str
+    agent: str
+    sandbox: str
+    transcript: str
+    result: dict
+    contamination: list[str] = field(default_factory=list)
+
+
+def _log_cost(board_root: Path, task_id: str, agent: str, res: SessionResult) -> None:
+    row = {"agent": agent, "task_id": task_id, "kind": "llm", "model": res.model,
+           "input_tokens": res.input_tokens, "output_tokens": res.output_tokens,
+           "cache_read_input_tokens": res.cache_read_input_tokens,
+           "cache_creation_input_tokens": res.cache_creation_input_tokens,
+           "gpu_hours": None, "usd": res.usd, "wall_s": round(res.wall_s, 3), "timed_out": res.timed_out,
+           "note": "gpu_hours unknown: GPU jobs run inside the session; see wall_s"}
+    with open(board_root / COSTS_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(row) + "\n")
+
+
+class ArmRunner:
+    def __init__(self, arm: str, run_id: str, repeat: int, executor: Executor, budget: Budget, *,
+                 boards_root: Path = DEFAULT_BOARDS_ROOT, work_root: Path = DEFAULT_WORK_ROOT,
+                 skills_dir: Optional[Path] = DEFAULT_SKILLS, log: Callable[[str], None] = print) -> None:
+        if arm not in ("A", "B"):
+            raise ValueError("only arms A and B have runners; arm C is the collective itself")
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", run_id):
+            raise ValueError(f"bad run id {run_id!r}")
+        self.arm, self.run_id, self.repeat = arm, run_id, repeat
+        self.executor, self.budget = executor, budget
+        self.repeat_dir = Path(boards_root) / run_id / f"{arm}-r{repeat}"
+        self.work_dir = Path(work_root) / run_id / f"{arm}-r{repeat}"
+        self.skills_dir, self.log = skills_dir, log
+
+    # one session ------------------------------------------------------------------
+    def _session(self, task: Task, board_root: Path, role: str, agent: str, prompt_file: str,
+                 attempt: int, addendum: str = "", **fields: str) -> tuple[SessionResult, SessionRecord]:
+        sandbox = prepare_sandbox(self.work_dir / task.id / f"{role}-{attempt}", board_root, agent, self.skills_dir)
+        prompt = render_prompt(prompt_file, task_prompt=task.prompt, board_path="./board (this task's board)", **fields)
+        if addendum:
+            prompt += "\n" + addendum.strip() + "\n"
+        (sandbox / "PROMPT.md").write_text(prompt, encoding="utf-8")  # evidence of exactly what it was told
+        transcript = board_root / "transcripts" / f"{role}-{attempt}.jsonl"
+        self.log(f"  [{task.id}] {role} attempt {attempt}: running in {sandbox}")
+        res = self.executor.run(prompt, cwd=sandbox, budget=self.budget, transcript_path=transcript)
+        _log_cost(board_root, task.id, agent, res)
+        hits = contamination(res.transcript)
+        if hits:
+            self.log(f"  [{task.id}] WARNING: transcript mentions {hits} (possible contamination)")
+        data = asdict(res)
+        data.pop("transcript")
+        return res, SessionRecord(role, agent, str(sandbox), str(transcript.relative_to(board_root)), data, hits)
+
+    def _latest_result(self, board: Board, agent: str) -> Optional[str]:
+        snap = board.snapshot()
+        mine = [a for a in snap.of_type("property_result") if a.producer_agent == agent]
+        ids = {a.artifact_id for a in mine}
+        live = [a for a in mine if not any(k.artifact_id in ids for k in snap.children.get(a.artifact_id, []))]
+        return live[-1].artifact_id if live else None
+
+    def _check_verdict(self, board: Board, result_id: str) -> Optional[str]:
+        checks = [k for k in board.snapshot().children.get(result_id, [])
+                  if k.artifact_type == "check" and k.producer_agent == "checker"]
+        return checks[-1].payload["verdict"] if checks else None
+
+    # one task ---------------------------------------------------------------------
+    def run_task(self, task: Task) -> dict:
+        board_root = self.repeat_dir / task.id
+        record_path = board_root / RECORD_FILE
+        if record_path.exists():
+            self.log(f"  [{task.id}] already complete, skipping")
+            return json.loads(record_path.read_text(encoding="utf-8"))
+        if board_root.exists():
+            raise FileExistsError(f"{board_root} exists but has no {RECORD_FILE} (an interrupted attempt). "
+                                  "Inspect it, then delete it yourself to redo this task.")
+        board = Board(board_root)
+        req_id = seed_board(board, TaskSet(version=1, frozen=False, tasks=[task]))[task.id]
+        started = datetime.now(timezone.utc).isoformat()
+        sessions: list[SessionRecord] = []
+
+        if self.arm == "A":
+            _, rec = self._session(task, board_root, "single_agent", "single_agent", "arm_a_single_agent.md", 1,
+                                   task_request_id=req_id)
+            sessions.append(rec)
+        else:
+            result_id, verdict = None, None
+            for attempt in (1, 2):
+                addendum = "" if attempt == 1 else (
+                    f"## This is your one rerun\nThe checker's verdict on your result {result_id} was '{verdict}'. "
+                    f"Read its check (`./board show`, `./board get <id>`). If you agree, post a corrected "
+                    f"property_result with `--parent {result_id}`, or a run_report if the task should be refused. "
+                    "If you disagree, explain why in a run_report and post nothing else.")
+                _, rec = self._session(task, board_root, "worker", "worker", "arm_b_worker.md", attempt,
+                                       addendum=addendum, task_request_id=req_id)
+                sessions.append(rec)
+                latest = self._latest_result(board, "worker")
+                if latest is None or latest == result_id:
+                    self.log(f"  [{task.id}] worker posted no new result; pipeline ends")
+                    break
+                result_id = latest
+                _, rec = self._session(task, board_root, "checker", "checker", "arm_b_checker.md", attempt,
+                                       task_request_id=req_id, result_id=result_id)
+                sessions.append(rec)
+                verdict = self._check_verdict(board, result_id)
+                if verdict not in NEGATIVE_VERDICTS:
+                    break
+                if attempt == 1:
+                    self.log(f"  [{task.id}] checker said '{verdict}': one worker rerun")
+
+        record = {"run": self.run_id, "arm": self.arm, "repeat": self.repeat, "task_id": task.id,
+                  "task_request_id": req_id, "started": started, "finished": datetime.now(timezone.utc).isoformat(),
+                  "budget": asdict(self.budget), "sessions": [asdict(s) for s in sessions],
+                  "contamination": sorted({h for s in sessions for h in s.contamination})}
+        record_path.write_text(json.dumps(record, indent=1), encoding="utf-8")
+        return record
+
+    def run(self, task_set: TaskSet, task_ids: Optional[list[str]] = None) -> list[dict]:
+        tasks = task_set.tasks if not task_ids else [task_set.by_id()[t] for t in task_ids]
+        self.log(f"arm {self.arm}, run {self.run_id}, repeat {self.repeat}: {len(tasks)} task(s) -> {self.repeat_dir}")
+        return [self.run_task(t) for t in tasks]
+
+
+# ------------------------------------------------------------------ CLI
+
+def main(argv: Optional[list[str]] = None) -> None:
+    ap = argparse.ArgumentParser(prog="python -m coolorbit.eval.runner", description="Run comparison arm A or B.")
+    ap.add_argument("--arm", required=True, choices=["A", "B"])
+    ap.add_argument("--run", required=True, help="run id, e.g. 2026-11-01a (boards/eval/<run>/<arm>-r<repeat>/)")
+    ap.add_argument("--repeat", type=int, required=True)
+    ap.add_argument("--budget-usd", type=float, required=True, help="max spend per Claude Code session")
+    ap.add_argument("--timeout-min", type=float, required=True, help="wall-clock limit per session")
+    ap.add_argument("--model", help="model for every session (same for all arms)")
+    ap.add_argument("--task", action="append", help="only these task ids (repeatable); default: all")
+    ap.add_argument("--boards-root", default=str(DEFAULT_BOARDS_ROOT))
+    ap.add_argument("--work-root", default=str(DEFAULT_WORK_ROOT), help="sandboxes; must be outside the repo")
+    ap.add_argument("--skills", default=str(DEFAULT_SKILLS), help="ALCHEMI skills copied into each sandbox")
+    ap.add_argument("--claude-bin", default="claude")
+    ap.add_argument("--tasks-file", help="task set JSON (default: coolorbit/eval/tasks.json)")
+    ap.add_argument("--dry-run", action="store_true", help="print the plan and the first prompt; run nothing")
+    args = ap.parse_args(argv)
+
+    task_set = load_tasks(args.tasks_file)
+    if not task_set.frozen:
+        print("WARNING: the task set is not frozen (not pre-registered). Fine for smoke tests, not for the comparison.")
+    budget = Budget(usd=args.budget_usd, timeout_s=args.timeout_min * 60, model=args.model)
+    executor = ClaudeCodeExecutor(args.claude_bin)
+    runner = ArmRunner(args.arm, args.run, args.repeat, executor, budget, boards_root=Path(args.boards_root),
+                       work_root=Path(args.work_root), skills_dir=Path(args.skills) if args.skills else None)
+    if args.dry_run:
+        tasks = task_set.tasks if not args.task else [task_set.by_id()[t] for t in args.task]
+        prompt_file = "arm_a_single_agent.md" if args.arm == "A" else "arm_b_worker.md"
+        print(f"would run {len(tasks)} task(s) into {runner.repeat_dir}, sandboxes under {runner.work_dir}")
+        print("command:", " ".join(executor.command("<prompt>", budget)))
+        print("\n--- first prompt ---\n" + render_prompt(prompt_file, task_prompt=tasks[0].prompt,
+              board_path="./board (this task's board)", task_request_id="<request id>"))
+        return
+    records = runner.run(task_set, args.task)
+    bad = [r["task_id"] for r in records if r["contamination"]]
+    print(f"done: {len(records)} task(s) in {runner.repeat_dir}")
+    if bad:
+        print(f"WARNING: possible contamination in {bad}; see run_record.json")
+    print(f"score: python -m coolorbit.eval.metrics --repeat {runner.repeat_dir}")
+
+
+if __name__ == "__main__":
+    main()

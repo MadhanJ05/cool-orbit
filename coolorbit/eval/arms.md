@@ -21,16 +21,29 @@ the metrics compare like with like.
 task, wall-clock limit, the same tools (ALCHEMI skills, web access, Nebius classical MD if any arm gets it,
 the calibration dataset). An arm that runs out of budget stops and records that (see section 3).
 
-## 2. Boards: one per arm and repeat
+## 2. Boards and runners
 
 ```
-boards/eval/<run_id>/<arm>-r<repeat>/      e.g. boards/eval/2026-11-01a/A-r1/
+boards/eval/<run_id>/<arm>-r<repeat>/<task_id>/   arms A and B (runner): one fresh board per task
+boards/eval/<run_id>/<arm>-r<repeat>/             arm C: one board per repeat holding all tasks (or per-task too)
 ```
 
-- Fresh board per (arm, repeat); nothing is shared across arms. `seed_board()` refuses an already-seeded board.
-- Before the arm starts, the harness seeds the board: `eval_harness` posts one `request` per task with
-  note `eval_task:<task_id>` and one need (`artifact_type: "candidate"`, query = the task prompt).
+- Arms A and B: `python -m coolorbit.eval.runner --arm A|B --run <run_id> --repeat <k> --budget-usd <$> --timeout-min <m>`
+  (`--dry-run` first). For each task it seeds a fresh board with that one task, opens a fresh sandbox
+  **outside the repo** (`~/coolorbit-eval-work/...`; only the ALCHEMI skills and a `./board` tool with a fixed
+  agent name), and runs a headless Claude Code session (`claude -p`) with the arm's prompt. Arm B runs
+  worker → checker → (one worker rerun + one more check if the verdict is negative). Each task ends with
+  `run_record.json` (sessions, limits, exit codes, timeouts, contamination scan) and the full transcripts.
+- Fresh board per task or per (arm, repeat); nothing is shared across arms or tasks. `seed_board()` refuses an
+  already-seeded board.
+- The harness seeds each board: `eval_harness` posts one `request` per task with note `eval_task:<task_id>`
+  and one need (`artifact_type: "candidate"`, query = the task prompt).
+- Score a repeat with `python -m coolorbit.eval.metrics --repeat boards/eval/<run>/<arm>-r<k>` (a board or a
+  folder of per-task boards).
 - These are evidence boards: commit them after the run (only `boards/dev-*` is gitignored).
+- **Not a security sandbox:** sessions run as the same user with permissions bypassed (headless). Run them
+  where that is acceptable (the GB10 session decides), and check `run_record.json` `contamination` (transcript
+  mentions of `tasks.json`, the eval code, `CLAUDE.md`, ...) before trusting a run.
 
 ## 3. Recording contract (all arms)
 
@@ -54,7 +67,8 @@ Rules:
   refusals and flags are counted by the metrics directly (refusals and result flags), not through status.
   This keeps arm A from being penalized just for being one agent.
 - **Never edit or delete** anything on a board, including failures. Failures are evidence.
-- **Cost:** each arm's runner appends one line per LLM call / GPU job to `<board>/costs.jsonl`:
+- **Cost:** each arm's runner appends one line per LLM session / GPU job to `<board>/costs.jsonl`
+  (`input_tokens` includes cache reads and writes; the breakdown is kept alongside):
   `{"agent": "...", "task_id": "...", "kind": "llm" | "gpu", "model": "...", "input_tokens": 0,
   "output_tokens": 0, "gpu_hours": 0.0, "usd": null}`. (A sidecar file, because the board has no cost
   artifact type; if Madhan adds one, the metrics will read that instead.)
