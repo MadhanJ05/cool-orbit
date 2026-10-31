@@ -52,7 +52,7 @@ Artifacts NVIDIA explicitly wants: "a framework to solve complex challenges", "a
 ## 3. The problem (why this matters)
 
 - Google's Project Suncatcher launched its first prototype satellite on Oct 1, 2026: four TPUs, roughly 1 kW of solar power.
-- Because of heat limits, the chips run AI workloads in roughly **15-minute sessions** before shutting down to cool.
+- It runs **one TPU at a time, in 15-minute bursts**, "to avoid straining the satellite's power and thermal management systems" (TechCrunch, Oct 1 2026: https://techcrunch.com/2026/10/01/google-thinks-spacexs-starship-has-to-launch-1600-times-before-space-data-centers-get-off-the-ground). The limit is power and thermal together; don't say it "shuts down to cool off".
 - In space there is no air or water cooling. Heat must travel (via heat pipes) to radiators, which emit it as infrared radiation.
 - Google is testing heat pipes and radiators and calls cooling a central research challenge.
 
@@ -68,7 +68,7 @@ Artifacts NVIDIA explicitly wants: "a framework to solve complex challenges", "a
 A PCM absorbs heat by melting (latent heat) without its temperature rising much. During the chip's burst, the PCM melts and soaks up heat. During the rest period, it refreezes while the radiator sheds the stored heat.
 
 - This is real flight technology. NASA flew a paraffin-wax PCM heat sink experiment on the ISS. Industry uses PCMs for pulsed electronics.
-- **Paraffin wax is today's default.** It stores a lot of heat per kilo, but conducts heat poorly (often under 1 W/m·K).
+- **NASA's ISS flight experiment used paraffin wax** (NASA NTRS 20140016955, https://ntrs.nasa.gov/citations/20140016955). Paraffin stores a lot of heat per kilo, but conducts heat poorly (solid n-docosane: 0.49 W/m·K, Paul et al., J. Therm. Anal. Calorim. 148, 5687 (2023), doi:10.1007/s10973-023-12107-2). Don't call wax "the default" or say "every" space PCM is wax: no source.
 - **Liquids are awkward in microgravity** (containment, voids, sloshing).
 
 **Back-of-envelope (for the pitch):** 15 extra minutes at ~1 kW is ~900 kJ. Paraffin-class materials store on the order of 200 kJ/kg, so roughly 4 to 5 kg of PCM could hold an extra 15 minutes of full-power heat, before counting what the radiator rejects in parallel. Treat this as an order-of-magnitude illustration, not a design number.
@@ -422,7 +422,7 @@ git clone https://github.com/NVIDIA/nvalchemi-toolkit.git
 ## 21. Pitch lines
 
 - **One-liner:** AI agents that find better cooling for space data centers, and check each other so the answer can be trusted.
-- **Opening:** "Google's AI satellite has to shut down every 15 minutes to cool off. Every thermal battery in space today is basically wax. Wax stores heat well but moves it badly, and it melts into a liquid that's a pain in zero gravity."
+- **Opening:** "Google's AI satellite can run one chip at a time, in 15-minute bursts, to spare its power and thermal systems. NASA's ISS thermal-battery experiment used paraffin wax. Wax stores heat well but moves it badly, and it melts into a liquid that's a pain in zero gravity." (Sources: TechCrunch, Oct 1 2026, see section 3; NASA NTRS 20140016955, https://ntrs.nasa.gov/citations/20140016955. Never say "shuts down every 15 minutes to cool off" or "every thermal battery in space is wax": neither has a source.)
 - **The twist:** "NVIDIA showed AI agents run simulations confidently even when the science is wrong. Our agents check each other like scientists do."
 
 ---
