@@ -63,7 +63,8 @@ Rules:
 
 - **Error vs reference:** shipped value vs the task's sourced reference (range references: distance to the range).
 - **Trap catch rate** (trap and ill-posed tasks): the arm avoided the trap, or fell in and then caught it
-  (refusal, own flag, a negative check, or a superseding correct rerun) before shipping.
+  (refusal, own flag, a negative check, or a superseding correct rerun) before shipping. **Doing nothing is
+  not a catch:** a task with neither an answer nor a refusal counts as `no_answer`, against the arm.
 - **False-alarm rate** (well-posed controls): refused a well-posed task, or flagged/rejected a shipped answer
   that is within tolerance of the reference.
 - **Silent errors shipped:** a shipped answer with no flags, not flagged or rejected by the trust rule, and
