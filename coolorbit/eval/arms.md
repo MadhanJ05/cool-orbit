@@ -17,9 +17,21 @@ the metrics compare like with like.
 | **C. Decentralized collective** | Our Scouts, Simulators, Referees, Ranker (Teammate 1 + GB10 stream) | Any referee, via needs and claims; status from the trust rule | Each agent's own prompt (`coolorbit/agents/`); the task arrives only as a board need |
 | D. (optional) Homogeneous collective | As C, every agent on one model family | As C | As C |
 
-**Equal resources for every arm** (TBD numbers, same for all): LLM token budget per task, GPU-hours per
-task, wall-clock limit, the same tools (ALCHEMI skills, web access, Nebius classical MD if any arm gets it,
-the calibration dataset). An arm that runs out of budget stops and records that (see section 3).
+**Equal resources for every arm**, all from `configs/llm_roles.json` (one source of truth):
+- **LLM dollars: $1.50 per task per arm** (`comparison_budget_usd_per_task_per_arm`), the same for A, B and
+  **C (our collective)**. Arm A: its one session may spend it all. Arm B: worker and checker share it; each
+  session may spend at most half of what is left, the last possible one (the re-check) the rest, so the
+  checker is never starved and the total never exceeds $1.50. Arm C must stay within $1.50 per task too
+  (summed over all its agents, from `costs.jsonl`).
+- **Model: the `arm_baseline` role** (`claude-opus-5-5`, effort `high`) for every arm A/B session
+  (`claude -p --model ... --effort ...`).
+- Dollars are computed one way for every arm: `llm_roles.cost_usd(model, usage)` per model in the session
+  (`usd` in `costs.jsonl`); Claude Code's own figure is kept as `usd_reported`, and the budget pool is charged
+  the larger of the two. Note: `cost_usd` has no price for cache writes, so `usd` can understate.
+- Same wall-clock limit per session, same tools (ALCHEMI skills, web access, the calibration dataset).
+  An arm that runs out of budget stops and records that (`run_record.json` `budget.stopped_by_budget`).
+- **Infrastructure failures are not scored:** if the shared key runs out of credit mid-task, the attempt moves
+  to `<repeat>/_infra_failed/` and the task reruns from scratch on the backup key (`coolorbit/llm_keys.py`).
 
 ## 2. Boards and runners
 
@@ -91,7 +103,7 @@ Rules:
 - **Cost:** tokens and GPU-hours from `costs.jsonl`.
 
 ## 5. Open items (not decided here)
-- Budget numbers per task (tokens, GPU-hours, wall clock). **TBD, Madhan.**
+- Wall-clock limit per session and GPU-hours per task. **TBD, Madhan.** (Dollars: decided, $1.50 per task per arm.)
 - Tolerances marked `PLACEHOLDER` in `tasks.json`; PCM tasks reuse `configs/trust_rules.json`. **TBD, chemistry lead.**
 - Repeats per arm (suggest ≥ 3) and seeds. **TBD.**
 - Baseline strength: arms A and B get NVIDIA's own guidance, but **not** our trap catalog (`CLAUDE.md`

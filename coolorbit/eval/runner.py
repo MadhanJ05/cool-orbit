@@ -43,7 +43,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional, Protocol
 
-from coolorbit import llm_keys
+from coolorbit import llm_keys, llm_roles
 from coolorbit.board import Board
 from coolorbit.board._scienceclaw import REPO_ROOT
 from coolorbit.board.schema import NEGATIVE_VERDICTS
@@ -80,9 +80,33 @@ A payload can also be a file: `./board post property_result @result.json --paren
 
 @dataclass
 class Budget:
+    """Limits for one Claude Code session (the runner derives ``usd`` per session from the per-task budget)."""
+
     usd: float
     timeout_s: float
     model: Optional[str] = None
+    effort: Optional[str] = None
+
+
+ROLE = "arm_baseline"          # configs/llm_roles.json: same model and effort for arms A and B
+MIN_SESSION_USD = 0.02         # don't start a session with less than this left of the task budget
+
+
+def role_settings(path: Optional[str] = None) -> dict:
+    """Model, effort and per-task budget for the comparison arms, from configs/llm_roles.json."""
+    cfg = llm_roles.load(path)
+    r = llm_roles.role(ROLE, path)
+    return {"model": r["model"], "effort": r["effort"],
+            "task_budget_usd": float(cfg["comparison_budget_usd_per_task_per_arm"])}
+
+
+def session_caps(arm: str) -> list[bool]:
+    """For each possible session of a task, whether it is the last one that could run (may spend all that's left).
+
+    A: one session. B: worker, checker, worker rerun, checker. Every other session may spend at most half of
+    what's left, so a pipeline can't starve its checker and never exceeds the task budget.
+    """
+    return [True] if arm == "A" else [False, False, False, True]
 
 
 @dataclass
@@ -100,6 +124,10 @@ class SessionResult:
     error: Optional[str] = None
     transcript: Optional[str] = None
     key_name: Optional[str] = None              # which shared key (by name, never the key) the session used
+    uncached_input_tokens: Optional[int] = None
+    model_usage: Optional[dict] = None          # per model: input/output/cache_read/cache_creation tokens
+    usd_reported: Optional[float] = None        # Claude Code's own total_cost_usd
+    unpriced_models: Optional[list] = None      # models without a price in llm_roles.json (their usd_reported share used)
 
 
 class Executor(Protocol):
@@ -125,20 +153,58 @@ def _parse_stream(text: str) -> dict:
 
 def _usage_fields(final: dict) -> dict:
     u = final.get("usage") or {}
-    def num(k):
-        v = u.get(k)
-        return int(v) if isinstance(v, (int, float)) else None
-    parts = [num("input_tokens"), num("cache_read_input_tokens"), num("cache_creation_input_tokens")]
-    models = list((final.get("modelUsage") or {}).keys())
+    def num(d, *keys):
+        for k in keys:
+            v = d.get(k)
+            if isinstance(v, (int, float)):
+                return int(v)
+        return None
+    raw = num(u, "input_tokens")
+    parts = [raw, num(u, "cache_read_input_tokens"), num(u, "cache_creation_input_tokens")]
+    per_model = {}
+    for model, mu in (final.get("modelUsage") or {}).items():
+        if isinstance(mu, dict):
+            per_model[model] = {
+                "input_tokens": num(mu, "inputTokens", "input_tokens") or 0,
+                "output_tokens": num(mu, "outputTokens", "output_tokens") or 0,
+                "cache_read_input_tokens": num(mu, "cacheReadInputTokens", "cache_read_input_tokens") or 0,
+                "cache_creation_input_tokens": num(mu, "cacheCreationInputTokens", "cache_creation_input_tokens") or 0,
+                "reported_usd": mu.get("costUSD"),
+            }
     return {
         "input_tokens": sum(p for p in parts if p is not None) if any(p is not None for p in parts) else None,
-        "output_tokens": num("output_tokens"),
+        "uncached_input_tokens": raw,
+        "output_tokens": num(u, "output_tokens"),
         "cache_read_input_tokens": parts[1],
         "cache_creation_input_tokens": parts[2],
+        "usd_reported": final.get("total_cost_usd"),
         "usd": final.get("total_cost_usd"),
         "num_turns": final.get("num_turns"),
-        "model": ",".join(models) or None,
+        "model": ",".join(per_model) or None,
+        "model_usage": per_model or None,
     }
+
+
+def price_session(res: "SessionResult", default_model: Optional[str]) -> None:
+    """Set ``res.usd`` with llm_roles.cost_usd (one consistent formula for every arm); keep Claude Code's figure
+    in ``usd_reported``. Models without a price fall back to their reported share and are listed."""
+    prices = llm_roles.load()["prices_per_mtok"]
+    if res.model_usage:
+        total, unpriced = 0.0, []
+        for model, mu in res.model_usage.items():
+            if model in prices:
+                total += llm_roles.cost_usd(model, mu)
+            else:
+                unpriced.append(model)
+                total += float(mu.get("reported_usd") or 0.0)
+        no_share = [m for m in unpriced if res.model_usage[m].get("reported_usd") is None]
+        if no_share and res.usd_reported is not None:
+            total = max(total, float(res.usd_reported))  # never undercount an unpriced model to $0
+        res.usd, res.unpriced_models = total, unpriced or None
+    elif res.uncached_input_tokens is not None and default_model in prices:
+        res.usd = llm_roles.cost_usd(default_model, {"input_tokens": res.uncached_input_tokens,
+                                                     "cache_read_input_tokens": res.cache_read_input_tokens or 0,
+                                                     "output_tokens": res.output_tokens or 0})
 
 
 class ClaudeCodeExecutor:
@@ -162,6 +228,8 @@ class ClaudeCodeExecutor:
                "--no-session-persistence"]
         if budget.model:
             cmd += ["--model", budget.model]
+        if budget.effort:
+            cmd += ["--effort", budget.effort]
         return cmd + list(self.extra_args)
 
     def full_command(self, prompt: str, budget: Budget, *, cwd: Path, board_root: Path,
@@ -245,6 +313,10 @@ def contamination(transcript: Optional[str]) -> list[str]:
 
 # ------------------------------------------------------------------ runs
 
+class TaskBudgetSpent(Exception):
+    """Less than MIN_SESSION_USD of the task budget is left, so the next session is not started."""
+
+
 class CreditExhausted(Exception):
     """A session died because the shared key it used ran out of credit (an infrastructure failure)."""
 
@@ -278,11 +350,13 @@ class SessionRecord:
 
 def _log_cost(board_root: Path, task_id: str, agent: str, res: SessionResult) -> None:
     row = {"agent": agent, "task_id": task_id, "kind": "llm", "model": res.model, "key_name": res.key_name,
-           "input_tokens": res.input_tokens, "output_tokens": res.output_tokens,
-           "cache_read_input_tokens": res.cache_read_input_tokens,
+           "input_tokens": res.input_tokens, "uncached_input_tokens": res.uncached_input_tokens,
+           "output_tokens": res.output_tokens, "cache_read_input_tokens": res.cache_read_input_tokens,
            "cache_creation_input_tokens": res.cache_creation_input_tokens,
-           "gpu_hours": None, "usd": res.usd, "wall_s": round(res.wall_s, 3), "timed_out": res.timed_out,
-           "note": "gpu_hours unknown: GPU jobs run inside the session; see wall_s"}
+           "gpu_hours": None, "usd": res.usd, "usd_reported": res.usd_reported, "unpriced_models": res.unpriced_models,
+           "wall_s": round(res.wall_s, 3), "timed_out": res.timed_out,
+           "note": "usd = llm_roles.cost_usd (cache writes unpriced there); usd_reported = Claude Code's figure; "
+                   "gpu_hours unknown: GPU jobs run inside the session, see wall_s"}
     with open(board_root / COSTS_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(row) + "\n")
 
@@ -303,10 +377,13 @@ class ArmRunner:
         self.skills_dir, self.log, self.docker = skills_dir, log, docker
         self.keys = keys  # coolorbit.llm_keys (None: no shared-key handling, for fake-LLM tests)
         self._try = 1     # infrastructure retry number of the task being run (1 = first try)
+        self._spent, self._session_no = 0.0, 0   # per task attempt: dollars spent, sessions started
 
     # one session ------------------------------------------------------------------
     def _session(self, task: Task, board_root: Path, role: str, agent: str, prompt_file: str,
                  attempt: int, addendum: str = "", **fields: str) -> tuple[SessionResult, SessionRecord]:
+        if self._remaining() < MIN_SESSION_USD:
+            raise TaskBudgetSpent(f"${self._remaining():.3f} left of ${self.budget.usd:g}")
         task_dir = task.id if self._try == 1 else f"{task.id}.try{self._try}"
         sandbox = prepare_sandbox(self.work_dir / task_dir / f"{role}-{attempt}", board_root, agent, self.skills_dir,
                                   docker=self.docker)
@@ -317,9 +394,14 @@ class ArmRunner:
         transcript = board_root / "transcripts" / f"{role}-{attempt}.jsonl"
         self.log(f"  [{task.id}] {role} attempt {attempt}: running in {sandbox}")
         key_name = self.keys.active_key_name() if self.keys else None
-        res = self.executor.run(prompt, cwd=sandbox, budget=self.budget, transcript_path=transcript,
+        session_budget = self._next_session_budget()
+        self.log(f"  [{task.id}] {role}: cap ${session_budget.usd:.3f} of ${self._remaining():.3f} left "
+                 f"(task budget ${self.budget.usd:g})")
+        res = self.executor.run(prompt, cwd=sandbox, budget=session_budget, transcript_path=transcript,
                                 board_root=board_root)
         res.key_name = key_name
+        price_session(res, self.budget.model)
+        self._spent += max(res.usd or 0.0, res.usd_reported or 0.0)  # conservative: the larger of the two
         _log_cost(board_root, task.id, agent, res)  # dollars and tokens per session, failed ones too
         if self.keys and self.keys.is_credit_exhausted(exhaustion_text(res)):
             raise CreditExhausted(key_name)
@@ -329,6 +411,17 @@ class ArmRunner:
         data = asdict(res)
         data.pop("transcript")
         return res, SessionRecord(role, agent, str(sandbox), str(transcript.relative_to(board_root)), data, hits)
+
+    def _remaining(self) -> float:
+        return max(0.0, self.budget.usd - self._spent)
+
+    def _next_session_budget(self) -> Budget:
+        lasts = session_caps(self.arm)
+        last = self._session_no >= len(lasts) - 1 or lasts[self._session_no]
+        self._session_no += 1
+        cap = self._remaining() if last else self._remaining() / 2
+        return Budget(usd=round(cap, 4), timeout_s=self.budget.timeout_s, model=self.budget.model,
+                      effort=self.budget.effort)
 
     def _latest_result(self, board: Board, agent: str) -> Optional[str]:
         snap = board.snapshot()
@@ -378,39 +471,49 @@ class ArmRunner:
         req_id = seed_board(board, TaskSet(version=1, frozen=False, tasks=[task]))[task.id]
         started = datetime.now(timezone.utc).isoformat()
         sessions: list[SessionRecord] = []
+        self._spent, self._session_no = 0.0, 0
+        budget_note = None
 
-        if self.arm == "A":
-            _, rec = self._session(task, board_root, "single_agent", "single_agent", "arm_a_single_agent.md", 1,
-                                   task_request_id=req_id)
-            sessions.append(rec)
-        else:
-            result_id, verdict = None, None
-            for attempt in (1, 2):
-                addendum = "" if attempt == 1 else (
-                    f"## This is your one rerun\nThe checker's verdict on your result {result_id} was '{verdict}'. "
-                    f"Read its check (`./board show`, `./board get <id>`). If you agree, post a corrected "
-                    f"property_result with `--parent {result_id}`, or a run_report if the task should be refused. "
-                    "If you disagree, explain why in a run_report and post nothing else.")
-                _, rec = self._session(task, board_root, "worker", "worker", "arm_b_worker.md", attempt,
-                                       addendum=addendum, task_request_id=req_id)
+        try:
+            if self.arm == "A":
+                _, rec = self._session(task, board_root, "single_agent", "single_agent", "arm_a_single_agent.md", 1,
+                                       task_request_id=req_id)
                 sessions.append(rec)
-                latest = self._latest_result(board, "worker")
-                if latest is None or latest == result_id:
-                    self.log(f"  [{task.id}] worker posted no new result; pipeline ends")
-                    break
-                result_id = latest
-                _, rec = self._session(task, board_root, "checker", "checker", "arm_b_checker.md", attempt,
-                                       task_request_id=req_id, result_id=result_id)
-                sessions.append(rec)
-                verdict = self._check_verdict(board, result_id)
-                if verdict not in NEGATIVE_VERDICTS:
-                    break
-                if attempt == 1:
-                    self.log(f"  [{task.id}] checker said '{verdict}': one worker rerun")
+            else:
+                result_id, verdict = None, None
+                for attempt in (1, 2):
+                    addendum = "" if attempt == 1 else (
+                        f"## This is your one rerun\nThe checker's verdict on your result {result_id} was '{verdict}'. "
+                        f"Read its check (`./board show`, `./board get <id>`). If you agree, post a corrected "
+                        f"property_result with `--parent {result_id}`, or a run_report if the task should be refused. "
+                        "If you disagree, explain why in a run_report and post nothing else.")
+                    _, rec = self._session(task, board_root, "worker", "worker", "arm_b_worker.md", attempt,
+                                           addendum=addendum, task_request_id=req_id)
+                    sessions.append(rec)
+                    latest = self._latest_result(board, "worker")
+                    if latest is None or latest == result_id:
+                        self.log(f"  [{task.id}] worker posted no new result; pipeline ends")
+                        break
+                    result_id = latest
+                    _, rec = self._session(task, board_root, "checker", "checker", "arm_b_checker.md", attempt,
+                                           task_request_id=req_id, result_id=result_id)
+                    sessions.append(rec)
+                    verdict = self._check_verdict(board, result_id)
+                    if verdict not in NEGATIVE_VERDICTS:
+                        break
+                    if attempt == 1:
+                        self.log(f"  [{task.id}] checker said '{verdict}': one worker rerun")
+
+        except TaskBudgetSpent as exc:
+            budget_note = f"task budget used up before the next session ({exc})"
+            self.log(f"  [{task.id}] {budget_note}")
 
         record = {"run": self.run_id, "arm": self.arm, "repeat": self.repeat, "task_id": task.id,
                   "task_request_id": req_id, "started": started, "finished": datetime.now(timezone.utc).isoformat(),
-                  "budget": asdict(self.budget), "sandbox": "docker" if self.docker else "none",
+                  "budget": {"task_budget_usd": self.budget.usd, "spent_usd": round(self._spent, 4),
+                             "stopped_by_budget": budget_note, "timeout_s": self.budget.timeout_s,
+                             "model": self.budget.model, "effort": self.budget.effort, "role": ROLE},
+                  "sandbox": "docker" if self.docker else "none",
                   "sessions": [asdict(s) for s in sessions],
                   "infra_failed_attempts": list(infra_failed),
                   "contamination": sorted({h for s in sessions for h in s.contamination})}
@@ -435,9 +538,12 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--arm", required=True, choices=["A", "B"])
     ap.add_argument("--run", required=True, help="run id, e.g. 2026-11-01a (boards/eval/<run>/<arm>-r<repeat>/)")
     ap.add_argument("--repeat", type=int, required=True)
-    ap.add_argument("--budget-usd", type=float, required=True, help="max spend per Claude Code session")
+    ap.add_argument("--budget-usd", type=float, default=None,
+                    help="per-task budget for this arm (default: comparison_budget_usd_per_task_per_arm in "
+                         "configs/llm_roles.json; arm B splits it between worker and checker)")
     ap.add_argument("--timeout-min", type=float, required=True, help="wall-clock limit per session")
-    ap.add_argument("--model", help="model for every session (same for all arms)")
+    ap.add_argument("--model", default=None, help="default: the arm_baseline role in configs/llm_roles.json")
+    ap.add_argument("--effort", default=None, help="default: the arm_baseline role's effort")
     ap.add_argument("--task", action="append", help="only these task ids (repeatable); default: all")
     ap.add_argument("--boards-root", default=str(DEFAULT_BOARDS_ROOT))
     ap.add_argument("--work-root", default=str(DEFAULT_WORK_ROOT), help="sandboxes; must be outside the repo")
@@ -460,7 +566,15 @@ def main(argv: Optional[list[str]] = None) -> None:
     task_set = load_tasks(args.tasks_file)
     if not task_set.frozen:
         print("WARNING: the task set is not frozen (not pre-registered). Fine for smoke tests, not for the comparison.")
-    budget = Budget(usd=args.budget_usd, timeout_s=args.timeout_min * 60, model=args.model)
+    cfg = role_settings()
+    for flag, value, default in (("--budget-usd", args.budget_usd, cfg["task_budget_usd"]),
+                                 ("--model", args.model, cfg["model"]), ("--effort", args.effort, cfg["effort"])):
+        if value is not None and value != default:
+            print(f"WARNING: {flag} {value} differs from configs/llm_roles.json ({default}); the arms are only "
+                  "comparable if every arm uses the config values.")
+    budget = Budget(usd=args.budget_usd if args.budget_usd is not None else cfg["task_budget_usd"],
+                    timeout_s=args.timeout_min * 60, model=args.model or cfg["model"],
+                    effort=args.effort or cfg["effort"])
     docker = args.sandbox == "docker"
     sandbox = DockerSandbox(args.image, gpus=not args.no_gpus, memory=args.memory) if docker else None
     executor = ClaudeCodeExecutor(args.claude_bin, sandbox=sandbox)
@@ -471,9 +585,17 @@ def main(argv: Optional[list[str]] = None) -> None:
         tasks = task_set.tasks if not args.task else [task_set.by_id()[t] for t in args.task]
         prompt_file = "arm_a_single_agent.md" if args.arm == "A" else "arm_b_worker.md"
         print(f"would run {len(tasks)} task(s) into {runner.repeat_dir}, sandboxes under {runner.work_dir}")
+        print(f"model {budget.model}, effort {budget.effort}, ${budget.usd:g} per task "
+              + ("(one session)" if args.arm == "A" else "(each session at most half of what's left; the last "
+                 "possible one may use the rest)"))
+        try:
+            print("active shared key:", llm_keys.active_key_name())
+        except llm_keys.NoUsableKey as exc:
+            print(f"active shared key: NONE ({exc})")
         print("sandbox:", f"docker image {args.image}" + ("" if sandbox and sandbox.gpus else " (no GPU)")
               if docker else "NONE (unsandboxed)")
-        cmd = executor.command("<prompt>", budget)
+        cmd = executor.command("<prompt>", Budget(usd=budget.usd, timeout_s=budget.timeout_s,
+                                                  model=budget.model, effort=budget.effort))
         if sandbox:
             cmd = sandbox.run_command(cmd, work_dir=runner.work_dir / "<task>" / "<role>-<n>",
                                       board_root=runner.repeat_dir / "<task>", name="coolorbit-<...>")
