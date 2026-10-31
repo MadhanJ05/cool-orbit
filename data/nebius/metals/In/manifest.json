@@ -1,0 +1,161 @@
+{
+  "element": "In",
+  "purpose": "Independent classical-MD check (MEAM) of the GB10's MACE melting point and latent heat.",
+  "status": "inputs only; NOT submitted. Ask Madhan before submitting any Nebius job.",
+  "engine": "LAMMPS (needs the MEAM package: check `lmp -h | grep -i meam` on the Nebius image)",
+  "potential": {
+    "citation": "E.C. Do, Y.-H. Shin, and B.-J. Lee (2008), \"A modified embedded-atom method interatomic potential for indium\", Calphad 32(1), 82-88.",
+    "doi": "10.1016/j.calphad.2007.08.004",
+    "nist_entry": "2008--Do-E-C-Shin-Y-H-Lee-B-J--In",
+    "nist_implementation": "2008--Do-E-C--In--LAMMPS--ipr1",
+    "pair_coeff": "pair_coeff * * potential/library.meam In potential/In.meam In",
+    "nist_url": "https://www.ctcms.nist.gov/potentials/entry/2008--Do-E-C-Shin-Y-H-Lee-B-J--In/",
+    "files": {
+      "library.meam": "7992bf14fd2e1e44236410fffaa86482b622f457bc8846175f9d3bf81cdaced3",
+      "In.meam": "2b051f827a635847e5be1e5bbf5468697e7bada9bb28c94d6eb08a618ed77d12"
+    },
+    "caveats": []
+  },
+  "structure": {
+    "phase": "In (I4/mmm, tI2)",
+    "source": "coolorbit/sim/alloys.py ELEMENT_CRYSTALS (Donohue, The Structures of the Elements, 1974; alpha-Ga: Sharma & Donohue 1962). Starting lattice constants; NPT relaxes them.",
+    "orthogonal_unit_cell_atoms": 2,
+    "coexist": {
+      "file": "data.coexist.lmp",
+      "reps": [
+        8,
+        8,
+        11
+      ],
+      "n_atoms": 1408,
+      "box_A": [
+        26.016,
+        26.016,
+        54.406
+      ]
+    },
+    "solid": {
+      "file": "data.solid.lmp",
+      "reps": [
+        7,
+        7,
+        5
+      ],
+      "n_atoms": 490,
+      "box_A": [
+        22.764,
+        22.764,
+        24.73
+      ]
+    }
+  },
+  "melting_point_guess": {
+    "value_K": 430.15,
+    "source": "NIST Chemistry WebBook, indium, phase change data: T_fus 430.15 K (TRC, nominal value, uncertainty 1 K), https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440746&Units=SI&Mask=4",
+    "use": "ONLY to place the temperature bracket. Not a reference value: the calibration references live in data/calibration/ (Teammate 1)."
+  },
+  "settings": {
+    "dt_ps": 0.002,
+    "tdamp_ps": 0.1,
+    "pdamp_ps": 1.0,
+    "equil_steps": 4000,
+    "melt_steps": 6000,
+    "quench_steps": 3000,
+    "prod_steps": 25000,
+    "record_every": 50,
+    "pe_threshold_eV_per_atom": 0.002,
+    "t_melt_factor": 1.6,
+    "latent_t_hot_factor": 3.0,
+    "seed": 2026,
+    "bracket_factors": [
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2
+    ],
+    "T_prep_K": 430.1,
+    "T_melt_K": 688.2
+  },
+  "jobs": [
+    {
+      "id": "In-coexist-T344.1",
+      "kind": "coexistence",
+      "T_K": 344.1,
+      "command": "lmp -in ../in.coexist.lmp -var T 344.1 -var Tprep 430.1 -var Tmelt 688.2 -var seed 2026",
+      "outputs": [
+        "pe_T344.1.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "In-coexist-T387.1",
+      "kind": "coexistence",
+      "T_K": 387.1,
+      "command": "lmp -in ../in.coexist.lmp -var T 387.1 -var Tprep 430.1 -var Tmelt 688.2 -var seed 2026",
+      "outputs": [
+        "pe_T387.1.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "In-coexist-T430.1",
+      "kind": "coexistence",
+      "T_K": 430.1,
+      "command": "lmp -in ../in.coexist.lmp -var T 430.1 -var Tprep 430.1 -var Tmelt 688.2 -var seed 2026",
+      "outputs": [
+        "pe_T430.1.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "In-coexist-T473.2",
+      "kind": "coexistence",
+      "T_K": 473.2,
+      "command": "lmp -in ../in.coexist.lmp -var T 473.2 -var Tprep 430.1 -var Tmelt 688.2 -var seed 2026",
+      "outputs": [
+        "pe_T473.2.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "In-coexist-T516.2",
+      "kind": "coexistence",
+      "T_K": 516.2,
+      "command": "lmp -in ../in.coexist.lmp -var T 516.2 -var Tprep 430.1 -var Tmelt 688.2 -var seed 2026",
+      "outputs": [
+        "pe_T516.2.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "In-latent-solid",
+      "kind": "latent",
+      "phase": "solid",
+      "T_K": 430.1,
+      "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
+      "command": "lmp -in ../in.latent.lmp -var phase solid -var T 430.1 -var seed 2026",
+      "outputs": [
+        "h_solid_T430.1.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "In-latent-liquid",
+      "kind": "latent",
+      "phase": "liquid",
+      "T_K": 430.1,
+      "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
+      "command": "lmp -in ../in.latent.lmp -var phase liquid -var T 430.1 -var seed 2026",
+      "outputs": [
+        "h_liquid_T430.1.dat",
+        "log.lammps"
+      ]
+    }
+  ],
+  "analysis": {
+    "coexistence": "python ../analyze.py coexist pe_T*.dat",
+    "latent": "python ../analyze.py latent --mass-amu 114.8180 h_solid_T<T>.dat h_liquid_T<T>.dat --log-solid <solid log> --log-liquid <liquid log>"
+  },
+  "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
+}

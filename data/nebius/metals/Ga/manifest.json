@@ -1,0 +1,165 @@
+{
+  "element": "Ga",
+  "purpose": "Independent classical-MD check (MEAM) of the GB10's MACE melting point and latent heat.",
+  "status": "inputs only; NOT submitted. Ask Madhan before submitting any Nebius job.",
+  "engine": "LAMMPS (needs the MEAM package: check `lmp -h | grep -i meam` on the Nebius image)",
+  "potential": {
+    "citation": "E.C. Do, Y.-H. Shin, and B.-J. Lee (2009), \"Atomistic modeling of III-V nitrides: modified embedded-atom method interatomic potentials for GaN, InN and Ga1-xInxN\", J. Phys.: Condens. Matter 21(32), 325801.",
+    "doi": "10.1088/0953-8984/21/32/325801",
+    "nist_entry": "2009--Do-E-C-Shin-Y-H-Lee-B-J--Ga-In",
+    "nist_implementation": "2009--Do-E-C--Ga-In--LAMMPS--ipr1",
+    "pair_coeff": "pair_coeff * * potential/library.meam Ga In potential/GaIn.meam Ga",
+    "nist_url": "https://www.ctcms.nist.gov/potentials/entry/2009--Do-E-C-Shin-Y-H-Lee-B-J--Ga-In/",
+    "files": {
+      "library.meam": "0cef73bcd53308fa57e2ab909c75a3bb8995cadd9a353104db3f685caaad336b",
+      "GaIn.meam": "b053845a23d9ce66780738514bd4c6663e1d672d8f4cf70c65979ef231194910"
+    },
+    "caveats": [
+      "The Ga parameters come from a Ga-In(-N) alloy fit. NIST warns that elemental potentials taken from alloy descriptions may not work well for the pure species; validate before trusting.",
+      "alpha-Ga is a covalent-dimer (Cmce) metal; 2NN MEAM fitted with an fcc reference may not reproduce its structure. Check the solid stays alpha-Ga during the solid NPT stage.",
+      "No NIST potential for pure Ga ships LAMMPS files (Belashchenko 2012 EAM is liquid-only, no files)."
+    ]
+  },
+  "structure": {
+    "phase": "alpha-Ga (Cmce, oS8)",
+    "source": "coolorbit/sim/alloys.py ELEMENT_CRYSTALS (Donohue, The Structures of the Elements, 1974; alpha-Ga: Sharma & Donohue 1962). Starting lattice constants; NPT relaxes them.",
+    "orthogonal_unit_cell_atoms": 8,
+    "coexist": {
+      "file": "data.coexist.lmp",
+      "reps": [
+        6,
+        4,
+        14
+      ],
+      "n_atoms": 2688,
+      "box_A": [
+        27.114,
+        30.636,
+        63.364
+      ]
+    },
+    "solid": {
+      "file": "data.solid.lmp",
+      "reps": [
+        5,
+        3,
+        5
+      ],
+      "n_atoms": 600,
+      "box_A": [
+        22.595,
+        22.977,
+        22.63
+      ]
+    }
+  },
+  "melting_point_guess": {
+    "value_K": 302.92,
+    "source": "NIST Chemistry WebBook, gallium, phase change data: T_fus 302.92 K (Marsh, 1987; TRC uncertainty 0.004 K), https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440553&Units=SI&Mask=4",
+    "use": "ONLY to place the temperature bracket. Not a reference value: the calibration references live in data/calibration/ (Teammate 1)."
+  },
+  "settings": {
+    "dt_ps": 0.002,
+    "tdamp_ps": 0.1,
+    "pdamp_ps": 1.0,
+    "equil_steps": 4000,
+    "melt_steps": 6000,
+    "quench_steps": 3000,
+    "prod_steps": 25000,
+    "record_every": 50,
+    "pe_threshold_eV_per_atom": 0.002,
+    "t_melt_factor": 1.6,
+    "latent_t_hot_factor": 3.0,
+    "seed": 2026,
+    "bracket_factors": [
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2
+    ],
+    "T_prep_K": 302.9,
+    "T_melt_K": 484.6
+  },
+  "jobs": [
+    {
+      "id": "Ga-coexist-T242.3",
+      "kind": "coexistence",
+      "T_K": 242.3,
+      "command": "lmp -in ../in.coexist.lmp -var T 242.3 -var Tprep 302.9 -var Tmelt 484.6 -var seed 2026",
+      "outputs": [
+        "pe_T242.3.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Ga-coexist-T272.6",
+      "kind": "coexistence",
+      "T_K": 272.6,
+      "command": "lmp -in ../in.coexist.lmp -var T 272.6 -var Tprep 302.9 -var Tmelt 484.6 -var seed 2026",
+      "outputs": [
+        "pe_T272.6.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Ga-coexist-T302.9",
+      "kind": "coexistence",
+      "T_K": 302.9,
+      "command": "lmp -in ../in.coexist.lmp -var T 302.9 -var Tprep 302.9 -var Tmelt 484.6 -var seed 2026",
+      "outputs": [
+        "pe_T302.9.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Ga-coexist-T333.2",
+      "kind": "coexistence",
+      "T_K": 333.2,
+      "command": "lmp -in ../in.coexist.lmp -var T 333.2 -var Tprep 302.9 -var Tmelt 484.6 -var seed 2026",
+      "outputs": [
+        "pe_T333.2.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Ga-coexist-T363.5",
+      "kind": "coexistence",
+      "T_K": 363.5,
+      "command": "lmp -in ../in.coexist.lmp -var T 363.5 -var Tprep 302.9 -var Tmelt 484.6 -var seed 2026",
+      "outputs": [
+        "pe_T363.5.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Ga-latent-solid",
+      "kind": "latent",
+      "phase": "solid",
+      "T_K": 302.9,
+      "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
+      "command": "lmp -in ../in.latent.lmp -var phase solid -var T 302.9 -var seed 2026",
+      "outputs": [
+        "h_solid_T302.9.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Ga-latent-liquid",
+      "kind": "latent",
+      "phase": "liquid",
+      "T_K": 302.9,
+      "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
+      "command": "lmp -in ../in.latent.lmp -var phase liquid -var T 302.9 -var seed 2026",
+      "outputs": [
+        "h_liquid_T302.9.dat",
+        "log.lammps"
+      ]
+    }
+  ],
+  "analysis": {
+    "coexistence": "python ../analyze.py coexist pe_T*.dat",
+    "latent": "python ../analyze.py latent --mass-amu 69.7230 h_solid_T<T>.dat h_liquid_T<T>.dat --log-solid <solid log> --log-liquid <liquid log>"
+  },
+  "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
+}

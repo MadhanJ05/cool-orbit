@@ -1,0 +1,163 @@
+{
+  "element": "Bi",
+  "purpose": "Independent classical-MD check (MEAM) of the GB10's MACE melting point and latent heat.",
+  "status": "inputs only; NOT submitted. Ask Madhan before submitting any Nebius job.",
+  "engine": "LAMMPS (needs the MEAM package: check `lmp -h | grep -i meam` on the Nebius image)",
+  "potential": {
+    "citation": "H. Zhou, D.E. Dickel, M.I. Baskes, S. Mun, and M. Asle Zaeem (2021), \"A modified embedded-atom method interatomic potential for bismuth\", Modelling Simul. Mater. Sci. Eng. 29(6), 065008.",
+    "doi": "10.1088/1361-651x/ac095c",
+    "nist_entry": "2021--Zhou-H-Dickel-D-E-Baskes-M-I-et-al--Bi",
+    "nist_implementation": "2021--Zhou-H--Bi--LAMMPS--ipr1",
+    "pair_coeff": "pair_coeff * * potential/Bi.library.meam Bi potential/Bi.parameter.meam Bi",
+    "nist_url": "https://www.ctcms.nist.gov/potentials/entry/2021--Zhou-H-Dickel-D-E-Baskes-M-I-et-al--Bi/",
+    "files": {
+      "Bi.library.meam": "2f4c015669f0b0bed4f434fa322070c47fa797c9aca87de26ec2cfc109cbe9a7",
+      "Bi.parameter.meam": "c6c6e9da06f4efc8b09f9ed4a5ae03029d47c66eedb443980b1df9587e641efa"
+    },
+    "caveats": [
+      "The paper's abstract says the potential reproduces the melting point of pure Bi, so the classical check is partly fitted to the experimental value for Bi; say so when comparing."
+    ]
+  },
+  "structure": {
+    "phase": "Bi (R-3m, hR2; hexagonal axes)",
+    "source": "coolorbit/sim/alloys.py ELEMENT_CRYSTALS (Donohue, The Structures of the Elements, 1974; alpha-Ga: Sharma & Donohue 1962). Starting lattice constants; NPT relaxes them.",
+    "orthogonal_unit_cell_atoms": 12,
+    "coexist": {
+      "file": "data.coexist.lmp",
+      "reps": [
+        6,
+        4,
+        6
+      ],
+      "n_atoms": 1728,
+      "box_A": [
+        27.276,
+        31.496,
+        71.172
+      ]
+    },
+    "solid": {
+      "file": "data.solid.lmp",
+      "reps": [
+        5,
+        3,
+        2
+      ],
+      "n_atoms": 360,
+      "box_A": [
+        22.73,
+        23.622,
+        23.724
+      ]
+    }
+  },
+  "melting_point_guess": {
+    "value_K": 544.15,
+    "source": "PubChem CID 5359367 melting point 271 °C (= 544.15 K) from the Hazardous Substances Data Bank, citing The Merck Index (Budavari ed., 1996), p. 211, https://pubchem.ncbi.nlm.nih.gov/compound/5359367 (NIST WebBook lists no T_fus for Bi)",
+    "use": "ONLY to place the temperature bracket. Not a reference value: the calibration references live in data/calibration/ (Teammate 1)."
+  },
+  "settings": {
+    "dt_ps": 0.002,
+    "tdamp_ps": 0.1,
+    "pdamp_ps": 1.0,
+    "equil_steps": 4000,
+    "melt_steps": 6000,
+    "quench_steps": 3000,
+    "prod_steps": 25000,
+    "record_every": 50,
+    "pe_threshold_eV_per_atom": 0.002,
+    "t_melt_factor": 1.6,
+    "latent_t_hot_factor": 3.0,
+    "seed": 2026,
+    "bracket_factors": [
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2
+    ],
+    "T_prep_K": 544.1,
+    "T_melt_K": 870.6
+  },
+  "jobs": [
+    {
+      "id": "Bi-coexist-T435.3",
+      "kind": "coexistence",
+      "T_K": 435.3,
+      "command": "lmp -in ../in.coexist.lmp -var T 435.3 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "outputs": [
+        "pe_T435.3.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Bi-coexist-T489.7",
+      "kind": "coexistence",
+      "T_K": 489.7,
+      "command": "lmp -in ../in.coexist.lmp -var T 489.7 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "outputs": [
+        "pe_T489.7.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Bi-coexist-T544.1",
+      "kind": "coexistence",
+      "T_K": 544.1,
+      "command": "lmp -in ../in.coexist.lmp -var T 544.1 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "outputs": [
+        "pe_T544.1.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Bi-coexist-T598.6",
+      "kind": "coexistence",
+      "T_K": 598.6,
+      "command": "lmp -in ../in.coexist.lmp -var T 598.6 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "outputs": [
+        "pe_T598.6.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Bi-coexist-T653",
+      "kind": "coexistence",
+      "T_K": 653.0,
+      "command": "lmp -in ../in.coexist.lmp -var T 653 -var Tprep 544.1 -var Tmelt 870.6 -var seed 2026",
+      "outputs": [
+        "pe_T653.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Bi-latent-solid",
+      "kind": "latent",
+      "phase": "solid",
+      "T_K": 544.1,
+      "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
+      "command": "lmp -in ../in.latent.lmp -var phase solid -var T 544.1 -var seed 2026",
+      "outputs": [
+        "h_solid_T544.1.dat",
+        "log.lammps"
+      ]
+    },
+    {
+      "id": "Bi-latent-liquid",
+      "kind": "latent",
+      "phase": "liquid",
+      "T_K": 544.1,
+      "note": "rerun at the coexistence melting point once known (latent heat is defined there)",
+      "command": "lmp -in ../in.latent.lmp -var phase liquid -var T 544.1 -var seed 2026",
+      "outputs": [
+        "h_liquid_T544.1.dat",
+        "log.lammps"
+      ]
+    }
+  ],
+  "analysis": {
+    "coexistence": "python ../analyze.py coexist pe_T*.dat",
+    "latent": "python ../analyze.py latent --mass-amu 208.9804 h_solid_T<T>.dat h_liquid_T<T>.dat --log-solid <solid log> --log-liquid <liquid log>"
+  },
+  "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
+}

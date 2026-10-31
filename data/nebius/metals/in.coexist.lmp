@@ -1,0 +1,75 @@
+# Two-phase (solid-liquid) coexistence at ONE trial temperature T. Run from an element folder:
+#   lmp -in ../in.coexist.lmp -var T 520 -var Tprep 505.1 -var Tmelt 808.2 -var seed 2026
+# Mirrors coolorbit/sim/melting.py (GB10, MACE) with a classical MEAM potential:
+#   1. relax the crystal (NPT, anisotropic) at Tprep
+#   2. freeze the lower half (z), melt the upper half at Tmelt (z free to expand: the liquid is less dense)
+#   3. quench the liquid half to T
+#   4. production NPT (anisotropic, P = 0) at T; record PE/atom. Above Tm the liquid grows and PE rises;
+#      below Tm the crystal grows and PE falls. analyze.py makes the call against the run's own noise.
+# Never single-phase heating (superheats). Units: metal (ps, eV, A, bar).
+
+variable        dt      index 0.002
+variable        tdamp   index 0.1
+variable        pdamp   index 1.0
+variable        equil   index 4000
+variable        melt    index 6000
+variable        quench  index 3000
+variable        prod    index 25000
+variable        every   index 50
+
+units           metal
+atom_style      atomic
+boundary        p p p
+read_data       data.coexist.lmp
+include         potential.mod
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        ${dt}
+
+variable        pea equal pe/atoms
+thermo_style    custom step temp pe ke press vol lx ly lz
+thermo          ${every}
+
+# 1. crystal at Tprep -------------------------------------------------------------------------------
+velocity        all create ${Tprep} ${seed} mom yes rot no dist gaussian
+fix             eq all npt temp ${Tprep} ${Tprep} ${tdamp} aniso 0.0 0.0 ${pdamp}
+run             ${equil}
+unfix           eq
+
+# 2. split along z; melt the upper half with the lower half frozen -------------------------------------
+variable        zmid equal $(0.5*(zlo+zhi))
+region          upper block INF INF INF INF ${zmid} INF units box
+group           liquid region upper
+group           crystal subtract all liquid
+compute         dsp all displace/atom
+variable        moved atom "c_dsp[4] > 1.5"
+compute         nml liquid reduce sum v_moved
+compute         nmc crystal reduce sum v_moved
+variable        fliq equal c_nml/count(liquid)
+variable        fcry equal c_nmc/count(crystal)
+thermo_style    custom step temp pe ke press vol lz v_fliq v_fcry
+
+velocity        crystal set 0.0 0.0 0.0
+fix             pin crystal setforce 0.0 0.0 0.0
+velocity        liquid create ${Tmelt} $(v_seed+1) mom yes rot no dist gaussian
+fix             hot liquid npt temp ${Tmelt} ${Tmelt} ${tdamp} z 0.0 0.0 ${pdamp} dilate liquid
+run             ${melt}
+print           "MELT_CHECK liquid_moved_fraction ${fliq} crystal_moved_fraction ${fcry} (want >= 0.8 and <= 0.05)"
+
+# 3. quench the liquid half to T ----------------------------------------------------------------------
+unfix           hot
+fix             cool liquid npt temp ${Tmelt} ${T} ${tdamp} z 0.0 0.0 ${pdamp} dilate liquid
+run             ${quench}
+unfix           cool
+unfix           pin
+
+# 4. production at T ----------------------------------------------------------------------------------
+velocity        crystal create ${T} $(v_seed+2) mom yes rot no dist gaussian
+fix             prod all npt temp ${T} ${T} ${tdamp} aniso 0.0 0.0 ${pdamp}
+variable        st equal step
+variable        tt equal temp
+variable        vv equal vol
+variable        lzz equal lz
+fix             log all print ${every} "${st} ${tt} ${pea} ${vv} ${lzz}" file pe_T${T}.dat screen no title "# coexistence T_target_K=${T} n_atoms=$(atoms) | step T_K pe_per_atom_eV volume_A3 lz_A"
+run             ${prod}
+write_data      final_T${T}.lmp
