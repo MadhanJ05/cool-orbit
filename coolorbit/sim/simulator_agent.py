@@ -25,6 +25,7 @@ import argparse
 import json
 import math
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -340,13 +341,67 @@ def subprocess_runner(job: Job, out_dir: Path, timeout_s: float) -> tuple[dict, 
     return result, settings, run_dir
 
 
+class BrevRunner:
+    """Run a job on an existing Brev GPU instance at the exact local commit; copy results back.
+
+    Never creates, stops or deletes instances (those cost money and are manual, approved steps). The instance
+    must have been prepared with scripts/brev/setup_remote.sh, and the local commit must be pushed (the
+    instance checks it out by hash, so the remote run is reproducible). ``run`` is injectable for tests.
+    """
+
+    def __init__(self, instance: str, brev: str = str(Path.home() / ".local/bin/brev"),
+                 remote_dir: str = "~/cool-orbit", run: Callable = subprocess.run) -> None:
+        self.instance, self.brev, self.remote_dir, self._run = instance, brev, remote_dir, run
+
+    def _exec(self, command: str, timeout_s: float):
+        return self._run([self.brev, "exec", self.instance, command], capture_output=True, text=True,
+                         timeout=timeout_s)
+
+    def __call__(self, job: Job, out_dir: Path, timeout_s: float) -> tuple[dict, dict, Path]:
+        dirty = self._run(["git", "-C", str(REPO_ROOT), "status", "--porcelain", "coolorbit"],
+                          capture_output=True, text=True).stdout.strip()
+        if dirty:
+            raise RuntimeError("coolorbit/ has uncommitted changes; commit and push before running on Brev")
+        sha = self._run(["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"], capture_output=True,
+                        text=True).stdout.strip()
+        remote_out = f"runs/remote/{out_dir.name}"
+        # Repo-relative paths only: a local absolute path (file: structures) means nothing on the instance.
+        args = [a.replace(str(REPO_ROOT) + "/", "") for a in job.cli_args(Path(remote_out))]
+        cmd = (f"cd {self.remote_dir} && git fetch -q origin && git checkout -q --detach {sha} && mkdir -p "
+               f"{remote_out} && .venv/bin/python -m coolorbit.sim.melting {shlex.join(args)} "
+               f"> {remote_out}/agent_job.log 2>&1; echo REMOTE_EXIT=$? REMOTE_DIR=$(pwd)/{remote_out}")
+        proc = self._exec(cmd, timeout_s)
+        tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
+        fields = dict(f.split("=", 1) for f in tail[0].split() if "=" in f)
+        if "REMOTE_DIR" not in fields:
+            raise RuntimeError(f"brev exec on {self.instance} failed: {(proc.stderr or proc.stdout)[-300:]}")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        copy = self._run([self.brev, "copy", f"{self.instance}:{fields['REMOTE_DIR']}/", str(out_dir)],
+                         capture_output=True, text=True, timeout=600)
+        if copy.returncode != 0:
+            raise RuntimeError(f"brev copy failed: {(copy.stderr or copy.stdout)[-300:]}")
+        runs = sorted(p for p in out_dir.rglob("result.json"))
+        if fields.get("REMOTE_EXIT") != "0" or not runs:
+            raise RuntimeError(f"remote melting run exited {fields.get('REMOTE_EXIT')}; see {out_dir}/agent_job.log")
+        run_dir = runs[-1].parent
+        result = json.loads((run_dir / "result.json").read_text())
+        settings = json.loads((run_dir / "settings.json").read_text())
+        result.setdefault("flags", [])
+        settings["settings"]["remote"] = {"instance": self.instance, "commit": sha}
+        return result, settings, run_dir
+
+
 class SimulatorAgent:
     def __init__(self, board: Board, name: str = "simulator_gb10", runner: Runner = subprocess_runner,
-                 runs_root: Optional[Path] = None) -> None:
+                 runs_root: Optional[Path] = None, min_minutes: float = 0.0,
+                 max_minutes: float = float("inf")) -> None:
         self.board = board
         self.name = name
         self.runner = runner
         self.runs_root = runs_root or REPO_ROOT / "runs" / "agent" / board.root.name
+        # Job-size window (GB10-equivalent minutes): lets a GB10 agent and a Brev agent split the queue,
+        # coordinating only through claims on the board.
+        self.min_minutes, self.max_minutes = min_minutes, max_minutes
 
     def pending(self) -> list[tuple[OpenNeed, "Job | JobError"]]:
         """Unclaimed needs addressed to us, parsed (no claims, no side effects)."""
@@ -358,7 +413,7 @@ class SimulatorAgent:
             except JobError as err:
                 out.append((on, err))
                 continue
-            if job is not None:
+            if job is not None and self.min_minutes <= job.estimate_minutes() < self.max_minutes:
                 out.append((on, job))
         return out
 
@@ -431,8 +486,13 @@ def main() -> None:
     ap.add_argument("--once", action="store_true", help="handle at most one request, then exit")
     ap.add_argument("--dry-run", action="store_true", help="list the requests it would take; claim nothing")
     ap.add_argument("--poll", type=float, default=30.0, help="seconds between board scans when idle")
+    ap.add_argument("--brev-instance", help="run jobs on this existing, prepared Brev instance (never created here)")
+    ap.add_argument("--min-minutes", type=float, default=0.0, help="only take jobs estimated >= this (GB10 minutes)")
+    ap.add_argument("--max-minutes", type=float, default=float("inf"), help="only take jobs estimated < this")
     args = ap.parse_args()
-    agent = SimulatorAgent(Board(args.board), args.agent)
+    runner = BrevRunner(args.brev_instance) if args.brev_instance else subprocess_runner
+    agent = SimulatorAgent(Board(args.board), args.agent, runner=runner,
+                           min_minutes=args.min_minutes, max_minutes=args.max_minutes)
 
     if args.dry_run:
         pending = agent.pending()

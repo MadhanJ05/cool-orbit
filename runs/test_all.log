@@ -5,46 +5,46 @@
      "cuda:0"   : "NVIDIA GB10" (122 GiB, sm_121, mempool enabled)
    Kernel cache:
      /home/dell/.cache/warp/1.18.0
-/usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=277986) is multi-threaded, use of fork() may lead to deadlocks in the child.
+/usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=278912) is multi-threaded, use of fork() may lead to deadlocks in the child.
   self.pid = os.fork()
 ..................................................................[simulator_gb10] RUN: latent_heat of Field's metal via NPT enthalpy difference (liquid alloy vs pure-element solids) (ALCHEMI), 1400 atoms x 1 temps, preset quick, attempt 1, ~8 min
-[simulator_gb10] RESULT 89433d82: latent_heat = 30000.0 +/- 2000.0 J/kg flags=[]
+[simulator_gb10] RESULT a61e5f53: latent_heat = 30000.0 +/- 2000.0 J/kg flags=[]
 .[simulator_gb10] REFUSED: melting_point of EGaIn (ALCHEMI): alloy melting temperatures are not computed here (that needs phase-diagram methods); request latent_heat at the alloy's measured melting temperature instead
 .[simulator_gb10] REFUSED: melting_point of Cu (ALCHEMI): unsupported structure_source 'mp:mp-30'; use ase:<El>:<structure>:<a>, ref:<El>, alloy:wt:<composition> or file:<repo path>
-.[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
+..[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): run did not complete: RuntimeError('CUDA out of memory')
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
-[simulator_gb10] RESULT c0bdd318: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 6c671581: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT 9b369a1a: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT edd17813: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 [simulator_gb10] RUN: latent_heat of Cu via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 256 atoms x 1 temps, preset quick, attempt 1, ~1 min
-[simulator_gb10] RESULT 8b79ad2e: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
+[simulator_gb10] RESULT 94cd3579: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
 .[simulator_gb10] RUN: latent_heat of Cu via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 256 atoms x 1 temps, preset quick, attempt 1, ~1 min
-[simulator_gb10] RESULT baceb86d: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
+[simulator_gb10] RESULT 51a44814: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 3, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
-..[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 1024 atoms x 4 temps, preset quick, attempt 1, ~11 min
-[simulator_gb10] RESULT f877ce4e: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+...[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 1024 atoms x 4 temps, preset quick, attempt 1, ~11 min
+[simulator_gb10] RESULT 1767dbb3: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT 8ffee727: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 785c62c7: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT 5abd83e2: melting_point = 1350.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 0a518763: melting_point = 1350.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature froze
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
-[simulator_gb10] RESULT 541f02ef: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT bd8ccb62: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT a6321fe0: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 187d736a: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT d0a0569f: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 997308b5: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 ....
 ----------------------------------------------------------------------
-Ran 93 tests in 0.445s
+Ran 95 tests in 0.464s
 
 OK

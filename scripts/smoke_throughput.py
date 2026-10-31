@@ -150,6 +150,8 @@ def main() -> None:
     p.add_argument("--dt", type=float, default=1.0, help="timestep, fs")
     p.add_argument("--temperature", type=float, default=300.0, help="initial velocity temperature, K")
     p.add_argument("--out", default="runs/smoke")
+    p.add_argument("--kernels", choices=["both", "e3nn", "cueq"], default="both")
+    p.add_argument("--compile", action="store_true", help="torch.compile the MACE model (inference only)")
     args = p.parse_args()
 
     if not torch.cuda.is_available():
@@ -172,17 +174,21 @@ def main() -> None:
     print(json.dumps(env, indent=2))
 
     results = []
-    for kernels, cueq in (("e3nn", False), ("cueq", True)):
+    kernel_sets = [k for k in (("e3nn", False), ("cueq", True)) if args.kernels in ("both", k[0])]
+    for kernels, cueq in kernel_sets:
+        if args.compile:
+            kernels += "+compile"
         try:
             model = MACEWrapper.from_checkpoint(
-                args.model, device=torch.device("cuda"), dtype=torch.float32, enable_cueq=cueq
+                args.model, device=torch.device("cuda"), dtype=torch.float32, enable_cueq=cueq,
+                compile_model=args.compile,
             )
         except Exception as exc:  # report the failure, keep going
             results.append({"label": f"{kernels} model load", "status": "failed", "error": repr(exc)})
             traceback.print_exc()
             continue
         jobs = [(r, 1) for r in args.reps]
-        if cueq:
+        if cueq and args.kernels == "both":
             jobs.append((min(args.reps), args.batch_copies))
         for reps, copies in jobs:
             label = f"{kernels} {copies}x{4 * reps**3} atoms"

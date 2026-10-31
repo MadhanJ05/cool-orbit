@@ -38,5 +38,6 @@ def build_property_payload(candidate: dict, result: dict, settings: dict, n_atom
             "seeds": 1,
             "temperatures_K": settings["temps"],
             "run_dir": run_dir,
+            **({"remote": settings["remote"]} if settings.get("remote") else {}),
         },
     }

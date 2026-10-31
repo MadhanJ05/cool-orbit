@@ -237,6 +237,53 @@ class SimulatorAgentTest(unittest.TestCase):
         self.assertIn("ref", args)
         self.assertEqual(args[args.index("--element") + 1], "Ga")
 
+    def test_brev_runner_runs_the_pushed_commit_and_copies_results_back(self) -> None:
+        """Fake `git` and `brev` (no network, no cost): checks the remote command and the result round trip."""
+        import json
+        from types import SimpleNamespace
+
+        from coolorbit.sim.simulator_agent import REPO_ROOT, BrevRunner
+
+        calls = []
+
+        def fake_run(argv, **kw):
+            calls.append(argv)
+            if argv[0] == "git" and "status" in argv:
+                return SimpleNamespace(stdout="", stderr="", returncode=0)
+            if argv[0] == "git" and "rev-parse" in argv:
+                return SimpleNamespace(stdout="abc123\n", stderr="", returncode=0)
+            if argv[1] == "exec":
+                return SimpleNamespace(stdout="REMOTE_EXIT=0 REMOTE_DIR=/root/cool-orbit/runs/remote/x\n",
+                                       stderr="", returncode=0)
+            if argv[1] == "copy":  # pretend the remote run dir arrived locally
+                run_dir = Path(argv[3]) / "x" / "20261031T000000Z_Cu_coexistence"
+                run_dir.mkdir(parents=True)
+                (run_dir / "result.json").write_text(json.dumps(OK))
+                (run_dir / "settings.json").write_text(json.dumps({"settings": {}, "n_atoms": 512}))
+                return SimpleNamespace(stdout="", stderr="", returncode=0)
+            raise AssertionError(argv)
+
+        from coolorbit.sim.simulator_agent import build_job
+
+        self.candidate()
+        (on,) = self.board.open_needs()
+        job = build_job(self.board.snapshot(), on)
+        # As a file: structure would be: a local absolute path that must become repo-relative on the instance.
+        job.structure_args = ["--structure-file", str(REPO_ROOT / "data" / "structures" / "x.cif")]
+        result, settings, run_dir = BrevRunner("h100-test", brev="brev", run=fake_run)(
+            job, Path(self._tmp.name) / "out", 60)
+        exec_cmd = next(c for c in calls if c[1] == "exec")[3]
+        self.assertIn("git checkout -q --detach abc123", exec_cmd)
+        self.assertNotIn(str(REPO_ROOT) + "/", exec_cmd)  # no local absolute paths sent to the instance
+        self.assertEqual(result["value"], OK["value"])
+        self.assertEqual(settings["settings"]["remote"], {"instance": "h100-test", "commit": "abc123"})
+
+    def test_job_size_window_splits_work_between_agents(self) -> None:
+        self.candidate()  # quick Cu job, ~5 GB10-minutes
+        big_only = SimulatorAgent(self.board, "simulator_brev", runner=FakeRunner(), min_minutes=30)
+        self.assertEqual(big_only.pending(), [])
+        self.assertEqual(len(self.agent(FakeRunner()).pending()), 1)
+
     def test_organics_are_out_of_domain(self) -> None:
         self.assertIsNotNone(ood_reason({"C", "H"}))
         self.assertIsNotNone(ood_reason({"C", "H", "O"}))
