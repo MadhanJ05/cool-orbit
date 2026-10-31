@@ -1,0 +1,50 @@
+{
+  "mode": "alloy-latent",
+  "composition_at": {
+    "Ga": 0.8353842124955039,
+    "In": 0.16461578750449615
+  },
+  "composition_spec": "wt:Ga75.5In24.5",
+  "phases": {
+    "liquid_alloy": {
+      "n_atoms": 500,
+      "H_eV_per_atom": -2.867629976375947,
+      "H_sem": 0.0007641231609984484,
+      "T_measured_K": 290.95896377563474,
+      "volume_per_atom_A3": 21.434162855148315,
+      "moved_fraction": 0.5760000348091125
+    },
+    "solid_Ga": {
+      "n_atoms": 384,
+      "H_eV_per_atom": -2.9328597082166086,
+      "H_sem": 0.00027909498922872305,
+      "T_measured_K": 286.43272705078124,
+      "volume_per_atom_A3": 20.83306679725647,
+      "moved_fraction": 0.0
+    },
+    "solid_In": {
+      "n_atoms": 336,
+      "H_eV_per_atom": -2.645362700433928,
+      "H_sem": 0.0007280383042959616,
+      "T_measured_K": 288.61826095581057,
+      "volume_per_atom_A3": 28.16951961517334,
+      "moved_fraction": 0.0
+    }
+  },
+  "delta_H_eV_per_atom": 0.017903185499329233,
+  "density_g_cm3": {
+    "solid_mixture": 5.812163929086486,
+    "liquid": 5.976651718195273
+  },
+  "latent_heat_J_per_L_solid": 130140.98372931802,
+  "flags": [
+    "eutectic_solid_assumed_pure_elements",
+    "quick_settings_not_production"
+  ],
+  "status": "ok",
+  "property": "latent_heat",
+  "units": "J/kg",
+  "value": 22391,
+  "uncertainty": 1010,
+  "wall_s": 178.6
+}

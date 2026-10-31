@@ -1,0 +1,9 @@
+[simulator_gb10] watching boards/alloys-validation (Ctrl+C to stop)
+[simulator_gb10] RUN: latent_heat of EGaIn via NPT enthalpy difference (liquid alloy vs pure-element solids) (ALCHEMI), 1100 atoms x 1 temps, preset quick, attempt 1, ~6 min
+[simulator_gb10] RESULT bf972ac1: latent_heat = 22391 +/- 1010 J/kg flags=['eutectic_solid_assumed_pure_elements', 'quick_settings_not_production']
+[simulator_gb10] watching boards/alloys-validation (Ctrl+C to stop)
+[simulator_gb10] RUN: latent_heat of Ga via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 512 atoms x 1 temps, preset production, attempt 1, ~24 min
+[simulator_gb10] RESULT 8c335498: latent_heat = 15154 +/- 275 J/kg flags=[]
+[simulator_gb10] watching boards/alloys-validation (Ctrl+C to stop)
+[simulator_gb10] RUN: melting_point of Ga via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset production, attempt 1, ~48 min
+[simulator_gb10] FAILED: melting_point of Ga via two-phase coexistence (ALCHEMI): no temperature melted: the melting point is above the bracket

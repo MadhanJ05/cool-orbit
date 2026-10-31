@@ -1,0 +1,91 @@
+{
+ "run": "meam-1",
+ "kind": "coexistence",
+ "jobs": [
+  {
+   "id": "In-coexist-T560",
+   "exit": 0,
+   "wall_min": 3.0
+  },
+  {
+   "id": "In-coexist-T600",
+   "exit": 0,
+   "wall_min": 2.0
+  },
+  {
+   "id": "In-coexist-T650",
+   "exit": 0,
+   "wall_min": 2.0
+  },
+  {
+   "id": "In-coexist-T700",
+   "exit": 0,
+   "wall_min": 2.9
+  },
+  {
+   "id": "In-coexist-T760",
+   "exit": 0,
+   "wall_min": 1.9
+  },
+  {
+   "id": "Sn-coexist-T250",
+   "exit": 0,
+   "wall_min": 3.8
+  },
+  {
+   "id": "Sn-coexist-T290",
+   "exit": 0,
+   "wall_min": 3.6
+  },
+  {
+   "id": "Sn-coexist-T330",
+   "exit": 0,
+   "wall_min": 3.8
+  },
+  {
+   "id": "Sn-coexist-T370",
+   "exit": 0,
+   "wall_min": 3.8
+  },
+  {
+   "id": "Bi-coexist-T556",
+   "exit": 0,
+   "wall_min": 3.8
+  },
+  {
+   "id": "Bi-coexist-T568",
+   "exit": 0,
+   "wall_min": 3.8
+  },
+  {
+   "id": "Bi-coexist-T580",
+   "exit": 0,
+   "wall_min": 3.6
+  },
+  {
+   "id": "Bi-coexist-T592",
+   "exit": 0,
+   "wall_min": 4.5
+  }
+ ],
+ "analysis": [
+  {
+   "element": "In",
+   "kind": "coexistence",
+   "exit": 0,
+   "stdout_tail": "PS--ipr1\",\n    \"doi\": \"10.1016/j.calphad.2007.08.004\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1408,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 731.9,\n  \"uncertainty\": 30.0,\n  \"bracket_K\": [\n    700.0,\n    760.0\n  ]\n}\n"
+  },
+  {
+   "element": "Sn",
+   "kind": "coexistence",
+   "exit": 0,
+   "stdout_tail": "S--Sn--LAMMPS--ipr1\",\n    \"doi\": \"10.3390/met8110900\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1900,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 357.6,\n  \"uncertainty\": 82.3,\n  \"bracket_K\": [\n    290.0,\n    454.6\n  ]\n}\n"
+  },
+  {
+   "element": "Bi",
+   "kind": "coexistence",
+   "exit": 0,
+   "stdout_tail": "-LAMMPS--ipr1\",\n    \"doi\": \"10.1088/1361-651x/ac095c\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1728,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 581.4,\n  \"uncertainty\": 15.5,\n  \"bracket_K\": [\n    568.0,\n    599.0\n  ]\n}\n"
+  }
+ ]
+}

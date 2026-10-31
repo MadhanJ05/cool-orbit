@@ -1,0 +1,37 @@
+$ /home/dell/Desktop/cool-orbit/.venv/bin/python -m coolorbit.sim.melting coexistence --element Cu --structure fcc --a 3.61 --reps 4 4 8 --dt 2 --out /home/dell/Desktop/cool-orbit/runs/agent/cu-validation/27d6b68a-n0-a2 --label Cu --temps 1350 1375 1400 1425
+Warp 1.18.0 initialized:
+   CUDA Toolkit 13.4, Driver 13.0
+   Devices:
+     "cpu"      : "aarch64"
+     "cuda:0"   : "NVIDIA GB10" (122 GiB, sm_121, mempool enabled)
+   Kernel cache:
+     /home/dell/.cache/warp/1.18.0
+coexistence: 512 atoms x 4 system(s); ~48 min at the measured GB10 rate. Flags: none
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Failed to get GPU information from pynvml: Not Supported. Using default values for NVIDIA GB10.
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+GPU information: NVIDIA GB10, 12, 1, 128, 48, 140, 1700
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Preparing two-phase box: 512 atoms, T_prep=1387.5 K, T_melt=2220 K
+  [prep_solid_npt] 4000 steps x 512 atoms in 163 s
+  [prep_melt_nvt_r1] 6000 steps x 512 atoms in 278 s
+  [prep_quench_nvt] 3000 steps x 512 atoms in 170 s
+  liquid half: 90% of atoms moved > 1.5 A; crystal half: 0%
+  [production_npt] 25000 steps x 2048 atoms in 4569 s
+  T= 1350.0 K (measured  1349.0): dPE = -0.0039 eV/atom -> stable
+  T= 1375.0 K (measured  1377.5): dPE = +0.0026 eV/atom -> stable
+  T= 1400.0 K (measured  1400.5): dPE = +0.0072 eV/atom -> stable
+  T= 1425.0 K (measured  1422.2): dPE = +0.0034 eV/atom -> stable
+
+RESULT (failed): no temperature melted: the melting point is above the bracket
+Flags: none   Wall time: 86.3 min   Output: /home/dell/Desktop/cool-orbit/runs/agent/cu-validation/27d6b68a-n0-a2/20261031T195736Z_Cu_coexistence

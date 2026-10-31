@@ -1,0 +1,116 @@
+{
+  "mode": "coexistence",
+  "prep": {
+    "liquid_expansion": 0.05,
+    "melt_rounds": 2,
+    "melt_temperatures_K": [
+      496.0,
+      620.0
+    ],
+    "frozen_half_moved_fraction": 0.0,
+    "melted_half_moved_fraction": 0.8720930218696594
+  },
+  "per_temperature": [
+    {
+      "T_target_K": 250.0,
+      "T_measured_K": 250.2,
+      "delta_pe_eV_per_atom": -0.0036442182588238836,
+      "block_noise_eV_per_atom": 0.0008751032587163894,
+      "threshold_eV_per_atom": 0.002625309776149168,
+      "verdict": "freezing"
+    },
+    {
+      "T_target_K": 290.0,
+      "T_measured_K": 290.0,
+      "delta_pe_eV_per_atom": -0.003341823393571808,
+      "block_noise_eV_per_atom": 0.0008532625202922429,
+      "threshold_eV_per_atom": 0.0025597875608767287,
+      "verdict": "freezing"
+    },
+    {
+      "T_target_K": 330.0,
+      "T_measured_K": 329.9,
+      "delta_pe_eV_per_atom": -0.0015870106558431019,
+      "block_noise_eV_per_atom": 0.0003992466435682854,
+      "threshold_eV_per_atom": 0.002,
+      "verdict": "stable"
+    },
+    {
+      "T_target_K": 370.0,
+      "T_measured_K": 369.5,
+      "delta_pe_eV_per_atom": -0.00043383663427709607,
+      "block_noise_eV_per_atom": 0.0006573295727069838,
+      "threshold_eV_per_atom": 0.002,
+      "verdict": "stable"
+    }
+  ],
+  "flags": [
+    "unexpected_superheating_signal"
+  ],
+  "superheating_detector": [
+    {
+      "system": 0,
+      "n_atoms_tracked": 512,
+      "nn_distance_A": 2.602,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.0078125,
+      "max_mobile_fraction": 0.998046875,
+      "melted": true,
+      "melt_step": 3000,
+      "melt_temperature_K": 242.7,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    },
+    {
+      "system": 1,
+      "n_atoms_tracked": 512,
+      "nn_distance_A": 2.604,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.029296875,
+      "max_mobile_fraction": 0.994140625,
+      "melted": true,
+      "melt_step": 1650,
+      "melt_temperature_K": 276.6,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    },
+    {
+      "system": 2,
+      "n_atoms_tracked": 512,
+      "nn_distance_A": 2.604,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.048828125,
+      "max_mobile_fraction": 1.0,
+      "melted": true,
+      "melt_step": 1250,
+      "melt_temperature_K": 334.7,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    },
+    {
+      "system": 3,
+      "n_atoms_tracked": 512,
+      "nn_distance_A": 2.608,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.033203125,
+      "max_mobile_fraction": 1.0,
+      "melted": true,
+      "melt_step": 1000,
+      "melt_temperature_K": 363.8,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    }
+  ],
+  "status": "failed",
+  "failure": "above_bracket",
+  "reason": "no temperature melted: the melting point is above the bracket",
+  "wall_s": 2687.6
+}

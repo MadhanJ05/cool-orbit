@@ -1,0 +1,6 @@
+[simulator_gb10] watching boards/cu-validation (Ctrl+C to stop)
+[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset production, attempt 1, ~48 min
+[simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted: the melting point is above the bracket
+[simulator_gb10] watching boards/cu-validation (Ctrl+C to stop)
+[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset production, attempt 2, ~48 min
+[simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted: the melting point is above the bracket

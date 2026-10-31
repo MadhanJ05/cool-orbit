@@ -1,0 +1,31 @@
+$ /home/dell/Desktop/cool-orbit/.venv/bin/python -m coolorbit.sim.melting latent --element Ga --structure ref --reps 4 4 4 --dt 2 --out /home/dell/Desktop/cool-orbit/runs/agent/alloys-validation/6d304603-n0-a1 --label Ga --temperature 302.92
+Warp 1.18.0 initialized:
+   CUDA Toolkit 13.4, Driver 13.0
+   Devices:
+     "cpu"      : "aarch64"
+     "cuda:0"   : "NVIDIA GB10" (122 GiB, sm_121, mempool enabled)
+   Kernel cache:
+     /home/dell/.cache/warp/1.18.0
+latent: 512 atoms x 1 system(s); ~24 min at the measured GB10 rate. Flags: none
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Failed to get GPU information from pynvml: Not Supported. Using default values for NVIDIA GB10.
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+GPU information: NVIDIA GB10, 12, 1, 128, 48, 140, 1700
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Latent heat at T=302.92 K: preparing liquid at T_melt=484.672 K
+  [prep_liquid_nvt] 6000 steps x 512 atoms in 190 s
+  [latent_npt] 25000 steps x 1024 atoms in 1290 s
+  dH = 0.0110 +/- 0.0002 eV/atom = 15.2 kJ/kg; densities solid 5.546, liquid 5.777 g/cm3
+
+RESULT (ok): latent_heat = 15154 +/- 275 J/kg
+Flags: none   Wall time: 24.7 min   Output: /home/dell/Desktop/cool-orbit/runs/agent/alloys-validation/6d304603-n0-a1/20261031T184747Z_Ga_latent

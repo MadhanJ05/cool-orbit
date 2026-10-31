@@ -1,0 +1,72 @@
+{
+  "settings": {
+    "mode": "alloy-latent",
+    "label": "EGaIn",
+    "model": "medium-mpa-0",
+    "dt_fs": 2.0,
+    "temps": [
+      288.7
+    ],
+    "t_prep": 288.7,
+    "t_melt": 461.92,
+    "equil_steps": 500,
+    "melt_steps": 1500,
+    "quench_steps": 500,
+    "prod_steps": 2500,
+    "record_every": 50,
+    "friction_per_fs": 0.01,
+    "thermostat_fs": 100.0,
+    "barostat_fs": 1000.0,
+    "pe_threshold": 0.002,
+    "jump_threshold": 0.03,
+    "seed": 2026,
+    "liquid_expansion": 0.05,
+    "composition": "wt:Ga75.5In24.5",
+    "solid_atoms": 300
+  },
+  "args": {
+    "mode": "alloy-latent",
+    "element": null,
+    "structure": "fcc",
+    "composition": "wt:Ga75.5In24.5",
+    "liquid_atoms": 500,
+    "solid_atoms": 300,
+    "a": null,
+    "structure_file": null,
+    "reps": [
+      1,
+      1,
+      1
+    ],
+    "label": "EGaIn",
+    "temps": null,
+    "temperature": 288.7,
+    "t_prep": null,
+    "t_melt": null,
+    "model": "medium-mpa-0",
+    "dt": 2.0,
+    "equil_steps": 500,
+    "melt_steps": 1500,
+    "quench_steps": 500,
+    "prod_steps": 2500,
+    "record_every": 50,
+    "liquid_expansion": 0.05,
+    "pe_threshold": 0.002,
+    "jump_threshold": 0.03,
+    "seed": 2026,
+    "quick": true,
+    "board": null,
+    "agent": null,
+    "candidate_id": null,
+    "out": "/home/dell/Desktop/cool-orbit/runs/agent/alloys-validation/ed75f498-n0-a1"
+  },
+  "env": {
+    "torch": "2.14.1+cu130",
+    "nvalchemi": "0.2.0",
+    "mace_torch": "0.3.15",
+    "gpu": "NVIDIA GB10",
+    "quick": true
+  },
+  "n_atoms": 500,
+  "flags": []
+}

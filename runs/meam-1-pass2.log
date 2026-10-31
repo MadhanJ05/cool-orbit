@@ -1,0 +1,46 @@
+In-coexist-T560          cwd=runs/classical/meam-1/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T560.lammps -var T 560 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+In-coexist-T600          cwd=runs/classical/meam-1/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T600.lammps -var T 600 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+In-coexist-T650          cwd=runs/classical/meam-1/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T650.lammps -var T 650 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+In-coexist-T700          cwd=runs/classical/meam-1/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T700.lammps -var T 700 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+In-coexist-T760          cwd=runs/classical/meam-1/metals/In  -in ../in.coexist.lmp -log log_In-coexist-T760.lammps -var T 760 -var Tprep 429.7 -var Tmelt 1289.1 -var seed 2026
+Sn-coexist-T250          cwd=runs/classical/meam-1/metals/Sn  -in ../in.coexist.lmp -log log_Sn-coexist-T250.lammps -var T 250 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
+Sn-coexist-T290          cwd=runs/classical/meam-1/metals/Sn  -in ../in.coexist.lmp -log log_Sn-coexist-T290.lammps -var T 290 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
+Sn-coexist-T330          cwd=runs/classical/meam-1/metals/Sn  -in ../in.coexist.lmp -log log_Sn-coexist-T330.lammps -var T 330 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
+Sn-coexist-T370          cwd=runs/classical/meam-1/metals/Sn  -in ../in.coexist.lmp -log log_Sn-coexist-T370.lammps -var T 370 -var Tprep 505.1 -var Tmelt 1515.3 -var seed 2026
+Bi-coexist-T556          cwd=runs/classical/meam-1/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T556.lammps -var T 556 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+Bi-coexist-T568          cwd=runs/classical/meam-1/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T568.lammps -var T 568 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+Bi-coexist-T580          cwd=runs/classical/meam-1/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T580.lammps -var T 580 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+Bi-coexist-T592          cwd=runs/classical/meam-1/metals/Bi  -in ../in.coexist.lmp -log log_Bi-coexist-T592.lammps -var T 592 -var Tprep 544.6 -var Tmelt 1633.8 -var seed 2026
+In-coexist-T760: exit 0, 1.9 min
+In-coexist-T650: exit 0, 2.0 min
+In-coexist-T600: exit 0, 2.0 min
+In-coexist-T700: exit 0, 2.9 min
+In-coexist-T560: exit 0, 3.0 min
+Sn-coexist-T290: exit 0, 3.6 min
+Bi-coexist-T580: exit 0, 3.6 min
+Sn-coexist-T330: exit 0, 3.8 min
+Sn-coexist-T250: exit 0, 3.8 min
+Sn-coexist-T370: exit 0, 3.8 min
+Bi-coexist-T556: exit 0, 3.8 min
+Bi-coexist-T568: exit 0, 3.8 min
+Bi-coexist-T592: exit 0, 4.5 min
+[
+ {
+  "element": "In",
+  "kind": "coexistence",
+  "exit": 0,
+  "stdout_tail": "PS--ipr1\",\n    \"doi\": \"10.1016/j.calphad.2007.08.004\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1408,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 731.9,\n  \"uncertainty\": 30.0,\n  \"bracket_K\": [\n    700.0,\n    760.0\n  ]\n}\n"
+ },
+ {
+  "element": "Sn",
+  "kind": "coexistence",
+  "exit": 0,
+  "stdout_tail": "S--Sn--LAMMPS--ipr1\",\n    \"doi\": \"10.3390/met8110900\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1900,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 357.6,\n  \"uncertainty\": 82.3,\n  \"bracket_K\": [\n    290.0,\n    454.6\n  ]\n}\n"
+ },
+ {
+  "element": "Bi",
+  "kind": "coexistence",
+  "exit": 0,
+  "stdout_tail": "-LAMMPS--ipr1\",\n    \"doi\": \"10.1088/1361-651x/ac095c\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1728,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 581.4,\n  \"uncertainty\": 15.5,\n  \"bracket_K\": [\n    568.0,\n    599.0\n  ]\n}\n"
+ }
+]
