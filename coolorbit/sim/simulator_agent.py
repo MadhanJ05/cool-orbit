@@ -305,7 +305,7 @@ def retry_need(job: Job, result: dict) -> Optional[dict]:
         what = "bracket shifted down"
         if min(need["temps_K"]) <= 0:
             return None
-    elif failure == "inconsistent":
+    elif failure in ("inconsistent", "undecided"):  # near Tm the interface moves slowly: run longer, same Ts
         need["temps_K"] = temps
         need["prod_steps"] = 2 * job.steps()["prod"]
         what = "production run doubled"

@@ -357,25 +357,44 @@ def run_coexistence(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict,
     result["superheating_detector"] = detector.report()
     if "superheating_observed" in detector.flags():
         result["flags"].append("unexpected_superheating_signal")  # should never fire on a two-phase box
+    result.update(bracket_verdict(per_t))
+    return result, batch
+
+
+def bracket_verdict(per_t: list[dict]) -> dict:
+    """Melting point (or the failure) from per-temperature verdicts (melting / freezing / stable).
+
+    "Above the bracket" needs the hottest run to have decisively FROZEN, "below" the coldest to have decisively
+    MELTED. When the end of the bracket is only "stable" (the interface barely moved: near the melting point the
+    driving force is small), the answer is "undecided": the known bounds are reported and the fix is a longer run
+    at the same temperatures, not a shifted bracket (Cu, 2026-10-31: 1350-1425 K all stable after 1275-1300 K froze).
+    """
     melt_t = [p["T_target_K"] for p in per_t if p["verdict"] == "melting"]
     freeze_t = [p["T_target_K"] for p in per_t if p["verdict"] == "freezing"]
-    if not melt_t:
-        result.update(status="failed", failure="above_bracket",
-                      reason="no temperature melted: the melting point is above the bracket")
-    elif not freeze_t:
-        result.update(status="failed", failure="below_bracket",
-                      reason="no temperature froze: the melting point is below the bracket")
-    elif max(freeze_t) >= min(melt_t):
-        result.update(status="failed", failure="inconsistent",
-                      reason="inconsistent: froze at or above a melting temperature (runs too short or too noisy)")
-    else:
-        lo, hi = max(freeze_t), min(melt_t)
-        pts = [(p["T_target_K"], p["delta_pe_eV_per_atom"]) for p in per_t if lo <= p["T_target_K"] <= hi]
-        slope, icept = np.polyfit([p[0] for p in pts], [p[1] for p in pts], 1)
-        tm = float(np.clip(-icept / slope, lo, hi)) if slope > 0 else (lo + hi) / 2
-        result.update(status="ok", value=round(tm, 1), uncertainty=round((hi - lo) / 2, 1), units="K",
-                      property="melting_point", bracket_K=[lo, hi])
-    return result, batch
+    hottest = max(per_t, key=lambda p: p["T_target_K"])
+    coldest = min(per_t, key=lambda p: p["T_target_K"])
+    bounds = {**({"lower_bound_K": max(freeze_t)} if freeze_t else {}),
+              **({"upper_bound_K": min(melt_t)} if melt_t else {})}
+    if not melt_t and hottest["verdict"] == "freezing":
+        return {"status": "failed", "failure": "above_bracket", **bounds,
+                "reason": "no temperature melted and the hottest run froze: the melting point is above the bracket"}
+    if not freeze_t and coldest["verdict"] == "melting":
+        return {"status": "failed", "failure": "below_bracket", **bounds,
+                "reason": "no temperature froze and the coldest run melted: the melting point is below the bracket"}
+    if not melt_t or not freeze_t:
+        end = "hottest" if not melt_t else "coldest"
+        return {"status": "failed", "failure": "undecided", **bounds,
+                "reason": f"undecided: the interface barely moved at the {end} temperatures, so the melting point is "
+                          "near them; rerun the same temperatures longer"}
+    if max(freeze_t) >= min(melt_t):
+        return {"status": "failed", "failure": "inconsistent", **bounds,
+                "reason": "inconsistent: froze at or above a melting temperature (runs too short or too noisy)"}
+    lo, hi = max(freeze_t), min(melt_t)
+    pts = [(p["T_target_K"], p["delta_pe_eV_per_atom"]) for p in per_t if lo <= p["T_target_K"] <= hi]
+    slope, icept = np.polyfit([p[0] for p in pts], [p[1] for p in pts], 1)
+    tm = float(np.clip(-icept / slope, lo, hi)) if slope > 0 else (lo + hi) / 2
+    return {"status": "ok", "value": round(tm, 1), "uncertainty": round((hi - lo) / 2, 1), "units": "K",
+            "property": "melting_point", "bracket_K": [lo, hi]}
 
 
 def run_heating(atoms: Atoms, model, s: Settings, rows: list) -> tuple[dict, Batch]:
