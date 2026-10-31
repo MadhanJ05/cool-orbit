@@ -1,0 +1,84 @@
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Failed to get GPU information from pynvml: Not Supported. Using default values for NVIDIA GB10.
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+Warp 1.18.0 initialized:
+   CUDA Toolkit 13.4, Driver 13.0
+   Devices:
+     "cpu"      : "aarch64"
+     "cuda:0"   : "NVIDIA GB10" (122 GiB, sm_121, mempool enabled)
+   Kernel cache:
+     /home/dell/.cache/warp/1.18.0
+{
+  "timestamp_utc": "2026-10-31T14:38:34+00:00",
+  "host": "promaxgb10-9a6f",
+  "arch": "aarch64",
+  "gpu": "NVIDIA GB10",
+  "capability": [
+    12,
+    1
+  ],
+  "torch": "2.14.1+cu130",
+  "nvalchemi": "0.2.0",
+  "mace_torch": "0.3.15",
+  "cuequivariance": "0.13.0",
+  "model": "medium-mpa-0",
+  "dtype": "float32",
+  "args": {
+    "model": "medium-mpa-0",
+    "reps": [
+      6,
+      8
+    ],
+    "batch_copies": 8,
+    "warmup": 50,
+    "steps": 300,
+    "dt": 1.0,
+    "temperature": 300.0,
+    "out": "runs/smoke"
+  }
+}
+GPU information: NVIDIA GB10, 12, 1, 128, 48, 140, 1700
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+
+--- e3nn 1x864 atoms ---
+{"label": "e3nn 1x864 atoms", "status": "ok", "n_systems": 1, "atoms_per_system": 864, "total_atoms": 864, "steps_timed": 299, "wall_s": 114.467, "steps_per_s": 2.61, "atom_steps_per_s": 2257, "ns_per_day_per_system": 0.226, "max_drift_eV_per_atom_per_step": 2.3626268212715224e-08, "T_final_K_mean": 151.3, "peak_gpu_mem_GB": 5.55, "kernels": "e3nn"}
+
+--- e3nn 1x2048 atoms ---
+{"label": "e3nn 1x2048 atoms", "status": "ok", "n_systems": 1, "atoms_per_system": 2048, "total_atoms": 2048, "steps_timed": 299, "wall_s": 274.448, "steps_per_s": 1.09, "atom_steps_per_s": 2231, "ns_per_day_per_system": 0.094, "max_drift_eV_per_atom_per_step": 3.189546208716555e-08, "T_final_K_mean": 152.4, "peak_gpu_mem_GB": 13.0, "kernels": "e3nn"}
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+
+--- cueq 1x864 atoms ---
+{"label": "cueq 1x864 atoms", "status": "ok", "n_systems": 1, "atoms_per_system": 864, "total_atoms": 864, "steps_timed": 299, "wall_s": 13.687, "steps_per_s": 21.84, "atom_steps_per_s": 18874, "ns_per_day_per_system": 1.887, "max_drift_eV_per_atom_per_step": 2.551636966973244e-08, "T_final_K_mean": 151.3, "peak_gpu_mem_GB": 1.5, "kernels": "cueq"}
+
+--- cueq 1x2048 atoms ---
+{"label": "cueq 1x2048 atoms", "status": "ok", "n_systems": 1, "atoms_per_system": 2048, "total_atoms": 2048, "steps_timed": 299, "wall_s": 30.527, "steps_per_s": 9.79, "atom_steps_per_s": 20059, "ns_per_day_per_system": 0.846, "max_drift_eV_per_atom_per_step": 3.827455450459866e-08, "T_final_K_mean": 152.4, "peak_gpu_mem_GB": 3.4, "kernels": "cueq"}
+
+--- cueq 8x864 atoms ---
+{"label": "cueq 8x864 atoms", "status": "ok", "n_systems": 8, "atoms_per_system": 864, "total_atoms": 6912, "steps_timed": 299, "wall_s": 97.333, "steps_per_s": 3.07, "atom_steps_per_s": 21233, "ns_per_day_per_system": 0.265, "max_drift_eV_per_atom_per_step": 4.2527282782887405e-08, "T_final_K_mean": 154.6, "peak_gpu_mem_GB": 11.2, "kernels": "cueq"}
+
+=== Summary ===
+run                         steps/s  atom-steps/s   ns/day  drift eV/at/step  T_end K  mem GB
+e3nn 1x864 atoms                2.6         2,257     0.23          2.36e-08    151.3    5.55
+e3nn 1x2048 atoms               1.1         2,231     0.09          3.19e-08    152.4   13.00
+cueq 1x864 atoms               21.8        18,874     1.89          2.55e-08    151.3    1.50
+cueq 1x2048 atoms               9.8        20,059     0.85          3.83e-08    152.4    3.40
+cueq 8x864 atoms                3.1        21,233     0.27          4.25e-08    154.6   11.20
+
+Sanity: a crystal started on perfect lattice sites at 300 K should settle near 150 K (equipartition). ns/day assumes dt=1.0 fs; H-rich organics will need ~0.5 fs.
+Saved runs/smoke/throughput_2026-10-31T143834+0000.json

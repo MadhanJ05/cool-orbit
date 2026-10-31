@@ -1,0 +1,113 @@
+{
+  "env": {
+    "timestamp_utc": "2026-10-31T14:38:34+00:00",
+    "host": "promaxgb10-9a6f",
+    "arch": "aarch64",
+    "gpu": "NVIDIA GB10",
+    "capability": [
+      12,
+      1
+    ],
+    "torch": "2.14.1+cu130",
+    "nvalchemi": "0.2.0",
+    "mace_torch": "0.3.15",
+    "cuequivariance": "0.13.0",
+    "model": "medium-mpa-0",
+    "dtype": "float32",
+    "args": {
+      "model": "medium-mpa-0",
+      "reps": [
+        6,
+        8
+      ],
+      "batch_copies": 8,
+      "warmup": 50,
+      "steps": 300,
+      "dt": 1.0,
+      "temperature": 300.0,
+      "out": "runs/smoke"
+    }
+  },
+  "results": [
+    {
+      "label": "e3nn 1x864 atoms",
+      "status": "ok",
+      "n_systems": 1,
+      "atoms_per_system": 864,
+      "total_atoms": 864,
+      "steps_timed": 299,
+      "wall_s": 114.467,
+      "steps_per_s": 2.61,
+      "atom_steps_per_s": 2257,
+      "ns_per_day_per_system": 0.226,
+      "max_drift_eV_per_atom_per_step": 2.3626268212715224e-08,
+      "T_final_K_mean": 151.3,
+      "peak_gpu_mem_GB": 5.55,
+      "kernels": "e3nn"
+    },
+    {
+      "label": "e3nn 1x2048 atoms",
+      "status": "ok",
+      "n_systems": 1,
+      "atoms_per_system": 2048,
+      "total_atoms": 2048,
+      "steps_timed": 299,
+      "wall_s": 274.448,
+      "steps_per_s": 1.09,
+      "atom_steps_per_s": 2231,
+      "ns_per_day_per_system": 0.094,
+      "max_drift_eV_per_atom_per_step": 3.189546208716555e-08,
+      "T_final_K_mean": 152.4,
+      "peak_gpu_mem_GB": 13.0,
+      "kernels": "e3nn"
+    },
+    {
+      "label": "cueq 1x864 atoms",
+      "status": "ok",
+      "n_systems": 1,
+      "atoms_per_system": 864,
+      "total_atoms": 864,
+      "steps_timed": 299,
+      "wall_s": 13.687,
+      "steps_per_s": 21.84,
+      "atom_steps_per_s": 18874,
+      "ns_per_day_per_system": 1.887,
+      "max_drift_eV_per_atom_per_step": 2.551636966973244e-08,
+      "T_final_K_mean": 151.3,
+      "peak_gpu_mem_GB": 1.5,
+      "kernels": "cueq"
+    },
+    {
+      "label": "cueq 1x2048 atoms",
+      "status": "ok",
+      "n_systems": 1,
+      "atoms_per_system": 2048,
+      "total_atoms": 2048,
+      "steps_timed": 299,
+      "wall_s": 30.527,
+      "steps_per_s": 9.79,
+      "atom_steps_per_s": 20059,
+      "ns_per_day_per_system": 0.846,
+      "max_drift_eV_per_atom_per_step": 3.827455450459866e-08,
+      "T_final_K_mean": 152.4,
+      "peak_gpu_mem_GB": 3.4,
+      "kernels": "cueq"
+    },
+    {
+      "label": "cueq 8x864 atoms",
+      "status": "ok",
+      "n_systems": 8,
+      "atoms_per_system": 864,
+      "total_atoms": 6912,
+      "steps_timed": 299,
+      "wall_s": 97.333,
+      "steps_per_s": 3.07,
+      "atom_steps_per_s": 21233,
+      "ns_per_day_per_system": 0.265,
+      "max_drift_eV_per_atom_per_step": 4.2527282782887405e-08,
+      "T_final_K_mean": 154.6,
+      "peak_gpu_mem_GB": 11.2,
+      "kernels": "cueq"
+    }
+  ]
+}

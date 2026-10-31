@@ -1,0 +1,31 @@
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+WARNING:cuequivariance_ops.triton.cache_manager:Failed to get GPU information from pynvml: Not Supported. Using default values for NVIDIA GB10.
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/dell/Desktop/cool-orbit/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+Warp 1.18.0 initialized:
+   CUDA Toolkit 13.4, Driver 13.0
+   Devices:
+     "cpu"      : "aarch64"
+     "cuda:0"   : "NVIDIA GB10" (122 GiB, sm_121, mempool enabled)
+   Kernel cache:
+     /home/dell/.cache/warp/1.18.0
+GPU information: NVIDIA GB10, 12, 1, 128, 48, 140, 1700
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Using MACE model from medium-mpa-0
+
+System: water cluster (9 atoms, 3 H₂O)  →  9 atoms on cuda
+
+Running 100 NVT steps …
+Run complete: 100 steps
+
+Final observables (model-agnostic):
+  Mean energy   : -41.3704 eV
+  Inst. temp.   : 300.5 K  (target = 300 K)
+  Model used    : MACE
