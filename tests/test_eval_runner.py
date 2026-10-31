@@ -51,8 +51,12 @@ class PromptAndSandboxTest(Base):
         for name, fields in [("arm_a_single_agent.md", {}), ("arm_b_worker.md", {}),
                              ("arm_b_checker.md", {"result_id": "RES123"})]:
             text = render_prompt(name, task_prompt="Find the melting point of aluminum at ambient pressure.",
-                                 board_path="./board", task_request_id="REQ123",
-                                 calibration_path="/data/calibration/tier1.json", **fields)
+                                 board_path="./board", task_request_id="REQ123", property="melting_point",
+                                 units="K", calibration_path="/data/calibration/tier1.json", **fields)
+            if name != "arm_b_checker.md":  # the result's property/units and the flags rule (same in arm C)
+                self.assertIn('"property": "melting_point"', text, name)
+                self.assertIn('"units": "K"', text, name)
+                self.assertIn("put caveats and\nlimitations in `note`", text, name)
             self.assertNotIn("<!--", text, name)
             self.assertIsNone(re.search(r"\{[a-z_]+\}", text), f"unfilled placeholder in {name}")
             self.assertIn("aluminum", text)
@@ -62,7 +66,7 @@ class PromptAndSandboxTest(Base):
             self.assertIn("Measured reference values you may use: `/data/calibration/tier1.json`", text,
                           f"{name}: every arm is told about the calibration data (arm C's Librarian uses it)")
         a = render_prompt("arm_a_single_agent.md", task_prompt="x" * 12, board_path="b", task_request_id="r",
-                          calibration_path="c")
+                          calibration_path="c", property="p", units="u")
         self.assertIn("require recovery of an independent known result", a)  # NVIDIA's guidance, verbatim
 
     def test_sandbox_refuses_repo_and_reuse(self) -> None:

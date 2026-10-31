@@ -48,7 +48,7 @@ class Candidate(_Strict):
 
 
 class PropertyResult(_Strict):
-    """One computed property value (CLAUDE.md section 10 record).
+    """One computed property value (the results-board record).
 
     There is deliberately no ``reference`` field: the experimental anchor comes
     from an independent ``reference_value`` artifact, never from the producer

@@ -27,4 +27,7 @@ Record everything on the results board with `./board` (see "The board tool" belo
 a `candidate` fulfilling need #0 of the task request `{task_request_id}`, then a `property_result` (parent = the
 candidate, full method metadata and any flags) or a `run_report` (`refused` / `failed`, with the reason). On a
 rerun, post the new `property_result` with the old one as parent. Never edit or delete anything on the board.
+Report the property exactly as `"property": "{property}"`, in `"units": "{units}"`. Use `flags` only for problems
+that make your number unreliable (e.g. superheating, a run too short, a model outside its domain); put caveats and
+limitations in `note`.
 Never invent experimental values or citations.

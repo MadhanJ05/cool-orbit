@@ -247,7 +247,7 @@ class WorkerDispatcher:
                 text += (f"\nThis is a **rerun**: it replaces result `{flawed}`, which a referee rejected (read its "
                          "checks with `./board get`). Fix the method; don't repeat it.")
             parents = [p for p in ((cand.artifact_id if cand else None), flawed) if p]
-            return key, (on.artifact.artifact_id, on.index), text, parents
+            return key, (on.artifact.artifact_id, on.index), text, parents, prop
         return None
 
     def _reruns(self, snap: BoardSnapshot):
@@ -276,7 +276,7 @@ class WorkerDispatcher:
                     f"{res.payload['units']}) **failed a method audit**: {why}\nRerun `{res.payload['property']}` "
                     "with the method fixed, or post a run_report explaining why the audit is wrong.")
             parents = [p for p in ((cand.artifact_id if cand else None), res.artifact_id) if p]
-            return key, None, text, parents
+            return key, None, text, parents, res.payload["property"]
         return None
 
     def _orphans(self, snap: BoardSnapshot):
@@ -297,18 +297,21 @@ class WorkerDispatcher:
             text = (f"No specialist on the team could set this task up for candidate `{cand.artifact_id}` "
                     f"({cand.payload['name']}). Compute `{self.task.property}` ({self.task.units}) yourself, or "
                     "refuse if it is not well-posed.")
-            return key, None, text, [cand.artifact_id]
+            return key, None, text, [cand.artifact_id], self.task.property
         return None
 
     # ---------------------------------------------------------------- one step
 
-    def prompt(self, assignment: str, parents: list[str], fulfills: Optional[tuple[str, int]]) -> str:
+    def prompt(self, assignment: str, parents: list[str], fulfills: Optional[tuple[str, int]],
+               prop: Optional[str] = None) -> str:
         post_args = " ".join(f"--parent {p}" for p in parents)
         if fulfills:
             post_args += f" --fulfills {fulfills[0]}:{fulfills[1]}"
+        prop = prop or self.task.property
+        units = self.task.units if prop == self.task.property else "its standard units"  # e.g. a melting step first
         text = PROMPT_FILE.read_text(encoding="utf-8").format(
             task_prompt=self.task.prompt, assignment=assignment, post_args=post_args.strip(),
-            task_request_id=self.request_id, calibration_path=CAL_TOKEN)
+            task_request_id=self.request_id, calibration_path=CAL_TOKEN, property=prop, units=units)
         return text + board_tool_help(self.request_id)
 
     def step(self) -> bool:
@@ -318,7 +321,7 @@ class WorkerDispatcher:
         item = self._from_needs(snap) or self._reruns(snap) or self._orphans(snap)
         if item is None:
             return False
-        key, fulfills, assignment, parents = item
+        key, fulfills, assignment, parents, prop = item
         usd = min(self.worker_usd, self.usd_left())
         if usd < MIN_SESSION_USD:
             self.done.add(key)
@@ -330,8 +333,8 @@ class WorkerDispatcher:
             return True  # someone else holds it
         self.done.add(key)
         self.log("dispatch", item=str(key), usd_cap=round(usd, 3), minutes_left=round(minutes_left, 1))
-        self.sessions.append(self.session_fn(self.prompt(assignment, parents, fulfills), len(self.sessions) + 1,
-                                             usd, minutes_left * 60))
+        self.sessions.append(self.session_fn(self.prompt(assignment, parents, fulfills, prop),
+                                             len(self.sessions) + 1, usd, minutes_left * 60))
         return True
 
 

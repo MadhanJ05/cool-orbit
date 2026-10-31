@@ -435,6 +435,7 @@ class ArmRunner:
         sandbox = prepare_sandbox(self.work_dir / task_dir / f"{role}-{attempt}", board_root, agent, self.skills_dir,
                                   docker=self.docker)
         prompt = render_prompt(prompt_file, task_prompt=task.prompt, board_path="./board (this task's board)",
+                               property=task.property, units=task.units,
                                calibration_path=calibration_path_for(sandbox, self.docker), **fields)
         if addendum:
             prompt += "\n" + addendum.strip() + "\n"
@@ -668,7 +669,8 @@ def main(argv: Optional[list[str]] = None) -> None:
         print("command:", " ".join(cmd))
         print("\n--- first prompt ---\n" + render_prompt(prompt_file, task_prompt=tasks[0].prompt,
               calibration_path=CONTAINER_CALIBRATION if docker else "<sandbox>/calibration/tier1.json",
-              board_path="./board (this task's board)", task_request_id="<request id>"))
+              board_path="./board (this task's board)", task_request_id="<request id>",
+              property=tasks[0].property, units=tasks[0].units))
         return
     records = runner.run(task_set, args.task)
     bad = [r["task_id"] for r in records if r["contamination"]]
