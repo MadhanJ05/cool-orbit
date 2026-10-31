@@ -20,6 +20,7 @@ from unittest import mock
 
 from coolorbit.board import Board
 from coolorbit.board._scienceclaw import REPO_ROOT
+from coolorbit import llm_keys
 from coolorbit.eval import runner as runner_mod
 from coolorbit.eval.runner import ArmRunner, Budget, ClaudeCodeExecutor, prepare_sandbox
 from coolorbit.eval.sandbox import API_KEY_ENV, DockerSandbox, _forbidden_mount, stage_context
@@ -144,6 +145,11 @@ class RunCommandTest(Base):
 class DockerExecutorTest(Base):
     def setUp(self) -> None:
         super().setUp()
+        # Shared keys come from llm_keys: point it at temp files so the real .env/state are never touched.
+        for name, path in (("ENV_PATH", self.tmp / "no.env"), ("STATE_PATH", self.tmp / "key_state.json")):
+            patcher = mock.patch.object(llm_keys, name, path)
+            patcher.start()
+            self.addCleanup(patcher.stop)
         full = load_tasks(calibration_path=self.tmp / "none.json")
         self.ts = TaskSet(version=1, frozen=False, tasks=[full.by_id()["tier1_al_melting"]])
 
@@ -153,7 +159,7 @@ class DockerExecutorTest(Base):
                          skills_dir=None, log=lambda *_: None, docker=True)
 
     def test_session_runs_through_docker(self) -> None:
-        with mock.patch.dict(os.environ, {API_KEY_ENV: "sk-SYNTHETIC-test-key"}):
+        with mock.patch.dict(os.environ, {llm_keys.PRIMARY: "sk-SYNTHETIC-test-key"}):
             (rec,) = self.runner(self.fake_docker()).run(self.ts)
         runs = [c for c in self.calls() if c[0] == "run"]
         self.assertEqual(len(runs), 1)
@@ -166,7 +172,7 @@ class DockerExecutorTest(Base):
         self.assertEqual(mount, f"{(board / 'artifacts').resolve()}:/board/artifacts:rw")
 
     def test_timeout_kills_the_container(self) -> None:
-        with mock.patch.dict(os.environ, {API_KEY_ENV: "sk-SYNTHETIC"}):
+        with mock.patch.dict(os.environ, {llm_keys.PRIMARY: "sk-SYNTHETIC"}):
             (rec,) = self.runner(self.fake_docker("time.sleep(30)"), Budget(1, 1)).run(self.ts)
         run = next(c for c in self.calls() if c[0] == "run")
         name = run[run.index("--name") + 1]
@@ -174,11 +180,11 @@ class DockerExecutorTest(Base):
         self.assertTrue(rec["sessions"][0]["result"]["timed_out"])
 
     def test_preflight_needs_key_and_image(self) -> None:
-        env = {k: v for k, v in os.environ.items() if k != API_KEY_ENV}
+        env = {k: v for k, v in os.environ.items() if k not in (llm_keys.PRIMARY, llm_keys.BACKUP)}
         with mock.patch.dict(os.environ, env, clear=True):
-            with self.assertRaisesRegex(RuntimeError, API_KEY_ENV):
+            with self.assertRaises((RuntimeError, llm_keys.NoUsableKey)):
                 self.runner(self.fake_docker()).run(self.ts)
-        with mock.patch.dict(os.environ, {API_KEY_ENV: "sk-SYNTHETIC"}):
+        with mock.patch.dict(os.environ, {llm_keys.PRIMARY: "sk-SYNTHETIC"}):
             with self.assertRaisesRegex(RuntimeError, "not found"):
                 self.runner(self.fake_docker(image_ok=False)).run(self.ts)
         self.assertFalse((self.tmp / "boards").exists(), "nothing is created when preflight fails")

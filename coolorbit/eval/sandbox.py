@@ -8,7 +8,8 @@ Each session runs as ``docker run --rm`` with:
     ``/board/artifacts``; nothing else (no home dir, ~/.ssh, ~/.config/gh, ~/.brev, repo, .env,
     docker socket). Costs, transcripts and the run record stay outside the agent's reach.
   - environment: only ``-e ANTHROPIC_API_KEY`` (passed by name, so the value never appears on the
-    command line); everything else is baked into the image.
+    command line); its value is the active shared key from ``coolorbit.llm_keys.subprocess_env()``
+    (primary until out of credit, then backup). Everything else is baked into the image.
   - ``--gpus all`` (off only for laptop plumbing tests), host uid:gid so files stay yours,
     ``--cap-drop ALL``, ``no-new-privileges``, a throwaway HOME on tmpfs.
   - on the wall-clock limit the runner ``docker kill``s the container (killing the client alone
@@ -120,8 +121,11 @@ class DockerSandbox:
         self.tag, self.gpus, self.docker, self.memory, self.network = tag, gpus, docker, memory, network
 
     def preflight(self) -> None:
-        if not os.environ.get(API_KEY_ENV):
-            raise RuntimeError(f"{API_KEY_ENV} is not set; the container gets that key and nothing else")
+        from coolorbit import llm_keys  # the key itself comes from llm_keys.subprocess_env() at run time
+        try:
+            llm_keys.active_key_name()
+        except llm_keys.NoUsableKey as exc:
+            raise RuntimeError(f"no usable Anthropic key for the container ({exc})") from exc
         if not image_exists(self.tag, self.docker):
             raise RuntimeError(f"docker image {self.tag} not found; build it with "
                                f"'python -m coolorbit.eval.sandbox build --tag {self.tag}'")

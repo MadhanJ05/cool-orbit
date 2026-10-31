@@ -87,6 +87,7 @@ class Base(unittest.TestCase):
         self._tmp.cleanup()
 
     def runner(self, arm, executor, **kw) -> ArmRunner:
+        kw.setdefault("keys", None)  # shared-key failover is tested in test_eval_runner_keys.py
         return ArmRunner(arm, "test-run", 1, executor, BUDGET, boards_root=self.tmp / "boards",
                          work_root=self.tmp / "work", skills_dir=None, log=lambda *_: None, **kw)
 
@@ -255,7 +256,7 @@ class ClaudeExecutorTest(Base):
                             "output_tokens": 300}, "modelUsage": {"fake-model": {}}}
         fake = self.fake_claude(f"print(json.dumps({{'type': 'system'}}))\nprint(json.dumps({result!r}))\n")
         sb = prepare_sandbox(self.tmp / "sb", self.tmp / "b", "single_agent", None)
-        res = ClaudeCodeExecutor(str(fake)).run("PROMPT TEXT", cwd=sb, budget=Budget(1.5, 30, "some-model"),
+        res = ClaudeCodeExecutor(str(fake), env_provider=lambda: dict(os.environ)).run("PROMPT TEXT", cwd=sb, budget=Budget(1.5, 30, "some-model"),
                                                 transcript_path=self.tmp / "t.jsonl", board_root=self.tmp / "b")
         args = json.loads((self.tmp / "args.json").read_text())
         self.assertEqual(args[:2], ["-p", "PROMPT TEXT"])
@@ -270,14 +271,14 @@ class ClaudeExecutorTest(Base):
     def test_timeout_is_recorded_not_fatal(self) -> None:
         fake = self.fake_claude("time.sleep(30)\n")
         sb = prepare_sandbox(self.tmp / "sb", self.tmp / "b", "single_agent", None)
-        res = ClaudeCodeExecutor(str(fake)).run("p", cwd=sb, budget=Budget(1, 1), transcript_path=self.tmp / "t.jsonl", board_root=self.tmp / "b")
+        res = ClaudeCodeExecutor(str(fake), env_provider=lambda: dict(os.environ)).run("p", cwd=sb, budget=Budget(1, 1), transcript_path=self.tmp / "t.jsonl", board_root=self.tmp / "b")
         self.assertTrue(res.timed_out)
         self.assertIsNone(res.input_tokens)
         self.assertIn("wall-clock", res.error)
 
     def test_missing_binary_is_an_error_not_a_crash(self) -> None:
         sb = prepare_sandbox(self.tmp / "sb", self.tmp / "b", "single_agent", None)
-        res = ClaudeCodeExecutor(str(self.tmp / "nope")).run("p", cwd=sb, budget=BUDGET, transcript_path=self.tmp / "t.jsonl", board_root=self.tmp / "b")
+        res = ClaudeCodeExecutor(str(self.tmp / "nope"), env_provider=lambda: dict(os.environ)).run("p", cwd=sb, budget=BUDGET, transcript_path=self.tmp / "t.jsonl", board_root=self.tmp / "b")
         self.assertIn("could not start", res.error)
 
 

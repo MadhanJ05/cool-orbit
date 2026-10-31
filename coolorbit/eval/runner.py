@@ -43,6 +43,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional, Protocol
 
+from coolorbit import llm_keys
 from coolorbit.board import Board
 from coolorbit.board._scienceclaw import REPO_ROOT
 from coolorbit.board.schema import NEGATIVE_VERDICTS
@@ -98,6 +99,7 @@ class SessionResult:
     model: Optional[str] = None
     error: Optional[str] = None
     transcript: Optional[str] = None
+    key_name: Optional[str] = None              # which shared key (by name, never the key) the session used
 
 
 class Executor(Protocol):
@@ -143,10 +145,14 @@ class ClaudeCodeExecutor:
     """Runs one headless Claude Code session: ``claude -p <prompt>`` in the sandbox."""
 
     def __init__(self, claude_bin: str = "claude", extra_args: tuple[str, ...] = (),
-                 sandbox: Optional[DockerSandbox] = None) -> None:
+                 sandbox: Optional[DockerSandbox] = None,
+                 env_provider: Optional[Callable[[], dict]] = None) -> None:
         self.claude_bin = "claude" if sandbox else claude_bin  # inside the image it's on PATH
         self.extra_args = tuple(extra_args)
         self.sandbox = sandbox
+        # Default: llm_keys.subprocess_env() -> ANTHROPIC_API_KEY = the active shared key (primary until out of
+        # credit, then backup). docker run's `-e ANTHROPIC_API_KEY` (by name) passes exactly that into the container.
+        self.env_provider = env_provider or llm_keys.subprocess_env
 
     def command(self, prompt: str, budget: Budget) -> list[str]:
         cmd = [self.claude_bin, "-p", prompt, "--output-format", "stream-json", "--verbose",
@@ -175,7 +181,7 @@ class ClaudeCodeExecutor:
         with open(transcript_path, "w", encoding="utf-8") as log:
             try:
                 proc = subprocess.run(cmd, cwd=cwd, stdout=log, stderr=subprocess.STDOUT,
-                                      stdin=subprocess.DEVNULL, timeout=budget.timeout_s, env=os.environ.copy())
+                                      stdin=subprocess.DEVNULL, timeout=budget.timeout_s, env=self.env_provider())
                 code = proc.returncode
             except subprocess.TimeoutExpired:
                 timed_out, error = True, f"killed after {budget.timeout_s:g} s wall-clock limit"
@@ -239,6 +245,27 @@ def contamination(transcript: Optional[str]) -> list[str]:
 
 # ------------------------------------------------------------------ runs
 
+class CreditExhausted(Exception):
+    """A session died because the shared key it used ran out of credit (an infrastructure failure)."""
+
+    def __init__(self, key_name: Optional[str]) -> None:
+        super().__init__(f"{key_name or 'the active key'} is out of credit")
+        self.key_name = key_name
+
+
+def exhaustion_text(res: SessionResult) -> str:
+    """Text to test for an out-of-credit error: only a FAILED session's final result, error and stderr lines.
+
+    Never the whole transcript: an agent reading a web page that says "credit balance is too low" must not flip
+    every runner to the backup key.
+    """
+    if not res.error and res.exit_code in (0, None):
+        return ""
+    final = _parse_stream(res.transcript or "")
+    stderr = [l for l in (res.transcript or "").splitlines() if l.strip() and not l.lstrip().startswith("{")]
+    return " ".join([str(final.get("result") or ""), res.error or "", *stderr[-20:]])
+
+
 @dataclass
 class SessionRecord:
     role: str
@@ -250,7 +277,7 @@ class SessionRecord:
 
 
 def _log_cost(board_root: Path, task_id: str, agent: str, res: SessionResult) -> None:
-    row = {"agent": agent, "task_id": task_id, "kind": "llm", "model": res.model,
+    row = {"agent": agent, "task_id": task_id, "kind": "llm", "model": res.model, "key_name": res.key_name,
            "input_tokens": res.input_tokens, "output_tokens": res.output_tokens,
            "cache_read_input_tokens": res.cache_read_input_tokens,
            "cache_creation_input_tokens": res.cache_creation_input_tokens,
@@ -264,7 +291,7 @@ class ArmRunner:
     def __init__(self, arm: str, run_id: str, repeat: int, executor: Executor, budget: Budget, *,
                  boards_root: Path = DEFAULT_BOARDS_ROOT, work_root: Path = DEFAULT_WORK_ROOT,
                  skills_dir: Optional[Path] = DEFAULT_SKILLS, log: Callable[[str], None] = print,
-                 docker: bool = False) -> None:
+                 docker: bool = False, keys=llm_keys) -> None:
         if arm not in ("A", "B"):
             raise ValueError("only arms A and B have runners; arm C is the collective itself")
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", run_id):
@@ -274,11 +301,14 @@ class ArmRunner:
         self.repeat_dir = Path(boards_root) / run_id / f"{arm}-r{repeat}"
         self.work_dir = Path(work_root) / run_id / f"{arm}-r{repeat}"
         self.skills_dir, self.log, self.docker = skills_dir, log, docker
+        self.keys = keys  # coolorbit.llm_keys (None: no shared-key handling, for fake-LLM tests)
+        self._try = 1     # infrastructure retry number of the task being run (1 = first try)
 
     # one session ------------------------------------------------------------------
     def _session(self, task: Task, board_root: Path, role: str, agent: str, prompt_file: str,
                  attempt: int, addendum: str = "", **fields: str) -> tuple[SessionResult, SessionRecord]:
-        sandbox = prepare_sandbox(self.work_dir / task.id / f"{role}-{attempt}", board_root, agent, self.skills_dir,
+        task_dir = task.id if self._try == 1 else f"{task.id}.try{self._try}"
+        sandbox = prepare_sandbox(self.work_dir / task_dir / f"{role}-{attempt}", board_root, agent, self.skills_dir,
                                   docker=self.docker)
         prompt = render_prompt(prompt_file, task_prompt=task.prompt, board_path="./board (this task's board)", **fields)
         if addendum:
@@ -286,9 +316,13 @@ class ArmRunner:
         (sandbox / "PROMPT.md").write_text(prompt, encoding="utf-8")  # evidence of exactly what it was told
         transcript = board_root / "transcripts" / f"{role}-{attempt}.jsonl"
         self.log(f"  [{task.id}] {role} attempt {attempt}: running in {sandbox}")
+        key_name = self.keys.active_key_name() if self.keys else None
         res = self.executor.run(prompt, cwd=sandbox, budget=self.budget, transcript_path=transcript,
                                 board_root=board_root)
-        _log_cost(board_root, task.id, agent, res)
+        res.key_name = key_name
+        _log_cost(board_root, task.id, agent, res)  # dollars and tokens per session, failed ones too
+        if self.keys and self.keys.is_credit_exhausted(exhaustion_text(res)):
+            raise CreditExhausted(key_name)
         hits = contamination(res.transcript)
         if hits:
             self.log(f"  [{task.id}] WARNING: transcript mentions {hits} (possible contamination)")
@@ -318,6 +352,28 @@ class ArmRunner:
         if board_root.exists():
             raise FileExistsError(f"{board_root} exists but has no {RECORD_FILE} (an interrupted attempt). "
                                   "Inspect it, then delete it yourself to redo this task.")
+        infra_failed: list[str] = []
+        for self._try in (1, 2):
+            try:
+                return self._attempt(task, board_root, record_path, infra_failed)
+            except CreditExhausted as exc:
+                failed = self.repeat_dir / "_infra_failed" / f"{task.id}.try{self._try}"
+                failed.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(board_root), str(failed))  # out of the scored folder, kept as evidence
+                (failed / "INFRA_FAILURE.json").write_text(json.dumps({
+                    "task_id": task.id, "reason": "shared Anthropic key out of credit mid-task; not scored",
+                    "key_name": exc.key_name, "at": datetime.now(timezone.utc).isoformat()}, indent=1),
+                    encoding="utf-8")
+                infra_failed.append(str(failed.relative_to(self.repeat_dir)))
+                if self.keys is None or exc.key_name != self.keys.PRIMARY:
+                    raise llm_keys.NoUsableKey(f"{exc.key_name} is out of credit too; stopping the run "
+                                               f"(failed attempt kept in {failed})") from exc
+                self.keys.mark_primary_exhausted("claude -p session")
+                self.log(f"  [{task.id}] primary key out of credit: attempt moved to {failed}; "
+                         "rerunning the task on the backup key")
+        raise llm_keys.NoUsableKey(f"{task.id}: out of credit twice")  # unreachable in practice
+
+    def _attempt(self, task: Task, board_root: Path, record_path: Path, infra_failed: list[str]) -> dict:
         board = Board(board_root)
         req_id = seed_board(board, TaskSet(version=1, frozen=False, tasks=[task]))[task.id]
         started = datetime.now(timezone.utc).isoformat()
@@ -356,12 +412,15 @@ class ArmRunner:
                   "task_request_id": req_id, "started": started, "finished": datetime.now(timezone.utc).isoformat(),
                   "budget": asdict(self.budget), "sandbox": "docker" if self.docker else "none",
                   "sessions": [asdict(s) for s in sessions],
+                  "infra_failed_attempts": list(infra_failed),
                   "contamination": sorted({h for s in sessions for h in s.contamination})}
         record_path.write_text(json.dumps(record, indent=1), encoding="utf-8")
         return record
 
     def run(self, task_set: TaskSet, task_ids: Optional[list[str]] = None) -> list[dict]:
         tasks = task_set.tasks if not task_ids else [task_set.by_id()[t] for t in task_ids]
+        if self.keys is not None:
+            self.log(f"active shared key: {self.keys.active_key_name()}")  # raises NoUsableKey if none
         sandbox = getattr(self.executor, "sandbox", None)
         if sandbox is not None:
             sandbox.preflight()
