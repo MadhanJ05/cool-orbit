@@ -24,6 +24,7 @@ result to the flawed one, which marks the old result superseded. At most ``max_r
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Optional
 
@@ -97,12 +98,10 @@ def audit(result: dict, rules: dict, candidate: Optional[dict] = None) -> tuple[
     return flags, reasons
 
 
-SUPERHEATING_FLAGS = {"single_phase_heating", "superheating_risk", "superheating_observed",
-                      "unexpected_superheating_signal"}
-PRODUCTION_FLAGS = {"quick_settings_not_production", "system_too_small", "run_too_short",
-                    "liquid_half_incompletely_melted", "crystal_half_disturbed"}
-DOMAIN_FLAGS = {"model_out_of_domain", "timestep_too_large_for_hydrogen"}
+SINGLE_PHASE_FLAGS = {"single_phase_heating", "superheating_risk", "superheating_observed"}
+PREP_FLAGS = {"liquid_half_incompletely_melted", "crystal_half_disturbed"}
 TYPICAL_SUPERHEATING = 1.2  # single-phase heating of a perfect crystal overshoots Tm by roughly 20%
+DEFAULT_REPS = {"melting": [4, 4, 8], "latent": [4, 4, 4]}  # the Simulator's defaults (docs/simulation-requests.md)
 
 
 def rerun_depth(snap: BoardSnapshot, res: Artifact) -> int:
@@ -117,38 +116,96 @@ def rerun_depth(snap: BoardSnapshot, res: Artifact) -> int:
         depth, cur = depth + 1, prev
 
 
-def rerun_need(result: dict, flags: list[str]) -> Optional[dict]:
-    """The request that would fix this result's flaws, or None if a rerun can't fix them."""
+def origin_need(snap: BoardSnapshot, res: Artifact) -> dict:
+    """The request this result fulfilled (to recover settings the result doesn't record, e.g. reps)."""
+    fn = res.payload.get("_fulfilled_need")
+    parent = snap.artifacts.get(fn["parent_artifact_id"]) if fn else None
+    idx = res.payload.get("_need_index")
+    if parent is None or idx is None or idx >= len(parent.needs):
+        return {}
+    return parent.needs[idx]
+
+
+def _scaled_reps(reps: list[int], n_atoms: int, min_atoms: int) -> list[int]:
+    """Grow the supercell, smallest axis first, until it has at least ``min_atoms`` atoms."""
+    per_cell = n_atoms / math.prod(reps)
+    out = list(reps)
+    while per_cell * math.prod(out) < min_atoms:
+        i = out.index(min(out))
+        out[i] += 1
+    return out
+
+
+def rerun_need(result: dict, flags: list[str], rules: dict, origin: Optional[dict] = None) -> Optional[dict]:
+    """The request that would fix this result's flaws, or None if no request field can fix them.
+
+    Each fix changes something the Simulator reads (docs/simulation-requests.md); a rerun that would repeat the
+    same run is never requested.
+    """
+    origin = origin or {}
     prop, name = result["property"], result["candidate"]
     m = result.get("method") or {}
-    temps = m.get("temperatures_K") or []
+    fl = set(flags)
+    protocol = str(m.get("protocol", "")).lower()
+    single_phase = any(p in protocol for p in rules["single_phase_protocols"])
+    temps = list(m.get("temperatures_K") or [])
+    production = "quick_settings_not_production" not in fl
     need = {"artifact_type": "property_result", "property": prop}
     fixes = []
-    if DOMAIN_FLAGS & set(flags):
+
+    # Engine: out-of-domain models go to classical MD; a non-ALCHEMI result stays with the classical-MD route.
+    if "model_out_of_domain" in fl or str(m.get("engine", "ALCHEMI")) != "ALCHEMI":
         need["engine"] = "classical_md"
-        fixes.append("classical MD (the MLIP is outside its training domain)")
+        if "model_out_of_domain" in fl:
+            fixes.append("classical MD (the MLIP is outside its training domain)")
+    if "timestep_too_large_for_hydrogen" in fl:
+        need["dt_fs"] = rules["max_timestep_fs_with_hydrogen"]
+        fixes.append(f"a {need['dt_fs']} fs timestep (hydrogen present)")
+
     if prop in ("melting_point", "transition_temperature"):
-        if SUPERHEATING_FLAGS & set(flags):
+        mode = "melting"
+        if single_phase and SINGLE_PHASE_FLAGS & fl:
             need["t_guess_K"] = round(result["value"] / TYPICAL_SUPERHEATING)
             fixes.append(f"two-phase coexistence (bracket around {need['t_guess_K']} K, the heating value "
                          f"corrected for ~{round((TYPICAL_SUPERHEATING - 1) * 100)}% superheating)")
         elif len(temps) >= 2:
-            need["temps_K"] = list(temps)
+            need["temps_K"] = temps  # a two-phase run: keep its bracket
+        elif origin.get("temps_K") or origin.get("t_guess_K"):
+            need.update({k: origin[k] for k in ("temps_K", "t_guess_K") if origin.get(k)})
         else:
             need["t_guess_K"] = round(result["value"])
     elif prop in ("latent_heat", "transition_latent_heat"):
-        t = temps[0] if temps else None
+        mode = "latent"
+        t = temps[0] if temps else origin.get("temperature_K")
         if t is None:
             return None
         need["temperature_K"] = t
     else:
         return None  # the Simulator only runs melting points and latent heats
-    if PRODUCTION_FLAGS & set(flags) or SUPERHEATING_FLAGS & set(flags):
+
+    if not production:
         need["preset"] = "production"
-        if PRODUCTION_FLAGS & set(flags):
-            fixes.append("production settings")
+        fixes.append("production settings (the result used the quick preset)")
+    protocol_key = "two-phase coexistence" if mode == "melting" and not single_phase else protocol
+    if "system_too_small" in fl and m.get("n_atoms"):
+        min_atoms = rules["min_atoms"].get(protocol_key, rules["min_atoms"]["default"])
+        reps = list(origin.get("reps") or DEFAULT_REPS[mode])
+        need["reps"] = _scaled_reps(reps, m["n_atoms"], min_atoms)
+        fixes.append(f"a larger supercell (reps {need['reps']}, at least {min_atoms} atoms)")
+    if "run_too_short" in fl and m.get("sim_length_ps") and m.get("timestep_fs"):
+        min_len = rules["min_sim_length_ps"].get(protocol_key, rules["min_sim_length_ps"]["default"])
+        dt = need.get("dt_fs", m["timestep_fs"])
+        need["prod_steps"] = math.ceil(min_len * 1000 / dt)
+        fixes.append(f"a longer production run ({need['prod_steps']} steps = {min_len} ps)")
+    # PREP_FLAGS (box preparation) have no request field of their own: on a quick run the production preset
+    # fixes them; on a production run nothing a request can set changes them, so no fix is added and the
+    # check carries no rerun (it would repeat the same run).
     if not fixes:
         return None
+    return _finish(need, prop, name, flags, fixes)
+
+
+def _finish(need: dict, prop: str, name: str, flags: list[str], fixes: list[str]) -> dict:
     need["query"] = f"rerun {prop} of {name} with " + " and ".join(fixes)
     need["rationale"] = "method audit failed on " + ", ".join(flags) + "; a corrected rerun supersedes this result"
     return need
@@ -187,7 +244,7 @@ class RuleReferee(Agent):
                 fulfills = (on.artifact.artifact_id, on.index)
             needs = []
             if flags:
-                rerun = rerun_need(res.payload, flags)
+                rerun = rerun_need(res.payload, flags, self.rules, origin_need(snap, res))
                 if rerun is not None and rerun_depth(snap, res) >= self.max_reruns:
                     note += f" [no rerun requested: {self.max_reruns} reruns already in this lineage]"
                     rerun = None

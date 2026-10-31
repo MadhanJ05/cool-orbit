@@ -169,6 +169,24 @@ class BoardAgent(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
+    def test_checks_eval_task_requests_from_their_text(self):
+        lif = self.board.post("eval_harness", "request", {"note": "eval_task:lif"},
+                              needs=[{"artifact_type": "candidate", "eval_task": "lif", "property": "self_diffusion",
+                                      "query": "Compute the Li-ion diffusion coefficient in pristine crystalline LiF "
+                                               "using molecular dynamics.", "rationale": "evaluation task"}])
+        li = self.board.post("eval_harness", "request", {"note": "eval_task:li"},
+                             needs=[{"artifact_type": "candidate", "eval_task": "li", "property": "self_diffusion",
+                                     "query": "Compute the self-diffusion coefficient of liquid lithium at 800 K.",
+                                     "rationale": "evaluation task"}])
+        not_eval = self.board.post("scout_x", "request", {"note": "not a task"},
+                                   needs=[{"artifact_type": "candidate", "property": "self_diffusion",
+                                           "query": "pristine crystalline LiF diffusion", "rationale": "not an eval task"}])
+        pc = PremiseChecker(self.board, client=None, calibration=[], verbose=False)
+        self.assertEqual(pc.drain(), 2)
+        verdicts = {c.parent_artifact_ids[0]: c.payload["verdict"] for c in self.board.snapshot().of_type("check")}
+        self.assertEqual(verdicts, {lif.artifact_id: "fail", li.artifact_id: "pass"})
+        del not_eval
+
     def test_checks_requests_then_flags_results_of_failed_premises(self):
         lif = self.board.post("scout_x", "candidate", {"name": "LiF", "family": "test", "tier": "trust", "formula": "LiF",
                                                        "structure_source": "ase:LiF:rocksalt:4.03"},

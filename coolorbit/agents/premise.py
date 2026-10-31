@@ -12,9 +12,10 @@ Two layers:
    (or always, with ``llm_mode="always"``). It cannot overturn a rule-based ``fail``. With no API
    credentials it is skipped and the verdict stays ``inconclusive`` (reported, never silently passed).
 
-On the board (``PremiseChecker``, agent ``referee_premise``) it posts a ``premise_check`` on every
-simulation request (a ``property_result`` need) as soon as it appears, and, if a result is produced from a
-request it failed, posts the same ``fail`` on that result so the trust rule flags it.
+On the board (``PremiseChecker``, agent ``referee_premise``) it posts a ``premise_check`` on every eval task
+request (from its text only) and on every simulation request (a ``property_result`` need) as soon as it
+appears, and, if a result is produced from a request it failed, posts the same ``fail`` on that result so
+the trust rule flags it.
 
     python -m coolorbit.agents.premise --board boards/<id> [--once] [--llm inconclusive|always|never]
     python -m coolorbit.agents.premise --task '{"material": "LiF", "property": "self_diffusion", ...}'
@@ -355,6 +356,20 @@ def task_from_need(snap: BoardSnapshot, art: Artifact, need: dict, calibration_i
     return {k: v for k, v in task.items() if v not in (None, "", [])}
 
 
+EVAL_AGENT = "eval_harness"
+
+
+def task_from_eval_request(need: dict) -> dict:
+    """A premise-check task from an eval task request, using only the task text on the board (the same text
+    every arm gets; never coolorbit/eval/tasks.json)."""
+    text = need.get("query", "")
+    task = {"property": need.get("property", ""), "description": text}
+    t = re.search(r"(\d+(?:\.\d+)?)\s*K\b", text)
+    if t:
+        task["temperature_K"] = float(t.group(1))
+    return task
+
+
 def _tag(need_index: int) -> str:
     return f"[need {need_index}]"
 
@@ -385,6 +400,17 @@ class PremiseChecker(Agent):
 
     def step(self) -> bool:
         snap = self.board.snapshot()
+        # 0. Every eval task as posted (even once a Scout has answered it, or if no Scout can request a run).
+        for req in snap.of_type("request"):
+            if req.producer_agent != EVAL_AGENT:
+                continue
+            for i, need in enumerate(req.needs):
+                if not need.get("property") or self._checked(snap, req.artifact_id, i):
+                    continue
+                task = task_from_eval_request(need)
+                v = check_premise(task, client=self.client, llm_mode=self.llm_mode, rules=self.rules)
+                self._post(v, parent=req.artifact_id, need_index=i, task=task)
+                return True
         # 1. Every simulation request, before it runs (claimed or not: we don't claim, we only advise).
         for on in self.board.open_needs(include_claimed=True):
             if on.need.get("artifact_type") != "property_result":
