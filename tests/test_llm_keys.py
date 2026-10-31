@@ -16,6 +16,22 @@ OUT_OF_CREDIT = ("Error code: 400 - {'type': 'error', 'error': {'type': 'invalid
                  "'Your credit balance is too low to access the Anthropic API.'}}")
 
 
+class EnvParsingTest(unittest.TestCase):
+    """Inline comments and quotes in .env must never become part of a key (the pilot's 401: 'key  # comment')."""
+
+    def test_inline_comments_quotes_and_export(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            env = Path(tmp) / ".env"
+            env.write_text(f"# team keys\n{llm_keys.PRIMARY}={FAKE_PRIMARY}  # spend this first\n"
+                           f"export {llm_keys.BACKUP}=\"{FAKE_BACKUP}\" # backup key\n"
+                           "OTHER='has # inside quotes'\nPLAIN=value#not-a-comment\n")
+            values = llm_keys._read_env(env)
+        self.assertEqual(values[llm_keys.PRIMARY], FAKE_PRIMARY)
+        self.assertEqual(values[llm_keys.BACKUP], FAKE_BACKUP)
+        self.assertEqual(values["OTHER"], "has # inside quotes")
+        self.assertEqual(values["PLAIN"], "value#not-a-comment")  # '#' without whitespace before it is kept
+
+
 class KeyFailoverTest(unittest.TestCase):
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()

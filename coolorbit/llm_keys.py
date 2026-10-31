@@ -22,6 +22,7 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -37,14 +38,25 @@ class NoUsableKey(RuntimeError):
     """No key is configured, or the primary is exhausted and there is no backup."""
 
 
+def _env_value(raw: str) -> str:
+    """A .env value the way dotenv reads it: quoted -> the text inside the quotes; unquoted -> up to an inline
+    ``  # comment`` (a ``#`` after whitespace). Keys never contain whitespace, so a comment can't be part of one."""
+    value = raw.strip()
+    if value[:1] in ("'", '"') and value[0] in value[1:]:
+        return value[1:value.index(value[0], 1)]
+    return re.split(r"\s+#", value, maxsplit=1)[0].strip().strip("'\"")
+
+
 def _read_env(env_path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
     if env_path.exists():
         for line in env_path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
+            if line.startswith("export "):
+                line = line[len("export "):].strip()
             if line and not line.startswith("#") and "=" in line:
                 name, _, value = line.partition("=")
-                values[name.strip()] = value.strip().strip("'\"")
+                values[name.strip()] = _env_value(value)
     for name in (PRIMARY, BACKUP):  # the process environment wins (e.g. inside a sandbox)
         if os.environ.get(name):
             values[name] = os.environ[name]
