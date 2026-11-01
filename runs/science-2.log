@@ -7,3 +7,12 @@ science run on /home/dell/Desktop/cool-orbit/boards/science-2: metals ['Bi', 'In
 [referee_premise] post: artifact_type=check, id=a8dd8ee2, summary=premise_check: pass, parents=['4b7431a6'], fulfills=None
 [referee_premise] decision: target=4b7431a6, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'Bi', 'family': 'low_melting_metal', 'formula': 'Bi', 'structure_source': 'ref:Bi', 'property': 'melting_point', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'two-phase coexistence', 'ensemble': None}, 'temps_K': [299.0, 353.6666666666667, 408.3333333333333, 463.0], 'description': 'melting_point of Bi (retry 2: bracket shifted down). attempt 1 failed: no temperature froze and the coldest run melted: the melting point is below the bracket', 'melting_point_K': 544.556}
 [simulator_gb10] RUN: melting_point of Bi via two-phase coexistence (ALCHEMI), 768 atoms x 4 temps, preset production, attempt 2, ~73 min
+[simulator_gb10] RESULT 2f575597: melting_point = 408.3 +/- 54.7 K flags=[]
+[referee_rules] claim: target=2f575597, need_index=0, query=audit the two-phase coexistence melting_point run for Bi
+[referee_rules] post: artifact_type=check, id=3caf1336, summary=method_audit: pass, parents=['2f575597'], fulfills=('2f575597', 0)
+[referee_rules] decision: result=2f575597, candidate=Bi, property=melting_point, verdict=pass, flags=[], rerun=None
+[librarian] claim: target=2f575597, need_index=2, query=measured melting_point of Bi with a citable source
+[librarian] post: artifact_type=reference_value, id=2dcaca47, summary=measured Bi melting_point = 544.556 K [NIST Certificate of Analysis, Standard Reference Material 2235 'Bismuth for Thermal Analysis' (2015), https://tsapps.nist.gov/srmext/certificates/archives/2235.pdf], parents=['2f575597'], fulfills=('2f575597', 2)
+[librarian] decision: candidate=Bi, property=melting_point, value=544.556, reason=found in curated dataset
+[referee_premise] post: artifact_type=check, id=656896ac, summary=premise_check: pass, parents=['2f575597'], fulfills=None
+[referee_premise] decision: target=2f575597, need_index=0, verdict=pass, flags=[], source=carried, usage=None, task=None

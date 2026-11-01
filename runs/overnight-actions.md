@@ -5,6 +5,48 @@ want you to do the needful in a best way." Scope: fix/stop/restart runs and thei
 commit locally. Not without him: spending money (Brev/H100), publishing (Cloud Run, the live push loop), changing
 pre-registered tolerances/tasks/scoring, deleting results, sudo, git push.
 
+## Morning briefing (written ~08:00 UTC; details in the table below)
+
+**Results on `boards/science-2` (MACE-MPA-0, coexistence protocol v2):**
+
+| Metal | MACE | Measured | Status |
+|---|---|---|---|
+| Cu melting point | 1358 ± 68 K | 1357.77 K (ITS-90) | **TRUSTED** (EAM Mishin 2001 agrees: 1327 K) |
+| Cu latent heat | 190,222 ± 2,692 J/kg | 206,748 (JANAF) | **TRUSTED** (EAM agrees: 188,684) |
+| Al melting point | 933 ± 47 K | 933.45 K | under review: the only classical checker (EAM Al) fails its own test, posted inconclusive |
+| Al latent heat | 355,031 ± 2,437 J/kg (-10.6%) | 396,975 | under review: **your decision** (see 07:36) |
+| In melting point | 344.7 ± 21.3 K (-20%) | 429.748 K | FLAGGED |
+| Bi melting point (ran on the GB10) | 408.3 ± 54.7 K (-25%) | 544.556 K | FLAGGED (and MEAM Bi disagrees) |
+| Sn | crystal does not survive at 505 K in MACE | 505.078 K | stopped at the new prep gate |
+
+Reading: MACE-MPA-0 is good for fcc Cu/Al (Tm within 0.1%, latent within ~10%) and 20-25% low on the low-melting
+post-transition metals (In, Bi, Sn) that matter most for thermal batteries. Earlier MACE latent runs at the measured
+Tm: Al -10.2%, Cu -7.3%, Bi -46% (superheated solid, suspect), In/Sn solid melted.
+
+**Comparison (both repeats, docs/results/comparison-cmp1.md):** trap catch A 60% / B 60-70% / **C 80%**; false alarms
+A 17% / B 33% / C 17%; silent errors 0 everywhere; LLM cost per repeat A ~$4.5 / B ~$3.5 / **C ~$2.4**. Caveat: C's
+gain is in repeat 2, after the disclosed budget fit. **Repeat 3 is running** (~$10, done ~11:30 UTC).
+
+**What broke and got fixed:** our coexistence analysis was wrong (block-0 reference, cold liquid prep, Sn crystal lost,
+retry loop) -> diagnosis + opt-in protocol v2 with tests; the hook falsely flags heavy two-phase boxes (README corrected,
+and the README had never been committed); Brev's SSH proxy route is blocked from here (direct SSH + new SSH runner);
+Warp CUDA-13 wheel on a CUDA-12 H100 (fixed, setup script updated); remote timeouts (4x allowance, two results
+recovered honestly); a gate loophole in post_classical_checks (fixed + test). 4 small slips of mine are logged.
+
+**H100 (Lambda, $3.95/h since 03:56):** ~$16 by 08:00. Watchdog stops/deletes it at 13:30 UTC. It is now running
+supplementary refined-bracket runs (not posted to any board).
+
+**Your decisions:**
+1. Al latent heat: count the EAM Al latent check (it passes the latent gate, -8.8%, but the same potential fails the
+   melting-point gate)? I withheld it.
+2. Dashboard: the redesign is committed but not deployed; the push loop is stopped. It should also export
+   `boards/science-2` (the new results). Then Sia redeploys.
+3. Pitch: slides 8/9/11 need the new numbers (trusted Cu, the MACE calibration pattern, the comparison).
+4. H100: keep it until 13:30 or stop it after the refined runs (~09:30).
+5. Hook announcement (collaboration bonus).
+
+## Log
+
 | Time (UTC) | Action | Why | Result |
 |---|---|---|---|
 | ~04:00 | Started a background wake-up timer (every ~45 min) | I can't wake myself otherwise | |
@@ -62,3 +104,5 @@ pre-registered tolerances/tasks/scoring, deleting results, sudo, git push.
 | 07:30 | Al latent reported "failed" (old 51-min allowance); restarted h100sim3 with the 4x allowance | | |
 | 07:36 | Recovered **Al latent heat 355,031 ± 2,437 J/kg** (-10.6% vs JANAF 396,975; run finished in 54.8 min) | | posted 8ccfb876 (UNDER_REVIEW) |
 | 07:36 | **Did NOT post the EAM Al latent check** although the dry run says "agree 362,002" (the potential passes the ±15% latent gate, -8.8%) | the same potential fails the melting-point gate (+11.6%) and its latent heat is computed at its own wrong Tm; counting it on a per-property technicality is an interpretation of the pre-registered rule: **Madhan's call** | Al latent stays under review |
+| 07:45 | **Bi MACE (v2 attempt 2, on the GB10): 408.3 ± 54.7 K vs measured 544.556 K (-25%) -> FLAGGED**. 07:46 the overnight queue posted the MEAM Bi check (passes its gate): **disagree** (586.7 vs 408.3 K) | | Bi flagged on two counts. Board: Cu Tm + Cu L TRUSTED; Al Tm + Al L under review; In, Bi flagged; Sn stopped at the prep gate |
+| 07:57 | On the idle H100 (checkout ~/cool-orbit-v2, v2 code, seed 2030), 4 refined-bracket production runs, NOT posted to any board: Cu 1330-1390 K, Al 900-960 K, Bi 360-450 K, In 320-380 K; out ~/cool-orbit-v2/runs/refine | the H100 was idle and billing; narrower brackets + a second seed sharpen the MACE calibration numbers (e.g. Cu ±68 K) without touching trusted board results | running |

@@ -13,3 +13,6 @@
 {"ts": "2026-11-01T07:35:44+00:00", "agent": "referee_rules", "event": "claim", "target": "8ccfb876", "need_index": 0, "query": "audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Al"}
 {"ts": "2026-11-01T07:35:44+00:00", "agent": "referee_rules", "event": "post", "artifact_type": "check", "id": "337ee42f", "summary": "method_audit: pass", "parents": ["8ccfb876"], "fulfills": ["8ccfb876", 0]}
 {"ts": "2026-11-01T07:35:44+00:00", "agent": "referee_rules", "event": "decision", "result": "8ccfb876", "candidate": "Al", "property": "latent_heat", "verdict": "pass", "flags": [], "rerun": null}
+{"ts": "2026-11-01T07:45:05+00:00", "agent": "referee_rules", "event": "claim", "target": "2f575597", "need_index": 0, "query": "audit the two-phase coexistence melting_point run for Bi"}
+{"ts": "2026-11-01T07:45:05+00:00", "agent": "referee_rules", "event": "post", "artifact_type": "check", "id": "3caf1336", "summary": "method_audit: pass", "parents": ["2f575597"], "fulfills": ["2f575597", 0]}
+{"ts": "2026-11-01T07:45:05+00:00", "agent": "referee_rules", "event": "decision", "result": "2f575597", "candidate": "Bi", "property": "melting_point", "verdict": "pass", "flags": [], "rerun": null}
