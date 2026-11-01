@@ -5,6 +5,7 @@ ENV PYTHONUNBUFFERED=1 PORT=8080
 WORKDIR /app
 COPY index.html app.js style.css server.py ga3d.js ./
 COPY vendor/three ./vendor/three
+COPY v2 ./v2
 RUN useradd --uid 10001 --no-create-home web
 USER web
 EXPOSE 8080

@@ -848,3 +848,46 @@ details.fold[open] > summary { margin-bottom: 12px; }
   .dsvg .route path { stroke: CanvasText; }
   .plx { display: none; }
 }
+
+/* ------------------------------------------------------------------ ?embed=agents: framed by the v2 page
+   Light theme in the v2 palette (lavender accent, warm off-white), no top bar, footer or tab heading. */
+html.embed {
+  color-scheme: light;
+  --bg: transparent; --bar: #F7F4F1; --panel: #FFFFFF; --panel-2: #FBF9F7; --line: #E6E1EA; --line-2: #D9D3DF;
+  --edge: #B9B2C4; --ink: #1B1A24; --ink-2: #3D3B48; --muted: #6B6876;
+  --accent: #8B7BC8; --accent-ink: #FFFFFF; --accent-wash: #EEEAF7; --link: #5B4BA0;
+  --ok: #1A7F37; --ok-wash: #E7F4EA; --warn: #9A6700; --warn-wash: #FBF3DF; --bad: #CF222E; --bad-wash: #FCE9EA;
+  --pend: #6B6876; --pend-wash: #F1EEF3; --pred: #6B4FC8; --claim: #2D5FB0; --claim-wash: #E4ECF8;
+  --h-steer: #9A6700; --h-propose: #A3307F; --h-gate: #0E7490; --h-sim: #3F7A1C; --h-check: #B4432F;
+  --h-keep: #2D5FB0; --h-fable: #6B4FC8; --h-opus: #B25A12; --h-core: #4A8A16;
+  --hl-steer: #FBEFD6; --hl-propose: #F8E3F1; --hl-gate: #DCF1F6; --hl-sim: #E5F2DB; --hl-check: #FBE5E1;
+  --hl-keep: #E2EAF8; --hl-fable: #EEEAF7; --hl-opus: #FAE9DA; --hl-core: #E4F2D8;
+  --rule: #9A6700; --console: #FBF9F7; --track: #EFEBF2; --fins: #A7A1AF; --viz-neutral: #A7A1AF;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+@font-face { font-family: "Inter"; src: url("/v2/fonts/inter-latin-var.woff2") format("woff2");
+  font-weight: 400 700; font-style: normal; font-display: swap; }
+html.embed body { background: transparent; }
+html.embed .skip, html.embed .topbar, html.embed .foot, html.embed #banners, html.embed .update,
+html.embed #agents .tab-head { display: none !important; }
+html.embed .panel { padding: 0 0 8px; }
+html.embed .wrap { max-width: none; padding-left: 0; padding-right: 0; }
+html.embed .card { box-shadow: none; border-radius: 20px; }
+html.embed .tip { background: #FFFFFF; color: var(--ink-2); box-shadow: 0 10px 30px rgba(27, 26, 36, 0.14); }
+html.embed .node { background: #FFFFFF; box-shadow: 0 1px 2px rgba(27, 26, 36, 0.05), 0 10px 26px -18px var(--hue, transparent); }
+html.embed .ptile { background: #FFFFFF; box-shadow: none; }
+html.embed .nbadge.active { border-color: #A7D7B4; }
+html.embed .nbadge.claimed { border-color: #B5C8EA; }
+html.embed .nchip.api { border-color: #CFE3BF; color: #3F7A1C; background: #F3F9EE; }
+html.embed .node.core { background: radial-gradient(120% 90% at 50% 0%, rgba(111, 163, 74, 0.14), transparent 62%), #FFFFFF;
+  box-shadow: 0 0 0 1px rgba(111, 163, 74, 0.2), 0 0 40px -10px rgba(111, 163, 74, 0.35); }
+html.embed .dsvg .route.ring path { stroke: #8B7BC8; }
+html.embed .dsvg .route.ring circle.end { fill: #8B7BC8; }
+html.embed .dsvg .rbadge circle { fill: #EEEAF7; }
+html.embed .dsvg .route.ring .elabel text { fill: #5B4BA0; }
+html.embed .dsvg .route.rules .elabel text, html.embed .dsvg .route.config .elabel text { fill: #9A6700; }
+html.embed .pt { background: #8B7BC8; box-shadow: 0 0 8px 2px rgba(139, 123, 200, 0.45); }
+html.embed .pt.spoke, html.embed .pt.sat { background: #6FA34A; box-shadow: 0 0 8px 2px rgba(111, 163, 74, 0.4); }
+html.embed .pt.hotp { background: #5B4BA0; box-shadow: 0 0 12px 4px rgba(139, 123, 200, 0.55); }
+html.embed .btn.primary:hover { background: #7A6AB8; }
+html.embed .rp-wins li { border-color: #A7D7B4; }

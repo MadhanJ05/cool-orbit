@@ -1,5 +1,11 @@
 # Dashboard
 
+> **Two pages.** `/` is the v2 landing page + dashboard (`dashboard/v2/`: calm light theme, self-hosted Source Serif 4
+> and Inter under the OFL). `/classic/` is the previous dashboard, unchanged (all tabs, tables and replays). Both
+> read the same export (`/data/data.js`). v2 never types a number in: every value comes from the export or the
+> element is hidden (`tests/test_dashboard_v2.py` guards this).
+
+
 One static page for the judges: a dark console with a top bar (data age, never called live when the export is
 older than 10 minutes; a countdown to the 1 PM deadline, 18:00 UTC) and five hash-routed tabs (`#overview`,
 `#agents`, `#results`, `#comparison`, `#failures`; arrow keys move between them):

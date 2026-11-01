@@ -11,6 +11,10 @@ const CTX = DATA && DATA.context && !DATA.context.error ? DATA.context : null;
 const G = CTX && CTX.agent_graph ? CTX.agent_graph : null;
 const SVG_NS = "http://www.w3.org/2000/svg";
 const GITHUB = "https://github.com/MadhanJ05/cool-orbit";
+// ?embed=agents: the v2 page frames just the agents diagram (light theme, no top bar or footer) and sizes the frame
+// from the height this page posts to its parent (same origin only).
+const EMBED = new URLSearchParams(window.location.search).get("embed") === "agents";
+if (EMBED) document.documentElement.classList.add("embed");
 
 // ------------------------------------------------------------------ DOM helpers
 function setAttrs(node, attrs) {
@@ -25,6 +29,10 @@ function setAttrs(node, attrs) {
 function addKids(node, kids) {
   for (const kid of kids.flat(Infinity)) {
     if (kid === null || kid === undefined || kid === false || kid === "") continue;
+    if (kid.srcNote) { // embed mode: no footnote numbers; the source becomes the hover text of its element
+      node.setAttribute("title", node.getAttribute("title") ? `${node.getAttribute("title")}\n${kid.srcNote}` : `Source: ${kid.srcNote}`);
+      continue;
+    }
     node.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
   }
   return node;
@@ -121,6 +129,7 @@ const SOURCE_KEYS = new Map();
 const safeUrl = (u) => (typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);
 function cite(source, url) {
   if (!source) return null;
+  if (EMBED) return { srcNote: String(source) };
   const key = `${source}\u0000${url || ""}`;
   let n = SOURCE_KEYS.get(key);
   if (!n) {
@@ -255,6 +264,7 @@ const TAB_TITLE = { overview: "Overview", agents: "Agents", results: "Results", 
 let currentTab = null;
 
 function locate() {
+  if (EMBED) return { tab: "agents", target: null };
   const id = decodeURIComponent((window.location.hash || "").slice(1));
   if (!id || TABS.includes(id)) return { tab: id || "overview", target: null };
   const target = document.getElementById(id);
@@ -1316,7 +1326,7 @@ function openDetail(id) {
   setPressed(id);
   renderPanel("back");
   const panel = document.getElementById("idea");
-  if (panel && window.matchMedia("(max-width: 1319px)").matches) panel.scrollIntoView({ block: "start" });
+  if (panel && !EMBED && window.matchMedia("(max-width: 1319px)").matches) panel.scrollIntoView({ block: "start" });
 }
 const loopById = (id) => (G.loops || []).find((x) => x.id === id) || null;
 const loopFocus = (lp) => ({ nodes: [...new Set([lp.from, lp.to, ...(lp.id === "ruling" ? ["rules"] : [])])], edges: [`l_${lp.id}`] });
@@ -1330,7 +1340,7 @@ function openLoop(id) {
   applyHighlight(loopFocus(lp));
   renderPanel("back");
   const panel = document.getElementById("idea");
-  if (panel && window.matchMedia("(max-width: 1319px)").matches) panel.scrollIntoView({ block: "start" });
+  if (panel && !EMBED && window.matchMedia("(max-width: 1319px)").matches) panel.scrollIntoView({ block: "start" });
 }
 function peekLoop(id) { // hover or focus on a loop-back in the list: light its arc while nothing else is shown
   if (MODE !== "idea") return;
@@ -1585,9 +1595,9 @@ function renderAgents(results) {
       el("aside", { class: "card idea", id: "idea", "aria-label": "The idea, the replay and box details" },
         el("div", { id: "idea-content" }),
         el("p", { class: "sr-only", id: "case-live", "aria-live": "polite" }))),
-    catchesSection(),
-    vsTable(),
-    protocols.length ? [el("h3", { class: "sub-h" }, "The protocols the agents chose, and the hook they built"),
+    EMBED ? null : catchesSection(), // the v2 page shows the catches on its Trust tab
+    EMBED ? null : vsTable(),
+    !EMBED && protocols.length ? [el("h3", { class: "sub-h" }, "The protocols the agents chose, and the hook they built"),
       el("div", { class: "methods" }, protocols.map(methodCard))] : null);
   renderPanel();
   const host = document.getElementById("diagram");
@@ -2510,6 +2520,18 @@ function start() {
   updateDataAge();
   setInterval(updateDataAge, 15000);
   setupTabs();
-  watchForUpdates();
+  if (EMBED) postHeight();
+  else watchForUpdates();
+}
+function postHeight() {
+  if (window.parent === window) return;
+  let last = 0;
+  const send = () => {
+    const h = Math.ceil(document.body.getBoundingClientRect().height);
+    if (h !== last) { last = h; window.parent.postMessage({ coolorbitEmbedHeight: h }, window.location.origin); }
+  };
+  if (window.ResizeObserver) new ResizeObserver(send).observe(document.body);
+  window.addEventListener("load", send);
+  send();
 }
 start();

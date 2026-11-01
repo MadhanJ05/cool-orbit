@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cool Orbit · thermal materials for AI in orbit</title>
+  <link rel="preload" href="/v2/fonts/source-serif-4-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/v2/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/v2/style.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#/overview"><span class="crescent" aria-hidden="true"></span>Cool Orbit</a>
+      <nav class="tabs" aria-label="Pages">
+        <a href="#/overview" data-page="overview">Overview</a>
+        <a href="#/materials" data-page="materials">Materials</a>
+        <a href="#/trust" data-page="trust">Trust</a>
+        <a href="#/agents" data-page="agents">Agents</a>
+      </nav>
+      <div class="nav-right">
+        <span id="live" class="live" hidden></span>
+      </div>
+    </div>
+    <nav class="tabs tabs-mobile wrap" aria-label="Pages (mobile)">
+      <a href="#/overview" data-page="overview">Overview</a><a href="#/materials" data-page="materials">Materials</a>
+      <a href="#/trust" data-page="trust">Trust</a><a href="#/agents" data-page="agents">Agents</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- OVERVIEW -->
+    <section class="page" data-page="overview">
+      <div class="hero wrap">
+        <div class="hero-text">
+          <p class="eyebrow">Thermal material discovery</p>
+          <h1>Finding the right materials to keep AI <em>cool in orbit</em></h1>
+          <p class="lede">A multi-agent system on NVIDIA ALCHEMI + Dell Pro Max GB10 that simulates, cross-checks and
+            ranks thermal-battery materials for space.</p>
+          <div class="hero-answer" id="hero-answer" hidden></div>
+          <div class="cta">
+            <a class="btn-dark" href="#/materials">See gallium vs paraffin &rarr;</a>
+            <a class="link" href="#/trust">See the evidence &rarr;</a>
+          </div>
+        </div>
+        <div class="hero-visual" id="hero-visual">
+          <div class="parallax" id="parallax">
+            <div class="float">
+              <picture id="planet-pic">
+                <source srcset="/v2/img/cool-orbit-planet.webp" type="image/webp">
+                <img id="planet-img" src="/v2/img/cool-orbit-planet.png" alt="Lavender planet with an orbiting satellite"
+                     loading="eager" width="560" height="560" decoding="async">
+              </picture>
+              <div class="css-planet" id="css-planet" aria-hidden="true" hidden>
+                <div class="planet"></div><div class="orbit"></div><div class="planet-glow"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wrap"><div id="stats" class="stats reveal"></div></div>
+      <div class="wrap" id="why"></div>
+      <div class="wrap grid-12 runs-row">
+        <div class="col-7 card reveal" id="burst-card"></div>
+        <div class="col-5 card reveal" id="trust-summary"></div>
+      </div>
+      <div class="wrap grid-12 runs-row">
+        <div class="col-5 card reveal" id="materials-so-far"></div>
+        <div class="col-7 card reveal" id="timeline-card"></div>
+      </div>
+    </section>
+
+    <!-- MATERIALS -->
+    <section class="page" data-page="materials" hidden>
+      <div class="wrap page-head reveal">
+        <p class="eyebrow">Materials</p>
+        <h2>Is there something better than paraffin?</h2>
+        <p class="intro" id="materials-intro"></p>
+      </div>
+      <div class="wrap grid-12 materials-row">
+        <div class="col-7 card reveal" id="beats"></div>
+        <div class="col-5 stack">
+          <div class="card reveal" id="measured"></div>
+          <div class="card reveal ga3d-card" id="ga3d-card"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST -->
+    <section class="page" data-page="trust" hidden>
+      <div class="wrap page-head reveal">
+        <p class="eyebrow">Trust</p>
+        <h2>How a result earns trust</h2>
+        <p class="intro">A result is trusted only when all three hold. No agent can set a status.</p>
+      </div>
+      <div class="wrap"><div id="trust-cards" class="three"></div><p class="rule-line reveal">No agent can set a status. Failures are posted, never dropped.</p></div>
+      <div class="wrap" id="catches"></div>
+    </section>
+
+    <!-- AGENTS -->
+    <section class="page" data-page="agents" hidden>
+      <div class="wrap page-head reveal">
+        <p class="eyebrow">Agents</p>
+        <h2>How our agents work, in a loop</h2>
+        <p class="intro" id="agents-intro"></p>
+      </div>
+      <div class="wrap"><div class="card agents-frame-card reveal" id="agents-frame-card">
+        <iframe id="agents-frame" class="agents-frame" title="The loop of agents around NVIDIA ALCHEMI (interactive diagram)"
+                data-src="/classic/?embed=agents"></iframe>
+      </div></div>
+      <div class="wrap" id="agent-counts"></div>
+    </section>
+  </main>
+
+  <footer class="wrap footer" id="footer"></footer>
+
+  <noscript><p class="wrap">This page needs JavaScript to read the board export.</p></noscript>
+  <script src="/data/data.js"></script>
+  <script src="/v2/app.js"></script>
+  <script type="module" src="/ga3d.js"></script>
+</body>
+</html>
