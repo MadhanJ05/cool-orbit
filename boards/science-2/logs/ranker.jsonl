@@ -1,1 +1,2 @@
 {"ts": "2026-11-01T06:32:43+00:00", "agent": "ranker", "event": "excluded", "reasons": ["Cu: trusted melting_point 1358 K outside window [315, 345] K"]}
+{"ts": "2026-11-01T06:42:53+00:00", "agent": "ranker", "event": "excluded", "reasons": ["Cu: trusted melting_point 1358 K outside window [315, 345] K"]}

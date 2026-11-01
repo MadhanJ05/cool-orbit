@@ -2,3 +2,8 @@ science run on /home/dell/Desktop/cool-orbit/boards/science-2: metals ['Bi', 'In
 [scout_metals] post: artifact_type=candidate, id=636b77c4, summary=candidate Bi (low_melting_metal, trust tier), parents=[], fulfills=None
 [scout_metals] decision: candidate=Bi, action=requested ['melting_point'], route=ALCHEMI, id=636b77c4
 [simulator_gb10] RUN: melting_point of Bi via two-phase coexistence (ALCHEMI), 768 atoms x 4 temps, preset production, attempt 1, ~73 min
+[simulator_gb10] FAILED: melting_point of Bi via two-phase coexistence (ALCHEMI): no temperature froze and the coldest run melted: the melting point is below the bracket
+[ranker] excluded: reasons=['Cu: trusted melting_point 1358 K outside window [315, 345] K']
+[referee_premise] post: artifact_type=check, id=a8dd8ee2, summary=premise_check: pass, parents=['4b7431a6'], fulfills=None
+[referee_premise] decision: target=4b7431a6, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'Bi', 'family': 'low_melting_metal', 'formula': 'Bi', 'structure_source': 'ref:Bi', 'property': 'melting_point', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'two-phase coexistence', 'ensemble': None}, 'temps_K': [299.0, 353.6666666666667, 408.3333333333333, 463.0], 'description': 'melting_point of Bi (retry 2: bracket shifted down). attempt 1 failed: no temperature froze and the coldest run melted: the melting point is below the bracket', 'melting_point_K': 544.556}
+[simulator_gb10] RUN: melting_point of Bi via two-phase coexistence (ALCHEMI), 768 atoms x 4 temps, preset production, attempt 2, ~73 min

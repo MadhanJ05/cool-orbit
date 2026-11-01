@@ -32,3 +32,15 @@ science run on /home/dell/Desktop/cool-orbit/boards/science-2: metals ['Bi', 'In
 [referee_premise] post: artifact_type=check, id=bda5c2c3, summary=premise_check: pass, parents=['06c67470'], fulfills=None
 [referee_premise] decision: target=06c67470, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'Cu', 'family': 'validation_metal', 'formula': 'Cu', 'structure_source': 'ase:Cu:fcc:3.61', 'property': 'latent_heat', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'NPT enthalpy difference (solid vs liquid)', 'ensemble': None}, 'temperature_K': 1358.0, 'description': 'latent_heat of Cu. second figure-of-merit input, at the simulated melting_point (1358 K, result 94311022)', 'melting_point_K': 1357.77}
 [ranker] excluded: reasons=['Cu: trusted melting_point 1358 K outside window [315, 345] K']
+[referee_premise] post: artifact_type=check, id=86536437, summary=premise_check: pass, parents=['d502cce5'], fulfills=None
+[referee_premise] decision: target=d502cce5, need_index=0, verdict=pass, flags=[], source=carried, usage=None, task=None
+[referee_rules] claim: target=d502cce5, need_index=0, query=audit the two-phase coexistence melting_point run for Al
+[referee_rules] post: artifact_type=check, id=b75de4da, summary=method_audit: pass, parents=['d502cce5'], fulfills=('d502cce5', 0)
+[referee_rules] decision: result=d502cce5, candidate=Al, property=melting_point, verdict=pass, flags=[], rerun=None
+[librarian] claim: target=d502cce5, need_index=2, query=measured melting_point of Al with a citable source
+[librarian] post: artifact_type=reference_value, id=7aff9e30, summary=measured Al melting_point = 933.45 K [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt], parents=['d502cce5'], fulfills=('d502cce5', 2)
+[librarian] decision: candidate=Al, property=melting_point, value=933.45, reason=found in curated dataset
+[scout_metals] post: artifact_type=request, id=fe944af4, summary=request: latent_heat of Al at the simulated melting_point, parents=['da6aca07', 'd502cce5'], fulfills=None
+[scout_metals] decision: candidate=Al, action=requested latent_heat, at_K=933.0
+[referee_premise] post: artifact_type=check, id=41decc6e, summary=premise_check: pass, parents=['fe944af4'], fulfills=None
+[referee_premise] decision: target=fe944af4, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'Al', 'family': 'validation_metal', 'formula': 'Al', 'structure_source': 'ase:Al:fcc:4.05', 'property': 'latent_heat', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'NPT enthalpy difference (solid vs liquid)', 'ensemble': None}, 'temperature_K': 933.0, 'description': 'latent_heat of Al. second figure-of-merit input, at the simulated melting_point (933 K, result d502cce5)', 'melting_point_K': 933.45}

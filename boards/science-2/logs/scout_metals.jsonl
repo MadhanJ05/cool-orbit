@@ -10,3 +10,5 @@
 {"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Al", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "da6aca07"}
 {"ts": "2026-11-01T06:10:42+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "request", "id": "06c67470", "summary": "request: latent_heat of Cu at the simulated melting_point", "parents": ["f04022e9", "94311022"], "fulfills": null}
 {"ts": "2026-11-01T06:10:42+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Cu", "action": "requested latent_heat", "at_K": 1358.0}
+{"ts": "2026-11-01T06:36:43+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "request", "id": "fe944af4", "summary": "request: latent_heat of Al at the simulated melting_point", "parents": ["da6aca07", "d502cce5"], "fulfills": null}
+{"ts": "2026-11-01T06:36:43+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Al", "action": "requested latent_heat", "at_K": 933.0}
