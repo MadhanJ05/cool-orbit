@@ -6,83 +6,83 @@
    Kernel cache:
      /home/dell/.cache/warp/1.18.0
 [simulator_fake] RUN: melting_point of testium via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset production, attempt 1, ~48 min
-[simulator_fake] RESULT d62001fb: melting_point = 390.8 +/- 3.0 K flags=[]
+[simulator_fake] RESULT 5793245f: melting_point = 390.8 +/- 3.0 K flags=[]
 [simulator_fake] RUN: melting_point of testium via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset production, attempt 1, ~48 min
-[simulator_fake] RESULT 54ddd3a5: melting_point = 322.0 +/- 15.0 K flags=[]
+[simulator_fake] RESULT e0ed2aa8: melting_point = 322.0 +/- 15.0 K flags=[]
 [simulator_fake] RUN: latent_heat of testium via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 256 atoms x 1 temps, preset production, attempt 1, ~12 min
-[simulator_fake] RESULT 2f47b1db: latent_heat = 187801 +/- 10000.0 J/kg flags=[]
-....................................../usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=607724) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[simulator_fake] RESULT aeba6a78: latent_heat = 187801 +/- 10000.0 J/kg flags=[]
+.........................................../usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=868346) is multi-threaded, use of fork() may lead to deadlocks in the child.
   self.pid = os.fork()
-............................................127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /data/data.js HTTP/1.1" 200 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /data/index.json HTTP/1.1" 200 -
-.127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /health HTTP/1.1" 200 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /healthz HTTP/1.1" 200 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "HEAD / HTTP/1.1" 200 -
-.127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /server.py HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /export.py HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /Dockerfile HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /data/../server.py HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /data/%2e%2e/server.py HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /data/x.py HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /data/ HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /data/.hidden.json HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /../README.md HTTP/1.1" 404 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /data/missing.json HTTP/1.1" 404 -
-.127.0.0.1 - - [31/Oct/2026 18:28:27] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /app.js HTTP/1.1" 200 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /style.css HTTP/1.1" 200 -
-127.0.0.1 - - [31/Oct/2026 18:28:27] "GET /index.html HTTP/1.1" 200 -
-......................................................................................................................................................................................................  only 10% melted; melting 50 more steps at 900 K
+............................................127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /data/data.js HTTP/1.1" 200 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /data/index.json HTTP/1.1" 200 -
+.127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /healthz HTTP/1.1" 200 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "HEAD / HTTP/1.1" 200 -
+.127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /server.py HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /export.py HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /Dockerfile HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /data/../server.py HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /data/%2e%2e/server.py HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /data/x.py HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /data/ HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /data/.hidden.json HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /../README.md HTTP/1.1" 404 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /data/missing.json HTTP/1.1" 404 -
+.127.0.0.1 - - [31/Oct/2026 21:39:46] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /app.js HTTP/1.1" 200 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [31/Oct/2026 21:39:46] "GET /index.html HTTP/1.1" 200 -
+........................................................................................................................................................................................................  only 10% melted; melting 50 more steps at 900 K
   only 10% melted; melting 50 more steps at 900 K
 .  only 30% melted; melting 50 more steps at 600 K
   only 60% melted; melting 50 more steps at 750 K
 ......................................[referee_premise] mode: llm=off (no credentials): rules only, undecided tasks stay inconclusive
-[scout_metals] post: artifact_type=candidate, id=f8d42074, summary=candidate In (low_melting_metal, trust tier), parents=[], fulfills=None
-[scout_metals] decision: candidate=In, action=requested ['melting_point'], route=ALCHEMI, id=f8d42074
+[scout_metals] post: artifact_type=candidate, id=cbea9614, summary=candidate In (low_melting_metal, trust tier), parents=[], fulfills=None
+[scout_metals] decision: candidate=In, action=requested ['melting_point'], route=ALCHEMI, id=cbea9614
 [simulator_gb10] RUN: melting_point of In via two-phase coexistence (ALCHEMI), 576 atoms x 4 temps, preset production, attempt 1, ~54 min
-[simulator_gb10] RESULT f69f6da2: melting_point = 429.0 +/- 5.0 K flags=[]
-[referee_rules] claim: target=f69f6da2, need_index=0, query=audit the two-phase coexistence melting_point run for In
-[referee_rules] post: artifact_type=check, id=bfff4b60, summary=method_audit: pass, parents=['f69f6da2'], fulfills=('f69f6da2', 0)
-[referee_rules] decision: result=f69f6da2, candidate=In, property=melting_point, verdict=pass, flags=[], rerun=None
-[librarian] claim: target=f69f6da2, need_index=2, query=measured melting_point of In with a citable source
-[librarian] post: artifact_type=reference_value, id=a594f6cb, summary=measured In melting_point = 429.748 K [Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90], parents=['f69f6da2'], fulfills=('f69f6da2', 2)
+[simulator_gb10] RESULT ff05bd4d: melting_point = 429.0 +/- 5.0 K flags=[]
+[referee_rules] claim: target=ff05bd4d, need_index=0, query=audit the two-phase coexistence melting_point run for In
+[referee_rules] post: artifact_type=check, id=e822eb05, summary=method_audit: pass, parents=['ff05bd4d'], fulfills=('ff05bd4d', 0)
+[referee_rules] decision: result=ff05bd4d, candidate=In, property=melting_point, verdict=pass, flags=[], rerun=None
+[librarian] claim: target=ff05bd4d, need_index=2, query=measured melting_point of In with a citable source
+[librarian] post: artifact_type=reference_value, id=139153be, summary=measured In melting_point = 429.748 K [Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90], parents=['ff05bd4d'], fulfills=('ff05bd4d', 2)
 [librarian] decision: candidate=In, property=melting_point, value=429.748, reason=found in curated dataset
-[referee_premise] post: artifact_type=check, id=e89649f6, summary=premise_check: pass, parents=['f69f6da2'], fulfills=None
-[referee_premise] decision: target=f69f6da2, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'In', 'family': 'low_melting_metal', 'formula': 'In', 'structure_source': 'ref:In', 'property': 'melting_point', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'two-phase coexistence', 'ensemble': None}, 'temps_K': 430, 'description': 'melting_point of In. low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (430 K)', 'melting_point_K': 429.748}
-[scout_metals] post: artifact_type=request, id=647f28e4, summary=request: latent_heat of In at the simulated melting_point, parents=['f8d42074', 'f69f6da2'], fulfills=None
+[referee_premise] post: artifact_type=check, id=64d9536c, summary=premise_check: pass, parents=['ff05bd4d'], fulfills=None
+[referee_premise] decision: target=ff05bd4d, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'In', 'family': 'low_melting_metal', 'formula': 'In', 'structure_source': 'ref:In', 'property': 'melting_point', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'two-phase coexistence', 'ensemble': None}, 'temps_K': 430, 'description': 'melting_point of In. low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (430 K)', 'melting_point_K': 429.748}
+[scout_metals] post: artifact_type=request, id=b1809aa8, summary=request: latent_heat of In at the simulated melting_point, parents=['cbea9614', 'ff05bd4d'], fulfills=None
 [scout_metals] decision: candidate=In, action=requested latent_heat, at_K=429.0
 [simulator_gb10] RUN: latent_heat of In via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 200 atoms x 1 temps, preset production, attempt 1, ~9 min
-[simulator_gb10] RESULT 3aa5b3ea: latent_heat = 28000.0 +/- 500.0 J/kg flags=[]
-[referee_rules] claim: target=3aa5b3ea, need_index=0, query=audit the NPT enthalpy difference (solid vs liquid) latent_heat run for In
-[referee_rules] post: artifact_type=check, id=7e5e3ee7, summary=method_audit: pass, parents=['3aa5b3ea'], fulfills=('3aa5b3ea', 0)
-[referee_rules] decision: result=3aa5b3ea, candidate=In, property=latent_heat, verdict=pass, flags=[], rerun=None
-[librarian] claim: target=3aa5b3ea, need_index=2, query=measured latent_heat of In with a citable source
-[librarian] post: artifact_type=reference_value, id=6f9f65bd, summary=measured In latent_heat = 28662.4 J/kg [Archer & Rudtsch, J. Chem. Eng. Data 48(5) (2003), NIST certified reference material; https://www.nist.gov/publications/enthalpy-fusion-indium-certified-reference-material-differential-scanning-calorimetry], parents=['3aa5b3ea'], fulfills=('3aa5b3ea', 2)
+[simulator_gb10] RESULT 856646a0: latent_heat = 28000.0 +/- 500.0 J/kg flags=[]
+[referee_rules] claim: target=856646a0, need_index=0, query=audit the NPT enthalpy difference (solid vs liquid) latent_heat run for In
+[referee_rules] post: artifact_type=check, id=bdc2df03, summary=method_audit: pass, parents=['856646a0'], fulfills=('856646a0', 0)
+[referee_rules] decision: result=856646a0, candidate=In, property=latent_heat, verdict=pass, flags=[], rerun=None
+[librarian] claim: target=856646a0, need_index=2, query=measured latent_heat of In with a citable source
+[librarian] post: artifact_type=reference_value, id=d0df7157, summary=measured In latent_heat = 28662.4 J/kg [Archer & Rudtsch, J. Chem. Eng. Data 48(5) (2003), NIST certified reference material; https://www.nist.gov/publications/enthalpy-fusion-indium-certified-reference-material-differential-scanning-calorimetry], parents=['856646a0'], fulfills=('856646a0', 2)
 [librarian] decision: candidate=In, property=latent_heat, value=28662.4, reason=found in curated dataset
-[referee_premise] post: artifact_type=check, id=f45a7a83, summary=premise_check: pass, parents=['3aa5b3ea'], fulfills=None
-[referee_premise] decision: target=3aa5b3ea, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'In', 'family': 'low_melting_metal', 'formula': 'In', 'structure_source': 'ref:In', 'property': 'latent_heat', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'NPT enthalpy difference (solid vs liquid)', 'ensemble': None}, 'temperature_K': 429.0, 'description': 'latent_heat of In. second figure-of-merit input, at the simulated melting_point (429 K, result f69f6da2)', 'melting_point_K': 429.748}
+[referee_premise] post: artifact_type=check, id=5c08bc9e, summary=premise_check: pass, parents=['856646a0'], fulfills=None
+[referee_premise] decision: target=856646a0, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'In', 'family': 'low_melting_metal', 'formula': 'In', 'structure_source': 'ref:In', 'property': 'latent_heat', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'NPT enthalpy difference (solid vs liquid)', 'ensemble': None}, 'temperature_K': 429.0, 'description': 'latent_heat of In. second figure-of-merit input, at the simulated melting_point (429 K, result ff05bd4d)', 'melting_point_K': 429.748}
 .[simulator_gb10] RUN: latent_heat of Field's metal via NPT enthalpy difference (liquid alloy vs pure-element solids) (ALCHEMI), 1400 atoms x 1 temps, preset quick, attempt 1, ~8 min
-[simulator_gb10] RESULT bc912fbd: latent_heat = 30000.0 +/- 2000.0 J/kg flags=[]
+[simulator_gb10] RESULT a4ddfb46: latent_heat = 30000.0 +/- 2000.0 J/kg flags=[]
 .[simulator_gb10] REFUSED: melting_point of EGaIn (ALCHEMI): alloy melting temperatures are not computed here (that needs phase-diagram methods); request latent_heat at the alloy's measured melting temperature instead
 .[simulator_gb10] REFUSED: melting_point of Cu (ALCHEMI): unsupported structure_source 'mp:mp-30'; use ase:<El>:<structure>:<a>, ref:<El>, alloy:wt:<composition> or file:<repo path>
 ..[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): run did not complete: RuntimeError('CUDA out of memory')
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT be3efbba: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 98658c2d: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
-[simulator_gb10] RESULT 25b8610f: melting_point = 1350.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 3f84fe57: melting_point = 1350.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
-[simulator_gb10] RESULT fca422c2: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 99b521bd: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT 961e5218: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 10669dd4: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 [simulator_gb10] RUN: latent_heat of Cu via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 256 atoms x 1 temps, preset quick, attempt 1, ~1 min
-[simulator_gb10] RESULT 9fd09982: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
+[simulator_gb10] RESULT 49e6ce6a: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
 .[simulator_gb10] RUN: latent_heat of Cu via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 256 atoms x 1 temps, preset quick, attempt 1, ~1 min
-[simulator_gb10] RESULT b9a0243d: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
+[simulator_gb10] RESULT a709344d: latent_heat = 200000.0 +/- 10000.0 J/kg flags=[]
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
@@ -90,22 +90,22 @@
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 3, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature melted
 ...[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 1024 atoms x 4 temps, preset quick, attempt 1, ~11 min
-[simulator_gb10] RESULT fd9494aa: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 14d2180f: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT 4aa8a0b6: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 64ae117d: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT 52cda14e: melting_point = 1350.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 73ee392e: melting_point = 1350.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
 [simulator_gb10] FAILED: melting_point of Cu via two-phase coexistence (ALCHEMI): no temperature froze
 [simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 2, ~5 min
-[simulator_gb10] RESULT 5fa2ca3c: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 720f24f5: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT af94a094: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT b40f8f01: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 .[simulator_gb10] RUN: melting_point of Cu via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset quick, attempt 1, ~5 min
-[simulator_gb10] RESULT 62d74ef2: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
+[simulator_gb10] RESULT 252e4a49: melting_point = 1296.0 +/- 25.0 K flags=['quick_settings_not_production']
 ...........
 ----------------------------------------------------------------------
-Ran 364 tests in 10.864s
+Ran 371 tests in 11.657s
 
 OK
-sys:1: ResourceWarning: unclosed <socket.socket fd=33, family=2, type=1, proto=0, laddr=('127.0.0.1', 44857)>
+sys:1: ResourceWarning: unclosed <socket.socket fd=33, family=2, type=1, proto=0, laddr=('127.0.0.1', 38607)>

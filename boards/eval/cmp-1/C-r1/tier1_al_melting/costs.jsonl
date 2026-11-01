@@ -1,0 +1,1 @@
+{"agent": "simulator_gb10", "task_id": "tier1_al_melting", "kind": "gpu", "model": null, "input_tokens": 0, "output_tokens": 0, "gpu_hours": 1.0001, "usd": 0.0, "wall_s": 3600.3, "note": "GB10: melting_point of Al via two-phase coexistence (ALCHEMI) (error)"}

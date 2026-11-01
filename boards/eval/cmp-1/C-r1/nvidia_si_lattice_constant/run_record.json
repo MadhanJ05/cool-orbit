@@ -1,0 +1,100 @@
+{
+ "run": "cmp-1",
+ "arm": "C",
+ "repeat": 1,
+ "task_id": "nvidia_si_lattice_constant",
+ "task_request_id": "8d96763a-a1d9-4847-9ded-0cfa9c51c2c3",
+ "started": "2026-10-31T21:45:47+00:00",
+ "finished": "2026-10-31T21:48:28+00:00",
+ "budget": {
+  "usd": 1.5,
+  "timeout_s": 3600.0,
+  "model": "claude-opus-5-5",
+  "worker_usd": 1.0
+ },
+ "sandbox": "docker",
+ "sessions": [
+  {
+   "role": "worker",
+   "agent": "worker_cc",
+   "attempt": 1,
+   "sandbox": "docker",
+   "transcript": "transcripts/worker-1.jsonl",
+   "result": {
+    "exit_code": 0,
+    "timed_out": false,
+    "wall_s": 90.5930150269992,
+    "input_tokens": 281053,
+    "output_tokens": 5644,
+    "cache_read_input_tokens": 239424,
+    "cache_creation_input_tokens": 41615,
+    "usd": 0.36889580000000005,
+    "num_turns": 7,
+    "model": "claude-opus-5-5",
+    "error": null,
+    "key_name": "ANTHROPIC_API_KEY_PRIMARY",
+    "uncached_input_tokens": 14,
+    "model_usage": {
+     "claude-opus-5-5": {
+      "input_tokens": 14,
+      "output_tokens": 5644,
+      "cache_read_input_tokens": 239424,
+      "cache_creation_input_tokens": 41615,
+      "reported_usd": 0.36889580000000005
+     }
+    },
+    "usd_reported": 0.36889580000000005,
+    "unpriced_models": null,
+    "usd_check": 0.16082079999999999,
+    "usd_source": "reported",
+    "warmup": {
+     "ok": true,
+     "model": "medium-mpa-0",
+     "steps": 20,
+     "load_s": 22.5,
+     "md_s": 35.66,
+     "seconds": 64.98
+    }
+   },
+   "contamination": [],
+   "integrity": [],
+   "infra_failure": false
+  }
+ ],
+ "contamination": [],
+ "integrity_violations": [],
+ "warmup": [
+  {
+   "ok": true,
+   "model": "medium-mpa-0",
+   "steps": 20,
+   "load_s": 22.5,
+   "md_s": 35.66,
+   "seconds": 64.98
+  }
+ ],
+ "infra_failure": false,
+ "agents": [
+  "referee_premise",
+  "scout_metals",
+  "scout_paraffin",
+  "scout_fatty_acid",
+  "scout_sugar_alcohol",
+  "scout_salt_hydrate",
+  "scout_plastic_crystal",
+  "scout_general",
+  "referee_rules",
+  "referee_llm",
+  "adjudicator",
+  "librarian",
+  "simulator_gb10",
+  "worker_cc"
+ ],
+ "rounds": 3,
+ "stopped": "idle",
+ "agent_errors": [],
+ "gpu_jobs": [],
+ "known_issues": [],
+ "llm_usd": 0.3857,
+ "wall_s": 161.4
+}

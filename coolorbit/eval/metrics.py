@@ -26,6 +26,16 @@ Definitions (keep in sync with arms.md section 4):
   answer that is within tolerance of a known reference but not confident.
 - **Silent error** = a confident shipped answer that is wrong (any task kind).
 - **Cost** = sums from ``<board>/costs.jsonl`` (see arms.md section 3), if present.
+
+POST-HOC rule (opt-in with ``reference_rule=True`` / ``--reference-rule``; added 2026-11-01 after repeat 1 of
+run cmp-1, NOT part of the pre-registration, and always reported next to the pre-registered scoring):
+
+- **Reported reference** = the shipped answer ran no simulation (no atoms, run length or timestep in its method) and
+  its engine says it is a measured / experimental value or "none". It is scored as ``reported_reference``: no error is
+  computed (a copied measurement would score 0%), it counts against the trap catch rate like ``no_answer``, and it is
+  never a false alarm. Why: in cmp-1, arm B's worker replaced its own simulated aluminium melting point with the
+  measured value from the calibration file after its checker disagreed, and the pre-registered scoring counted that
+  as a perfect simulated answer.
 """
 
 from __future__ import annotations
@@ -71,7 +81,8 @@ class TaskOutcome:
     trap_outcome: Optional[str] = None     # avoided | caught | missed (trap and ill-posed tasks only)
     false_alarm: Optional[bool] = None     # well-posed controls only
     silent_error: bool = False
-    disposition: str = "no_answer"         # answered | answered_unconfident | refused | no_answer
+    reported_reference: bool = False       # post-hoc rule only (module docstring)
+    disposition: str = "no_answer"         # answered | answered_unconfident | refused | no_answer | reported_reference
     reasons: list[str] = field(default_factory=list)
 
 
@@ -95,6 +106,8 @@ class BoardScore:
     n_errors_measured: int
     cost: dict
     unseeded_tasks: list[str]
+    reported_reference: int = 0            # post-hoc rule only (module docstring)
+    post_hoc_rules: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -125,6 +138,20 @@ def _get(payload: dict, dotted: str) -> object:
 def _matches_trap(task: Task, result: "Artifact") -> bool:
     return any(sig.contains.lower() in str(_get(result.payload, sig.field) or "").lower()
                for sig in task.trap_signature)
+
+
+REFERENCE_RULE = "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+
+
+def reports_reference(payload: dict) -> bool:
+    """True when a result ran no simulation and reports a measured value instead (the post-hoc rule)."""
+    method = payload.get("method")
+    if not isinstance(method, dict):
+        return False
+    if any(method.get(k) for k in ("n_atoms", "sim_length_ps", "timestep_fs")):
+        return False
+    engine = str(method.get("engine") or "").strip().lower()
+    return engine.startswith("none") or "measured" in engine or "experiment" in engine
 
 
 def _tolerance(task: Task, rules: dict) -> Optional[dict]:
@@ -194,7 +221,8 @@ def _sum_costs(rows: list[dict]) -> dict:
 
 # ---------------------------------------------------------------- scoring
 
-def score_task(snap: "BoardSnapshot", task: Task, request: Optional["Artifact"], rules: dict) -> TaskOutcome:
+def score_task(snap: "BoardSnapshot", task: Task, request: Optional["Artifact"], rules: dict,
+               reference_rule: bool = False) -> TaskOutcome:
     out = TaskOutcome(task_id=task.id, kind=task.kind, expected=task.expected)
     if request is None:
         out.seeded = False
@@ -216,6 +244,19 @@ def score_task(snap: "BoardSnapshot", task: Task, request: Optional["Artifact"],
     superseded = {p for r in results for p in r.parent_artifact_ids if p in result_ids}
     live = [r for r in results if r.artifact_id not in superseded]
     shipped = live[-1] if live else None
+
+    if shipped is not None and reference_rule and reports_reference(shipped.payload):
+        p = shipped.payload
+        out.shipped_id, out.shipped_value, out.shipped_units = shipped.artifact_id, p["value"], p["units"]
+        out.reported_reference = True
+        out.disposition = "reported_reference"
+        out.reasons.append(f"post-hoc rule: shipped a measured value without simulating "
+                           f"(engine {str((p.get('method') or {}).get('engine'))[:60]!r}); no error scored")
+        if task.kind in ("trap", "ill_posed"):
+            out.trap_outcome = "reported_reference"
+        else:
+            out.false_alarm = False
+        return out
 
     if shipped is not None:
         p = shipped.payload
@@ -280,7 +321,8 @@ def score_task(snap: "BoardSnapshot", task: Task, request: Optional["Artifact"],
     return out
 
 
-def _aggregate(label: str, outcomes: list[TaskOutcome], cost_rows: list[dict]) -> BoardScore:
+def _aggregate(label: str, outcomes: list[TaskOutcome], cost_rows: list[dict],
+               reference_rule: bool = False) -> BoardScore:
     seeded = [o for o in outcomes if o.seeded]
     traps = [o for o in seeded if o.kind in ("trap", "ill_posed")]
     controls = [o for o in seeded if o.kind == "well_posed"]
@@ -307,29 +349,33 @@ def _aggregate(label: str, outcomes: list[TaskOutcome], cost_rows: list[dict]) -
         n_errors_measured=len(rel_errors),
         cost=_sum_costs(cost_rows),
         unseeded_tasks=[o.task_id for o in outcomes if not o.seeded],
+        reported_reference=sum(o.reported_reference for o in seeded),
+        post_hoc_rules=[REFERENCE_RULE] if reference_rule else [],
     )
 
 
-def score_board(board: Board | str | Path, task_set: TaskSet, rules: Optional[dict] = None) -> BoardScore:
+def score_board(board: Board | str | Path, task_set: TaskSet, rules: Optional[dict] = None,
+                reference_rule: bool = False) -> BoardScore:
     """Score one board that holds some or all of the tasks."""
     board = board if isinstance(board, Board) else Board(board)
     rules = rules if rules is not None else load_rules()
     snap = board.snapshot()
     requests = task_requests(snap)
-    outcomes = [score_task(snap, t, requests.get(t.id), rules) for t in task_set.tasks]
-    return _aggregate(str(board.root), outcomes, read_costs(board.root))
+    outcomes = [score_task(snap, t, requests.get(t.id), rules, reference_rule) for t in task_set.tasks]
+    return _aggregate(str(board.root), outcomes, read_costs(board.root), reference_rule)
 
 
 def is_board(path: str | Path) -> bool:
     return (Path(path) / "artifacts").is_dir()
 
 
-def score_repeat(path: str | Path, task_set: TaskSet, rules: Optional[dict] = None) -> BoardScore:
+def score_repeat(path: str | Path, task_set: TaskSet, rules: Optional[dict] = None,
+                 reference_rule: bool = False) -> BoardScore:
     """Score one (arm, repeat). ``path`` is either one board, or a folder of per-task boards (the runners'
     layout ``<arm>-r<k>/<task_id>/``), which are merged: each task must be seeded on at most one of them."""
     path = Path(path)
     if is_board(path):
-        return score_board(path, task_set, rules)
+        return score_board(path, task_set, rules, reference_rule)
     rules = rules if rules is not None else load_rules()
     subs = sorted(p for p in path.iterdir() if p.is_dir() and is_board(p)) if path.is_dir() else []
     if not subs:
@@ -348,10 +394,10 @@ def score_repeat(path: str | Path, task_set: TaskSet, rules: Optional[dict] = No
     for t in task_set.tasks:
         if t.id in found:
             snap, req, _ = found[t.id]
-            outcomes.append(score_task(snap, t, req, rules))
+            outcomes.append(score_task(snap, t, req, rules, reference_rule))
         else:
             outcomes.append(score_task(None, t, None, rules))  # type: ignore[arg-type]
-    return _aggregate(str(path), outcomes, cost_rows)
+    return _aggregate(str(path), outcomes, cost_rows, reference_rule)
 
 
 def summarize_arm(scores: list[BoardScore]) -> dict:
@@ -386,19 +432,28 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--calibration", help="calibration JSON (default: data/calibration/tier1.json)")
     ap.add_argument("--rules", help="trust rules JSON (default: configs/trust_rules.json)")
     ap.add_argument("--json", action="store_true", help="print full JSON instead of a table")
+    ap.add_argument("--reference-rule", action="store_true",
+                    help="POST-HOC rule (added 2026-11-01 after cmp-1 repeat 1, not pre-registered): score a shipped "
+                         "measured value that ran no simulation as 'reported_reference' (see the module docstring)")
     args = ap.parse_args(argv)
 
     task_set = load_tasks(args.tasks, args.calibration)
     rules = load_rules(args.rules)
     if not args.board and not args.repeat:
         ap.error("give at least one --board or --repeat")
-    scores = [score_board(b, task_set, rules) for b in args.board] + [score_repeat(r, task_set, rules) for r in args.repeat]
+    rr = args.reference_rule
+    scores = ([score_board(b, task_set, rules, rr) for b in args.board]
+              + [score_repeat(r, task_set, rules, rr) for r in args.repeat])
     if args.json:
         print(json.dumps({"boards": [s.to_dict() for s in scores], "summary": summarize_arm(scores),
-                          "task_set_frozen": task_set.frozen, "rules_frozen": rules.get("frozen")}, indent=2))
+                          "task_set_frozen": task_set.frozen, "rules_frozen": rules.get("frozen"),
+                          "post_hoc_rules": [REFERENCE_RULE] if rr else []}, indent=2))
         return
     if not task_set.frozen or not rules.get("frozen"):
         print("WARNING: task set and/or trust rules are not frozen; these numbers are not pre-registered.\n")
+    if rr:
+        print(f"POST-HOC SCORING: includes the rule {REFERENCE_RULE}; report it next to the pre-registered "
+              "scoring (run without --reference-rule).\n")
     for s in scores:
         print(f"{s.board}: {s.n_tasks} tasks | trap catch {_fmt(s.trap_catch_rate)} "
               f"({s.trap_avoided} avoided, {s.trap_caught} caught, {s.trap_missed} missed, "
@@ -406,7 +461,8 @@ def main(argv: Optional[list[str]] = None) -> None:
               f"false alarms {_fmt(s.false_alarm_rate)} ({s.false_alarms}/{s.control_tasks}, "
               f"{s.controls_no_answer} unanswered) | "
               f"silent errors {s.silent_errors} | mean |rel err| {_fmt(s.mean_abs_rel_error)} "
-              f"(n={s.n_errors_measured}) | cost {'recorded' if s.cost['recorded'] else 'NOT recorded'}")
+              f"(n={s.n_errors_measured}) | cost {'recorded' if s.cost['recorded'] else 'NOT recorded'}"
+              + (f" | reported reference {s.reported_reference}" if s.post_hoc_rules else ""))
         if s.unseeded_tasks:
             print(f"  not seeded: {', '.join(s.unseeded_tasks)}")
         for o in s.outcomes:

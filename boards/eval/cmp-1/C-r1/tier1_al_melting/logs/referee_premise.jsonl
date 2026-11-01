@@ -1,0 +1,2 @@
+{"ts": "2026-10-31T23:29:56+00:00", "agent": "referee_premise", "event": "post", "artifact_type": "check", "id": "5d050730", "summary": "premise_check: pass", "parents": ["e5cc93de"], "fulfills": null}
+{"ts": "2026-10-31T23:29:56+00:00", "agent": "referee_premise", "event": "decision", "target": "e5cc93de", "need_index": 0, "verdict": "pass", "flags": [], "source": "rules", "usage": null, "task": {"property": "melting_point", "description": "Find the melting point of aluminum at ambient pressure."}}

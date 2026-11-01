@@ -110,6 +110,30 @@ class MetricsTest(unittest.TestCase):
         _, o = self.score()
         self.assertEqual((o["trap"].fell_in, o["trap"].trap_outcome), (False, "avoided"))
 
+    def test_post_hoc_reference_rule_does_not_credit_a_copied_measurement(self) -> None:
+        sim = self.result(self.cand("trap"), "trap", 862.0, method={**GOOD, "n_atoms": 512, "sim_length_ps": 7.0})
+        copied = {"engine": "none for the reported value (measured reference)", "model": "SYNTHETIC measurement",
+                  "protocol": "reported value = measured value", "n_atoms": None, "sim_length_ps": None}
+        self.result(sim, "trap", 900.0, method=copied)  # rerun that copies the reference: error would be 0
+        self.result(self.cand("ctrl"), "ctrl", 1000.0, method=copied)
+        s, o = self.score()  # pre-registered scoring: unchanged behaviour
+        self.assertEqual((o["trap"].trap_outcome, o["trap"].error, s.reported_reference, s.post_hoc_rules),
+                         ("avoided", 0.0, 0, []))
+        s2 = score_board(self.board, self.ts, RULES, reference_rule=True)
+        o2 = {x.task_id: x for x in s2.outcomes}
+        self.assertEqual((o2["trap"].trap_outcome, o2["trap"].disposition, o2["trap"].error),
+                         ("reported_reference", "reported_reference", None))
+        self.assertEqual((o2["ctrl"].disposition, o2["ctrl"].false_alarm, o2["ctrl"].rel_error),
+                         ("reported_reference", False, None))
+        self.assertEqual((s2.reported_reference, s2.trap_avoided, s2.n_errors_measured), (2, 0, 0))
+        self.assertEqual(len(s2.post_hoc_rules), 1)
+
+    def test_reference_rule_ignores_real_simulations(self) -> None:
+        from coolorbit.eval.metrics import reports_reference
+        self.assertFalse(reports_reference({"method": {**GOOD, "n_atoms": 512}}))
+        self.assertFalse(reports_reference({"method": {"engine": "ASE + MACE", "protocol": "EOS fit"}}))
+        self.assertTrue(reports_reference({"method": {"engine": "Experiment (NIST-JANAF)"}}))
+
     def test_self_refusal_counts_for_a_single_agent(self) -> None:
         self.refuse(self.cand("ill"))
         s, o = self.score()

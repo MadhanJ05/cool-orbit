@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import dataclasses
 import json
 import os
 import shutil
@@ -51,8 +52,8 @@ from coolorbit.board._scienceclaw import Artifact  # noqa: E402
 from coolorbit.board.schema import NEGATIVE_VERDICTS  # noqa: E402
 from coolorbit.board.status import settled_audits  # noqa: E402
 from coolorbit.eval.tasks import HARNESS_AGENT, Task, TaskSet, load_tasks, seed_board  # noqa: E402
-from coolorbit.sim.simulator_agent import (JobError, SimulatorAgent, build_job, find_rerun_target,  # noqa: E402
-                                           subprocess_runner)
+from coolorbit.sim.simulator_agent import (Job, JobError, SimulatorAgent, build_job,  # noqa: E402
+                                           find_rerun_target, subprocess_runner)
 
 ARM = "C"
 WORKER = "worker_cc"
@@ -110,21 +111,60 @@ def known_contamination(agents_dir: Path = AGENTS_DIR) -> list[str]:
 # --------------------------------------------------------------------------- the specialist Simulator
 
 
+# Share of the task's remaining wall clock a GPU job may take, by the GB10's idle-GPU estimate. The other half is
+# margin for a busy GPU (cmp-1 repeat 1 ran several times slower than the idle estimate) and for the checks after.
+BUDGET_FRACTION = 0.5
+FIT_TO_BUDGET_NOTE = ("post-hoc change (2026-11-01, after cmp-1 repeat 1): arm C's Simulator drops to the quick preset "
+                      "when the requested preset would not fit half of the task's remaining wall clock")
+
+
 class ArmCSimulator(SimulatorAgent):
     """The GB10 Simulator, except that it leaves jobs it can't set up (no structure on file, missing inputs) on
     the board for the generalist worker instead of refusing them. Physics refusals (model out of its training
-    domain, with a reroute to classical MD) stay its call."""
+    domain, with a reroute to classical MD) stay its call.
 
-    def owns(self, snap: BoardSnapshot, on: OpenNeed) -> bool:
+    With a ``deadline`` it also fits each job to the time left (FIT_TO_BUDGET_NOTE): in cmp-1 repeat 1 it started a
+    production aluminium run that the 60-minute task clock cut off, so arm C shipped nothing. A quick-preset result
+    carries the ``quick_settings_not_production`` flag, so the downgrade is visible on the board.
+    """
+
+    def __init__(self, *args, deadline: Optional[float] = None, budget_fraction: float = BUDGET_FRACTION,
+                 clock: Callable[[], float] = time.time, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.deadline, self.budget_fraction, self.clock = deadline, budget_fraction, clock
+
+    def fit_to_budget(self, job: Job) -> Job:
+        if self.deadline is None or job.preset == "quick":
+            return job
+        limit = self.budget_fraction * (self.deadline - self.clock()) / 60
+        if job.estimate_minutes() <= limit:
+            return job
+        keep_length = dataclasses.replace(job, preset="quick")  # a longer-run retry keeps its production length
+        return keep_length if keep_length.estimate_minutes() <= limit else dataclasses.replace(
+            job, preset="quick", prod_steps=None)
+
+    def _job(self, snap: BoardSnapshot, on: OpenNeed) -> "Optional[Job | JobError]":
+        """The job we would run for this need (fitted to the time left), a JobError we act on, or None."""
         try:
             job = build_job(snap, on)
         except JobError as err:
-            return err.suggest_need is not None
-        return job is not None and self.min_minutes <= job.estimate_minutes() < self.max_minutes
+            return err if err.suggest_need is not None else None
+        if job is None:
+            return None
+        job = self.fit_to_budget(job)
+        return job if self.min_minutes <= job.estimate_minutes() < self.max_minutes else None
+
+    def owns(self, snap: BoardSnapshot, on: OpenNeed) -> bool:
+        return self._job(snap, on) is not None
 
     def pending(self):
-        return [(on, job) for on, job in super().pending()
-                if not (isinstance(job, JobError) and job.suggest_need is None)]
+        snap = self.board.snapshot()
+        out = []
+        for on in self.board.open_needs(include_claimed=False):
+            job = self._job(snap, on)
+            if job is not None:
+                out.append((on, job))
+        return out
 
 
 def bounded_runner(inner: Callable, deadline: float, jobs: list[dict]) -> Callable:
@@ -399,7 +439,8 @@ def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd
              preset: str, llm_mode: str, worker_usd: float, model: str,
              session_fn_factory: Callable[[Path], SessionFn], sim_runner: Callable = subprocess_runner,
              premise_client: Any = "auto", seeds: Optional[dict] = None, llm_referee: bool = True,
-             runs_root: Path = REPO_ROOT / "runs" / "arm_c", max_rounds: int = 500, sandbox: str = "docker") -> dict:
+             runs_root: Path = REPO_ROOT / "runs" / "arm_c", max_rounds: int = 500, sandbox: str = "docker",
+             fit_budget: bool = True) -> dict:
     from coolorbit.agents.librarian import LibrarianAgent
     from coolorbit.agents.premise import PremiseChecker
     from coolorbit.agents.referee_llm import Adjudicator, LLMReferee
@@ -429,7 +470,8 @@ def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd
     try:
         seeds = seeds if seeds is not None else load_seeds()
         sim = ArmCSimulator(board, "simulator_gb10", runner=bounded_runner(sim_runner, deadline, gpu_jobs),
-                            runs_root=Path(runs_root) / run / f"{ARM}-r{repeat}" / task.id, max_minutes=timeout_min)
+                            runs_root=Path(runs_root) / run / f"{ARM}-r{repeat}" / task.id, max_minutes=timeout_min,
+                            deadline=deadline if fit_budget else None)
         dispatcher = WorkerDispatcher(board, task, req_id, session_fn_factory(board_root), sim=sim,
                                       deadline=deadline, worker_usd=worker_usd,
                                       usd_left=lambda: budget_usd - llm_roles.spent_usd(costs, task.id))
@@ -483,6 +525,7 @@ def run_task(task: Task, *, run: str, repeat: int, boards_root: Path, budget_usd
               "agents": [getattr(a, "name", type(a).__name__) for a in agents], "rounds": rounds,
               "stopped": stopped, "agent_errors": errors, "gpu_jobs": gpu_jobs,
               "known_issues": known_contamination(), "llm_usd": round(llm_roles.spent_usd(costs, task.id), 4),
+              "post_hoc_changes": [FIT_TO_BUDGET_NOTE] if fit_budget else [],
               "wall_s": round(time.time() - t0, 1)}
     (board_root / RECORD_FILE).write_text(json.dumps(record, indent=1), encoding="utf-8")
     record["board"] = str(board_root)
@@ -533,6 +576,8 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--model", default=baseline["model"], help="worker model (= arms A/B)")
     ap.add_argument("--effort", default=baseline["effort"], help="worker effort (= arms A/B)")
     ap.add_argument("--preset", choices=["quick", "production"], default="production")
+    ap.add_argument("--fixed-preset", action="store_true",
+                    help="repeat-1 behaviour: never fit the Simulator's preset to the time left (see FIT_TO_BUDGET_NOTE)")
     ap.add_argument("--llm", choices=["inconclusive", "always", "never"], default="inconclusive",
                     help="when the premise checker asks Claude")
     ap.add_argument("--no-llm-referee", action="store_true",
@@ -589,7 +634,7 @@ def main(argv: Optional[list[str]] = None) -> None:
                                budget_usd=args.budget_usd, timeout_min=args.timeout_min, preset=args.preset,
                                llm_mode=args.llm, worker_usd=args.worker_usd, model=args.model,
                                session_fn_factory=factory, sandbox=args.sandbox,
-                               llm_referee=not args.no_llm_referee)
+                               llm_referee=not args.no_llm_referee, fit_budget=not args.fixed_preset)
             except FileExistsError as exc:
                 print(f"SKIP {t.id}: {exc}")
                 break
