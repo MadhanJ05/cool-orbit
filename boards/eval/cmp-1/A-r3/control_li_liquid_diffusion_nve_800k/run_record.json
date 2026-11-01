@@ -1,0 +1,85 @@
+{
+ "run": "cmp-1",
+ "arm": "A",
+ "repeat": 3,
+ "task_id": "control_li_liquid_diffusion_nve_800k",
+ "task_request_id": "00ca1b44-4c53-4c30-b830-accb2d4d4d14",
+ "started": "2026-11-01T08:40:23.548240+00:00",
+ "finished": "2026-11-01T09:41:09.265650+00:00",
+ "budget": {
+  "task_budget_usd": 1.5,
+  "spent_usd": 0.9807,
+  "stopped_by_budget": null,
+  "timeout_s": 3600.0,
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "role": "arm_baseline"
+ },
+ "sandbox": "docker",
+ "sessions": [
+  {
+   "role": "single_agent",
+   "agent": "single_agent",
+   "sandbox": "/home/dell/coolorbit-eval-work/cmp-1/A-r3/control_li_liquid_diffusion_nve_800k/single_agent-1",
+   "transcript": "transcripts/single_agent-1.jsonl",
+   "result": {
+    "exit_code": 124,
+    "timed_out": false,
+    "wall_s": 3604.4698731440058,
+    "input_tokens": 1280744,
+    "output_tokens": 13628,
+    "cache_read_input_tokens": 1194222,
+    "cache_creation_input_tokens": 86464,
+    "usd": 0.9806824000000003,
+    "num_turns": 31,
+    "model": "claude-opus-5-5,claude-haiku-5-5",
+    "error": null,
+    "key_name": "ANTHROPIC_API_KEY_PRIMARY",
+    "uncached_input_tokens": 58,
+    "model_usage": {
+     "claude-opus-5-5": {
+      "input_tokens": 58,
+      "output_tokens": 13628,
+      "cache_read_input_tokens": 1194222,
+      "cache_creation_input_tokens": 86464,
+      "reported_usd": 0.9439564000000003
+     },
+     "claude-haiku-5-5": {
+      "input_tokens": 44800,
+      "output_tokens": 4492,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "reported_usd": 0.036726
+     }
+    },
+    "usd_reported": 0.9806824000000003,
+    "unpriced_models": null,
+    "usd_check": 0.5183624,
+    "usd_source": "reported",
+    "warmup": {
+     "ok": true,
+     "model": "medium-mpa-0",
+     "steps": 20,
+     "load_s": 11.74,
+     "md_s": 25.5,
+     "seconds": 41.24
+    }
+   },
+   "contamination": [],
+   "integrity": []
+  }
+ ],
+ "infra_failed_attempts": [],
+ "integrity_violations": [],
+ "warmup": [
+  {
+   "ok": true,
+   "model": "medium-mpa-0",
+   "steps": 20,
+   "load_s": 11.74,
+   "md_s": 25.5,
+   "seconds": 41.24
+  }
+ ],
+ "contamination": []
+}

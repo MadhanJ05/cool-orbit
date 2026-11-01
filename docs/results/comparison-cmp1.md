@@ -81,6 +81,27 @@ Reading: C has the highest trap catch over two repeats, but its gain comes from 
 budget fit; it ties A on false alarms and beats B; no arm shipped a confident wrong answer. 8 tasks x 2 repeats: no
 statistical claims.
 
+## Repeat 3 (2026-11-01 07:26 to 10:19 UTC; same settings as repeat 2)
+
+Scored `runs/cmp1_r3_metrics.txt` / `_posthoc.txt` (they agree): trap catch A 60%, B 60%, **C 80%** (one task
+unanswered); false alarms **0 of 3 for every arm**; silent errors 0. LLM cost: A $4.65, B $3.58, C $2.39.
+
+## All three repeats (`runs/cmp1_{A,B,C}_all3.json` and `_all3_posthoc.json`: mean, min-max)
+
+| | A | B | C |
+|---|---|---|---|
+| Trap catch, pre-registered | 60% (60-60) | 67% (60-80) | **80%** (60-100) |
+| Trap catch, post-hoc rule | 60% (60-60) | 60% (60-60) | **80%** (60-100) |
+| False alarms | 11% (0-33) | 22% (0-33) | **11%** (0-33) |
+| Silent errors | 0 | 0 | 0 |
+| Mean \|relative error\| | 2% | 2% | 2% |
+| LLM cost per repeat | ~$4.57 | ~$3.50 | **~$2.40** |
+
+Reading: across three repeats the collective catches the most traps (80% vs 60%), ties the single agent for the fewest
+false alarms, never ships a confident wrong answer (nor do the others), and costs about half as much LLM spend as the
+single agent. Its advantage appears after the disclosed post-hoc budget fit (repeat 1: 60%; repeats 2-3: 100%, 80%).
+8 tasks x 3 repeats: no statistical claims.
+
 ## Changes made after repeat 1 (disclosed; repeat 2 uses them)
 
 - **Scorer:** the post-hoc rule above, opt-in. Without `--reference-rule` the scorer is the pre-registered one, so

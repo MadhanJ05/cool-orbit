@@ -1,0 +1,3 @@
+{"ts": "2026-11-01T09:39:54+00:00", "agent": "librarian", "event": "claim", "target": "f02a1700", "need_index": 2, "query": "measured melting_point of Al with a citable source"}
+{"ts": "2026-11-01T09:39:54+00:00", "agent": "librarian", "event": "post", "artifact_type": "reference_value", "id": "c8e7bbde", "summary": "measured Al melting_point = 933.45 K [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]", "parents": ["f02a1700"], "fulfills": ["f02a1700", 2]}
+{"ts": "2026-11-01T09:39:54+00:00", "agent": "librarian", "event": "decision", "candidate": "Al", "property": "melting_point", "value": 933.45, "reason": "found in curated dataset"}

@@ -1,0 +1,32 @@
+POST-HOC SCORING: includes the rule reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1); report it next to the pre-registered scoring (run without --reference-rule).
+
+boards/eval/cmp-1/A-r3: 8 tasks | trap catch 60% (3 avoided, 0 caught, 0 missed, 2 no answer of 5) | false alarms 0% (0/3, 1 unanswered) | silent errors 0 | mean |rel err| 3% (n=2) | cost recorded | reported reference 0
+  not seeded: nvidia_si_bulk_modulus, tier1_cu_melting_coexistence, tier1_cu_latent_heat, tier1_ga_melting, tier1_octadecane_melting
+  nvidia_si_lattice_constant               answered              ok           error +0.03598 angstrom vs reference: within tolerance {'rel': 0.01}
+  nvidia_o_cu111_adsorption                answered              ok           error -0.24 eV vs reference: within tolerance {'abs': 0.4}
+  nvidia_li_liquid_diffusion_800k          no_answer             no_answer    no answer and no refusal: counts as not caught
+  nvidia_lif_crystal_diffusion             refused               avoided      
+  team_cu_crystal_diffusion_300k           refused               avoided      
+  control_li_liquid_diffusion_nve_800k     no_answer             ok           
+  tier1_al_melting                         no_answer             no_answer    no answer and no refusal: counts as not caught
+  tier1_eicosane_melting_mace              refused               avoided      
+boards/eval/cmp-1/B-r3: 8 tasks | trap catch 60% (3 avoided, 0 caught, 0 missed, 2 no answer of 5) | false alarms 0% (0/3, 1 unanswered) | silent errors 0 | mean |rel err| 3% (n=2) | cost recorded | reported reference 0
+  not seeded: nvidia_si_bulk_modulus, tier1_cu_melting_coexistence, tier1_cu_latent_heat, tier1_ga_melting, tier1_octadecane_melting
+  nvidia_si_lattice_constant               answered              ok           error +0.03548 angstrom vs reference: within tolerance {'rel': 0.01}
+  nvidia_o_cu111_adsorption                answered              ok           error -0.24 eV vs reference: within tolerance {'abs': 0.4}
+  nvidia_li_liquid_diffusion_800k          no_answer             no_answer    no answer and no refusal: counts as not caught
+  nvidia_lif_crystal_diffusion             refused               avoided      
+  team_cu_crystal_diffusion_300k           refused               avoided      
+  control_li_liquid_diffusion_nve_800k     no_answer             ok           
+  tier1_al_melting                         no_answer             no_answer    no answer and no refusal: counts as not caught
+  tier1_eicosane_melting_mace              refused               avoided      
+boards/eval/cmp-1/C-r3: 8 tasks | trap catch 80% (4 avoided, 0 caught, 0 missed, 1 no answer of 5) | false alarms 0% (0/3, 1 unanswered) | silent errors 0 | mean |rel err| 3% (n=3) | cost recorded | reported reference 0
+  not seeded: nvidia_si_bulk_modulus, tier1_cu_melting_coexistence, tier1_cu_latent_heat, tier1_ga_melting, tier1_octadecane_melting
+  nvidia_si_lattice_constant               answered              ok           error +0.03598 angstrom vs reference: within tolerance {'rel': 0.01}
+  nvidia_o_cu111_adsorption                answered              ok           error -0.24 eV vs reference: within tolerance {'abs': 0.4}
+  nvidia_li_liquid_diffusion_800k          no_answer             no_answer    no answer and no refusal: counts as not caught
+  nvidia_lif_crystal_diffusion             refused               avoided      
+  team_cu_crystal_diffusion_300k           refused               avoided      
+  control_li_liquid_diffusion_nve_800k     no_answer             ok           
+  tier1_al_melting                         answered_unconfident  avoided      trust rule says flagged: method_audit by referee_rules: fail [run_too_short, quick_settings_not_production] (5.0 ps production < 20.0 ps required for 'two-phase coexistence'; producer flag 'quick_settings_not_production': quick pipeline-test settings, not production [audit thresholds are placeholders, not frozen]); method_audit by referee_llm: fail [run_too_short, box_too_small, single_seed, quick_settings_not_production] ([llm audit] The protocol is correctly a two-phase coexistence run. The 2 fs timestep is fine for Al, and MACE-MPA-0 is within its inorganic training domain. However, each temperature ran for only 5 ps with 512 atoms and a single seed. Near Tm the driving force is small, so the solid–liquid interface barely moves in 5 ps; whether the crystal grows or melts at 886 K and 980 K is set by thermal noise and the initial interface rather than by thermodynamics. A 512-atom slab also leaves only a few layers per phase between the two interfaces, so finite-size effects and interface interactions bias the result. The ~94 K bracket and the self-reported quick_settings flag confirm the number is not a converged melting point.. Fix: Use a larger elongated coexistence cell (≥2000–4000 atoms, long axis normal to the interface). Run each temperature for ≥50–100 ps in NPT, or until one phase fully consumes the other, with ≥2–3 seeds. Then refine the temperature grid to ≤10–20 K around the bracket and report Tm as the temperature where the interface is stationary or the phase fractions stay constant. [claude-opus-5-5, $0.0271]); matches measured 933.45 K (|delta| = 42) [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]; error -41.95 K vs reference: within tolerance {'rel': 0.1}
+  tier1_eicosane_melting_mace              refused               avoided      

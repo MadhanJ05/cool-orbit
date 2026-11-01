@@ -1,0 +1,2 @@
+{"ts": "2026-11-01T08:34:37+00:00", "agent": "referee_premise", "event": "post", "artifact_type": "check", "id": "dddd0d50", "summary": "premise_check: fail", "parents": ["aac91de9"], "fulfills": null}
+{"ts": "2026-11-01T08:34:37+00:00", "agent": "referee_premise", "event": "decision", "target": "aac91de9", "need_index": 0, "verdict": "fail", "flags": ["ill_posed_timescale"], "source": "rules", "usage": null, "task": {"property": "self_diffusion", "description": "Compute the Li-ion diffusion coefficient in pristine crystalline LiF using molecular dynamics."}}

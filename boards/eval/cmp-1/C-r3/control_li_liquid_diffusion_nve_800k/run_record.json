@@ -1,0 +1,110 @@
+{
+ "run": "cmp-1",
+ "arm": "C",
+ "repeat": 3,
+ "task_id": "control_li_liquid_diffusion_nve_800k",
+ "task_request_id": "b9853ba4-f019-434a-b658-e00be9facc87",
+ "started": "2026-11-01T08:34:38+00:00",
+ "finished": "2026-11-01T09:17:57+00:00",
+ "budget": {
+  "usd": 1.5,
+  "timeout_s": 3600.0,
+  "model": "claude-opus-5-5",
+  "worker_usd": 1.0
+ },
+ "sandbox": "docker",
+ "sessions": [
+  {
+   "role": "worker",
+   "agent": "worker_cc",
+   "attempt": 1,
+   "sandbox": "docker",
+   "transcript": "transcripts/worker-1.jsonl",
+   "result": {
+    "exit_code": 0,
+    "timed_out": false,
+    "wall_s": 2556.0276017670003,
+    "input_tokens": 569213,
+    "output_tokens": 8759,
+    "cache_read_input_tokens": 454626,
+    "cache_creation_input_tokens": 114551,
+    "usd": 0.8507723,
+    "num_turns": 18,
+    "model": "claude-opus-5-5,claude-haiku-5-5",
+    "error": null,
+    "key_name": "ANTHROPIC_API_KEY_PRIMARY",
+    "uncached_input_tokens": 36,
+    "model_usage": {
+     "claude-opus-5-5": {
+      "input_tokens": 36,
+      "output_tokens": 8759,
+      "cache_read_input_tokens": 454626,
+      "cache_creation_input_tokens": 114551,
+      "reported_usd": 0.8390042
+     },
+     "claude-haiku-5-5": {
+      "input_tokens": 14126,
+      "output_tokens": 711,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "reported_usd": 0.0117681
+     }
+    },
+    "usd_reported": 0.8507723,
+    "unpriced_models": null,
+    "usd_check": 0.2680173,
+    "usd_source": "reported",
+    "warmup": {
+     "ok": true,
+     "model": "medium-mpa-0",
+     "steps": 20,
+     "load_s": 11.86,
+     "md_s": 26.82,
+     "seconds": 43.66
+    }
+   },
+   "contamination": [],
+   "integrity": [],
+   "infra_failure": false
+  }
+ ],
+ "contamination": [],
+ "integrity_violations": [],
+ "warmup": [
+  {
+   "ok": true,
+   "model": "medium-mpa-0",
+   "steps": 20,
+   "load_s": 11.86,
+   "md_s": 26.82,
+   "seconds": 43.66
+  }
+ ],
+ "infra_failure": false,
+ "agents": [
+  "referee_premise",
+  "scout_metals",
+  "scout_paraffin",
+  "scout_fatty_acid",
+  "scout_sugar_alcohol",
+  "scout_salt_hydrate",
+  "scout_plastic_crystal",
+  "scout_general",
+  "referee_rules",
+  "referee_llm",
+  "adjudicator",
+  "librarian",
+  "simulator_gb10",
+  "worker_cc"
+ ],
+ "rounds": 2,
+ "stopped": "idle",
+ "agent_errors": [],
+ "gpu_jobs": [],
+ "known_issues": [],
+ "llm_usd": 0.8508,
+ "post_hoc_changes": [
+  "post-hoc change (2026-11-01, after cmp-1 repeat 1): arm C's Simulator drops to the quick preset when the requested preset would not fit half of the task's remaining wall clock"
+ ],
+ "wall_s": 2599.8
+}

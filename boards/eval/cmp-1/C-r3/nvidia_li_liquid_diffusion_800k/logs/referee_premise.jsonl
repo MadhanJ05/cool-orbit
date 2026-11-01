@@ -1,0 +1,2 @@
+{"ts": "2026-11-01T07:33:42+00:00", "agent": "referee_premise", "event": "post", "artifact_type": "check", "id": "69d1e380", "summary": "premise_check: pass", "parents": ["c0a70a0f"], "fulfills": null}
+{"ts": "2026-11-01T07:33:42+00:00", "agent": "referee_premise", "event": "decision", "target": "c0a70a0f", "need_index": 0, "verdict": "pass", "flags": [], "source": "rules", "usage": null, "task": {"property": "self_diffusion", "description": "Compute the self-diffusion coefficient of liquid lithium at 800 K.", "temperature_K": 800.0}}

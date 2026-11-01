@@ -1,0 +1,47 @@
+{
+ "run": "cmp-1",
+ "arm": "C",
+ "repeat": 3,
+ "task_id": "nvidia_lif_crystal_diffusion",
+ "task_request_id": "aac91de9-ced6-4abd-abbc-4a0496e2787a",
+ "started": "2026-11-01T08:34:37+00:00",
+ "finished": "2026-11-01T08:34:37+00:00",
+ "budget": {
+  "usd": 1.5,
+  "timeout_s": 3600.0,
+  "model": "claude-opus-5-5",
+  "worker_usd": 1.0
+ },
+ "sandbox": "docker",
+ "sessions": [],
+ "contamination": [],
+ "integrity_violations": [],
+ "warmup": [],
+ "infra_failure": false,
+ "agents": [
+  "referee_premise",
+  "scout_metals",
+  "scout_paraffin",
+  "scout_fatty_acid",
+  "scout_sugar_alcohol",
+  "scout_salt_hydrate",
+  "scout_plastic_crystal",
+  "scout_general",
+  "referee_rules",
+  "referee_llm",
+  "adjudicator",
+  "librarian",
+  "simulator_gb10",
+  "worker_cc"
+ ],
+ "rounds": 2,
+ "stopped": "idle",
+ "agent_errors": [],
+ "gpu_jobs": [],
+ "known_issues": [],
+ "llm_usd": 0.0,
+ "post_hoc_changes": [
+  "post-hoc change (2026-11-01, after cmp-1 repeat 1): arm C's Simulator drops to the quick preset when the requested preset would not fit half of the task's remaining wall clock"
+ ],
+ "wall_s": 0.1
+}

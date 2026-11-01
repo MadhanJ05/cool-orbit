@@ -1,0 +1,85 @@
+{
+ "run": "cmp-1",
+ "arm": "B",
+ "repeat": 3,
+ "task_id": "control_li_liquid_diffusion_nve_800k",
+ "task_request_id": "82e3443d-3c56-4d5a-a4cc-f52442730320",
+ "started": "2026-11-01T08:41:36.819720+00:00",
+ "finished": "2026-11-01T09:42:21.725666+00:00",
+ "budget": {
+  "task_budget_usd": 1.5,
+  "spent_usd": 0.5764,
+  "stopped_by_budget": null,
+  "timeout_s": 3600.0,
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "role": "arm_baseline"
+ },
+ "sandbox": "docker",
+ "sessions": [
+  {
+   "role": "worker",
+   "agent": "worker",
+   "sandbox": "/home/dell/coolorbit-eval-work/cmp-1/B-r3/control_li_liquid_diffusion_nve_800k/worker-1",
+   "transcript": "transcripts/worker-1.jsonl",
+   "result": {
+    "exit_code": 124,
+    "timed_out": false,
+    "wall_s": 3604.341286323002,
+    "input_tokens": 115330,
+    "output_tokens": 733,
+    "cache_read_input_tokens": 89143,
+    "cache_creation_input_tokens": 26181,
+    "usd": 0.5763542,
+    "num_turns": 3,
+    "model": "claude-opus-5-5,claude-haiku-5-5",
+    "error": null,
+    "key_name": "ANTHROPIC_API_KEY_PRIMARY",
+    "uncached_input_tokens": 6,
+    "model_usage": {
+     "claude-opus-5-5": {
+      "input_tokens": 34,
+      "output_tokens": 10225,
+      "cache_read_input_tokens": 472598,
+      "cache_creation_input_tokens": 50688,
+      "reported_usd": 0.5525956000000001
+     },
+     "claude-haiku-5-5": {
+      "input_tokens": 26791,
+      "output_tokens": 2159,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "reported_usd": 0.023758599999999998
+     }
+    },
+    "usd_reported": 0.5763542,
+    "unpriced_models": null,
+    "usd_check": 0.30291419999999997,
+    "usd_source": "reported",
+    "warmup": {
+     "ok": true,
+     "model": "medium-mpa-0",
+     "steps": 20,
+     "load_s": 11.35,
+     "md_s": 25.14,
+     "seconds": 40.56
+    }
+   },
+   "contamination": [],
+   "integrity": []
+  }
+ ],
+ "infra_failed_attempts": [],
+ "integrity_violations": [],
+ "warmup": [
+  {
+   "ok": true,
+   "model": "medium-mpa-0",
+   "steps": 20,
+   "load_s": 11.35,
+   "md_s": 25.14,
+   "seconds": 40.56
+  }
+ ],
+ "contamination": []
+}

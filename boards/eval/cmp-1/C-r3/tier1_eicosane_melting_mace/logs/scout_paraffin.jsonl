@@ -1,0 +1,3 @@
+{"ts": "2026-11-01T10:17:58+00:00", "agent": "scout_paraffin", "event": "claim", "target": "f54297f7", "need_index": 0, "query": "Compute the melting point of n-eicosane with the MACE-MPA-0 force field."}
+{"ts": "2026-11-01T10:17:58+00:00", "agent": "scout_paraffin", "event": "post", "artifact_type": "candidate", "id": "8dd51199", "summary": "candidate n-eicosane (paraffin, trust tier)", "parents": ["f54297f7"], "fulfills": ["f54297f7", 0]}
+{"ts": "2026-11-01T10:17:58+00:00", "agent": "scout_paraffin", "event": "decision", "eval_task": "tier1_eicosane_melting_mace", "candidate": "n-eicosane", "action": "answered task: requested melting_point", "route": "classical_md"}
