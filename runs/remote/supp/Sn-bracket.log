@@ -28,3 +28,11 @@ Preparing two-phase box (protocol 2): 512 atoms, T_prep=425 K, T_melt=1010 K, T_
   [prep_melt_nvt_r2] 3000 steps x 512 atoms in 257 s
   [prep_quench_nvt] 3000 steps x 512 atoms in 259 s
   liquid half: 88% of atoms moved > 1.5 A; crystal half: 0%
+  [production_npt] 25000 steps x 2048 atoms in 2270 s
+  T=  380.0 K (measured   380.5): dPE = +0.0081 eV/atom (threshold 0.0062), mobility 1.00 -> melting [mobility and pe]
+  T=  410.0 K (measured   410.5): dPE = +0.0077 eV/atom (threshold 0.0031), mobility 0.99 -> melting [mobility and pe]
+  T=  440.0 K (measured   440.6): dPE = +0.0056 eV/atom (threshold 0.0020), mobility 1.00 -> melting [mobility and pe]
+  T=  470.0 K (measured   469.2): dPE = +0.0081 eV/atom (threshold 0.0082), mobility 0.99 -> melting [mobility]
+
+RESULT (failed): no temperature froze and the coldest run melted: the melting point is below the bracket
+Flags: none   Wall time: 61.9 min   Output: runs/supp/Sn-bracket/20261101T110155Z_Sn-bracket_coexistence

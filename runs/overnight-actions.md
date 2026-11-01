@@ -30,7 +30,11 @@ mobile but PE fell, stable 450): v2 correctly refuses a number; with the board b
 **Latent heat at MACE's own Tm (supplementary, H100):** In 23,546 ± 364 J/kg at 363 K vs 28,662.4 (Archer & Rudtsch
 2003) = **-17.8%**; Bi 35,501 ± 236 J/kg at 420 K vs 53,146 = **-33%**. With Cu -8.0% and Al -10.6% (board), the
 latent-heat pattern matches the melting points: fcc metals pass ±15%, the low-melting post-transition metals fail.
-Sn: at 410-425 K MACE's beta-Sn crystal does hold (it does not at 505 K); a production Sn bracket (380-470 K) is running.
+Sn: with a proper two-phase box (prep at 425 K, melt at 1010 K) **every temperature 380-470 K melts -> MACE Sn Tm < 380 K
+(at least 25% low vs 505.078 K)**; the crystal "held" at 425 K during prep only because an interface-free crystal
+superheats. **Second bracket (290-380 K): Sn 305 ± 15 K** (freezes 290, melts 320/350/380) -> **about 40% low** vs
+505.078 K. MACE melting points, all supplementary/board v2: Cu ~1310 K (-3.5%), Al ~910 K (-2.5%), In ~363 K (-15%),
+Bi ~390-463 K (15-28% low), Sn ~305 K (-40%).
 
 Reading: MACE-MPA-0 is good for fcc Cu/Al (Tm within ~5%, latent within ~10%) and 20-25% low on the low-melting
 post-transition metals (In, Bi, Sn) that matter most for thermal batteries. Earlier MACE latent runs at the measured
@@ -47,8 +51,8 @@ and the README had never been committed); Brev's SSH proxy route is blocked from
 Warp CUDA-13 wheel on a CUDA-12 H100 (fixed, setup script updated); remote timeouts (4x allowance, two results
 recovered honestly); a gate loophole in post_classical_checks (fixed + test). 4 small slips of mine are logged.
 
-**H100 (Lambda, $3.95/h since 03:56):** ~$16 by 08:00. Watchdog stops/deletes it at 13:30 UTC. It is now running
-supplementary refined-bracket runs (not posted to any board).
+**H100 (Lambda, $3.95/h): deleted at 13:17 UTC** after its last run (Lambda doesn't support stop); 03:56-13:17 =
+~9.35 h = **~$37** of the $150 Brev credit. All its results are copied to the GB10 (runs/remote/).
 
 **Your decisions:**
 1. Al latent heat: count the EAM Al latent check (it passes the latent gate, -8.8%, but the same potential fails the
@@ -56,8 +60,9 @@ supplementary refined-bracket runs (not posted to any board).
 2. Dashboard: the redesign is committed but not deployed; the push loop is stopped. It should also export
    `boards/science-2` (the new results). Then Sia redeploys.
 3. Pitch: slides 8/9/11 need the new numbers (trusted Cu, the MACE calibration pattern, the comparison).
-4. H100: keep it until 13:30 or stop it after the refined runs (~09:30).
+4. (H100: done, deleted at 13:17.)
 5. Hook announcement (collaboration bonus).
+6. Repeat 4 is finishing (~13:30-13:45); score it and update the three-repeat numbers, or stop it if you need the GB10.
 
 ## Log
 
@@ -128,3 +133,4 @@ supplementary refined-bracket runs (not posted to any board).
 | 10:52 | H100 idle since ~09:15 (~$27 total by now): 3 supplementary runs on ~/cool-orbit-v2/runs/supp, not posted: In latent at MACE's own Tm (363 K), Bi latent at 420 K (inside MACE's Tm range; the -46% at 544.6 K came from a superheated solid), Sn crystal stability at ~410 K (quick, gate only) | idle paid GPU; these sharpen the calibration (latent at the model's own Tm, and whether MACE holds beta-Sn at all) | running |
 | 11:01 | Sn stability at T_prep 410 K (quick): **the crystal survived the solid prep** (unlike at 505 K); stopped at `liquid_not_prepared` (melt 820 K too low in quick mode). So MACE Sn's Tm is probably between ~410 and 505 K | | |
 | 11:03 | Started a production Sn bracket on the H100 (380/410/440/470 K, v2, t-ref 425, **t-melt 1010**, seed 2031; supplementary, not posted). My ssh launch line hung (backgrounded `&&` chain held the session; same slip as 04:45) and was killed by `timeout`, but the job started | first real MACE bracket for Sn | running |
+| 12:04 | Sn bracket 1 (380-470 K): all melt -> MACE Sn Tm < 380 K. Started Sn bracket 2 (290-380 K, seed 2032) | | my launch line redirected stdout twice (`> log ... > /dev/null`), so its log is empty; the job runs and writes result.json at the end (~12:55) |
