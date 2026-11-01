@@ -57,13 +57,17 @@ def science_seeds(metals: list[str], organics: bool) -> dict:
 
 
 def build_agents(board: Board, seeds: dict, alloys: list[str], *, preset: Optional[str], llm: str,
-                 runner: Callable, runs_root: Path) -> list:
+                 runner: Callable, runs_root: Path, simulator: bool = True) -> list:
+    """``simulator=False`` leaves the GPU to Simulators in their own processes (python -m
+    coolorbit.sim.simulator_agent, scripts/run_remote_simulator.py): a GPU job inside this round-robin loop blocks
+    every other agent for its whole run (seen 2026-11-01: the Scout could not post the next metal for 73 min)."""
     agents = [PremiseChecker(board, client=None if llm == "never" else "auto", llm_mode=llm)]
     if alloys:
         agents.append(AlloyScout(board, only=alloys, preset=preset))
     agents += [Scout(board, s, seeds=seeds, preset=preset) for s in seeds]
-    agents += [SimulatorAgent(board, "simulator_gb10", runner=runner, runs_root=runs_root),
-               RuleReferee(board), LibrarianAgent(board), Ranker(board)]
+    if simulator:
+        agents.append(SimulatorAgent(board, "simulator_gb10", runner=runner, runs_root=runs_root))
+    agents += [RuleReferee(board), LibrarianAgent(board), Ranker(board)]
     return agents
 
 
@@ -149,6 +153,8 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--preset", choices=["quick", "production"], default=None, help="default: production")
     ap.add_argument("--llm", choices=["inconclusive", "always", "never"], default="inconclusive")
     ap.add_argument("--max-rounds", type=int, default=10_000)
+    ap.add_argument("--no-simulator", action="store_true",
+                    help="run the team without an in-process Simulator (run the Simulators as separate processes)")
     ap.add_argument("--until", default=None,
                     help="keep watching the board until this UTC time (ISO, no zone) instead of stopping when idle, "
                          "e.g. while a second Simulator in another process (scripts/run_remote_simulator.py) works")
@@ -180,7 +186,8 @@ def main(argv: Optional[list[str]] = None) -> None:
 
         until = datetime.fromisoformat(args.until).replace(tzinfo=timezone.utc).timestamp()
     out = run_until_idle(build_agents(board, seeds, args.alloys, preset=args.preset, llm=args.llm,
-                                      runner=subprocess_runner, runs_root=runs_root), args.max_rounds, until=until)
+                                      runner=subprocess_runner, runs_root=runs_root,
+                                      simulator=not args.no_simulator), args.max_rounds, until=until)
     print(f"{out['stopped']} after {out['rounds']} round(s), {out['wall_min']:.0f} min; agent errors: "
           f"{len(out['errors'])}", flush=True)
     for e in out["errors"]:

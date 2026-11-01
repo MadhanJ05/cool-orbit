@@ -61,10 +61,12 @@ def main(argv=None) -> None:
     ap.add_argument("--poll", type=float, default=120.0)
     ap.add_argument("--dry-run", action="store_true", help="log what it would post; post nothing")
     ap.add_argument("--once", action="store_true", help="one pass, then exit (for testing)")
+    ap.add_argument("--board", default=str(BOARD.relative_to(REPO_ROOT)), help="board to watch (repo-relative)")
     args = ap.parse_args(argv)
     until = datetime.fromisoformat(args.until).replace(tzinfo=timezone.utc)
-    board, rules = Board(BOARD), load_rules()
-    log(f"start: watching {BOARD.relative_to(REPO_ROOT)} for a MACE {CANDIDATE} melting point; classical run {RUN}; "
+    board_path = REPO_ROOT / args.board
+    board, rules = Board(board_path), load_rules()
+    log(f"start: watching {args.board} for a MACE {CANDIDATE} melting point; classical run {RUN}; "
         f"until {until.isoformat()}; dry_run={args.dry_run}")
     posted, last_status, seen_reports = False, {}, set()
     while datetime.now(timezone.utc) < until:
