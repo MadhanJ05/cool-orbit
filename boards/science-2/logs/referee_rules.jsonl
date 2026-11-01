@@ -10,3 +10,6 @@
 {"ts": "2026-11-01T07:13:14+00:00", "agent": "referee_rules", "event": "claim", "target": "065ef630", "need_index": 0, "query": "audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Cu"}
 {"ts": "2026-11-01T07:13:14+00:00", "agent": "referee_rules", "event": "post", "artifact_type": "check", "id": "2048126a", "summary": "method_audit: pass", "parents": ["065ef630"], "fulfills": ["065ef630", 0]}
 {"ts": "2026-11-01T07:13:14+00:00", "agent": "referee_rules", "event": "decision", "result": "065ef630", "candidate": "Cu", "property": "latent_heat", "verdict": "pass", "flags": [], "rerun": null}
+{"ts": "2026-11-01T07:35:44+00:00", "agent": "referee_rules", "event": "claim", "target": "8ccfb876", "need_index": 0, "query": "audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Al"}
+{"ts": "2026-11-01T07:35:44+00:00", "agent": "referee_rules", "event": "post", "artifact_type": "check", "id": "337ee42f", "summary": "method_audit: pass", "parents": ["8ccfb876"], "fulfills": ["8ccfb876", 0]}
+{"ts": "2026-11-01T07:35:44+00:00", "agent": "referee_rules", "event": "decision", "result": "8ccfb876", "candidate": "Al", "property": "latent_heat", "verdict": "pass", "flags": [], "rerun": null}

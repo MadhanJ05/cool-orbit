@@ -2,3 +2,5 @@
 [simulator_h100c] RUN: melting_point of Al via two-phase coexistence (ALCHEMI), 512 atoms x 4 temps, preset production, attempt 1, ~48 min
 [simulator_h100c] RESULT d502cce5: melting_point = 933.0 +/- 47.0 K flags=[]
 [simulator_h100c] RUN: latent_heat of Al via NPT enthalpy difference (solid vs liquid) (ALCHEMI), 256 atoms x 1 temps, preset production, attempt 1, ~12 min
+[simulator_h100c] FAILED: latent_heat of Al via NPT enthalpy difference (solid vs liquid) (ALCHEMI): run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeout=30', '-o', 'ServerAliveInterval=30', '-o', 'ServerAliveCountMax=6', 'coolorbit-h100-host', 'cd ~/cool-orbit-v2d && git fetch -q origin && git checkout -q --detach 1845e84230ce8b4c1e40da6aeae1f62dcefff0ed && mkdir -p runs/remote/fe944af4-n0-a1 && .venv/bin/python -m coolorbit.sim.melting latent --element Al --structure fcc --a 4.05 --reps 4 4 4 --dt 2 --out runs/remote/fe944af
+[simulator_h100c] watching /home/dell/Desktop/cool-orbit/boards/science-2 via coolorbit-h100-host:22 until 2026-11-01T12:30:00+00:00

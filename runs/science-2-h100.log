@@ -2,3 +2,5 @@
 [simulator_h100] RUN: melting_point of In via two-phase coexistence (ALCHEMI), 576 atoms x 4 temps, preset production, attempt 1, ~54 min
 [simulator_h100] FAILED: melting_point of In via two-phase coexistence (ALCHEMI): no temperature froze and the coldest run melted: the melting point is below the bracket
 [simulator_h100] RUN: melting_point of In via two-phase coexistence (ALCHEMI), 576 atoms x 4 temps, preset production, attempt 2, ~54 min
+[simulator_h100] RESULT ef8617e2: melting_point = 344.7 +/- 21.3 K flags=[]
+[simulator_h100] watching /home/dell/Desktop/cool-orbit/boards/science-2 via coolorbit-h100-host:22 until 2026-11-01T12:30:00+00:00

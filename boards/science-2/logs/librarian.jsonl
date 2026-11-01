@@ -10,3 +10,6 @@
 {"ts": "2026-11-01T07:13:14+00:00", "agent": "librarian", "event": "claim", "target": "065ef630", "need_index": 2, "query": "measured latent_heat of Cu with a citable source"}
 {"ts": "2026-11-01T07:13:14+00:00", "agent": "librarian", "event": "post", "artifact_type": "reference_value", "id": "00c27d33", "summary": "measured Cu latent_heat = 206748 J/kg [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt]", "parents": ["065ef630"], "fulfills": ["065ef630", 2]}
 {"ts": "2026-11-01T07:13:14+00:00", "agent": "librarian", "event": "decision", "candidate": "Cu", "property": "latent_heat", "value": 206748.0, "reason": "found in curated dataset"}
+{"ts": "2026-11-01T07:35:44+00:00", "agent": "librarian", "event": "claim", "target": "8ccfb876", "need_index": 2, "query": "measured latent_heat of Al with a citable source"}
+{"ts": "2026-11-01T07:35:44+00:00", "agent": "librarian", "event": "post", "artifact_type": "reference_value", "id": "a183e46e", "summary": "measured Al latent_heat = 396975 J/kg [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]", "parents": ["8ccfb876"], "fulfills": ["8ccfb876", 2]}
+{"ts": "2026-11-01T07:35:44+00:00", "agent": "librarian", "event": "decision", "candidate": "Al", "property": "latent_heat", "value": 396975.0, "reason": "found in curated dataset"}

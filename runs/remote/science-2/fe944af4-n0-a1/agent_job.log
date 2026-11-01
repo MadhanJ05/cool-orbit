@@ -1,0 +1,31 @@
+Warp 1.18.0 initialized:
+   CUDA Toolkit 12.9, Driver 12.8
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA H100 PCIe" (79 GiB, sm_90, mempool enabled)
+   Kernel cache:
+     /home/ubuntu/.cache/warp/1.18.0
+latent: 256 atoms x 1 system(s); ~12 min at the measured GB10 rate. Flags: none
+/home/ubuntu/cool-orbit-v2d/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2d/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2d/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2d/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2d/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2d/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Latent heat at T=933 K: preparing liquid from T_melt=1492.8 K
+  [prep_liquid_nvt_r1] 6000 steps x 256 atoms in 531 s
+  only 0% melted; melting 3000 more steps at 1866 K
+  [prep_liquid_nvt_r2] 3000 steps x 256 atoms in 250 s
+  [solid_shape_npt] 4000 steps x 256 atoms in 349 s
+  [latent_npt] 25000 steps x 512 atoms in 2161 s
+  dH = 0.0993 +/- 0.0007 eV/atom = 355.0 kJ/kg; densities solid 2.515, liquid 2.356 g/cm3
+
+RESULT (ok): latent_heat = 355031 +/- 2437 J/kg
+Flags: none   Wall time: 54.8 min   Output: runs/remote/fe944af4-n0-a1/20261101T063702Z_Al_latent

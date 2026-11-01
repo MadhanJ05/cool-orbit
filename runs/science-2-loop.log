@@ -44,3 +44,23 @@ science run on /home/dell/Desktop/cool-orbit/boards/science-2: metals ['Bi', 'In
 [scout_metals] decision: candidate=Al, action=requested latent_heat, at_K=933.0
 [referee_premise] post: artifact_type=check, id=41decc6e, summary=premise_check: pass, parents=['fe944af4'], fulfills=None
 [referee_premise] decision: target=fe944af4, need_index=0, verdict=pass, flags=[], source=rules, usage=None, task={'material': 'Al', 'family': 'validation_metal', 'formula': 'Al', 'structure_source': 'ase:Al:fcc:4.05', 'property': 'latent_heat', 'method': {'engine': 'ALCHEMI', 'model': 'MACE-MPA-0', 'protocol': 'NPT enthalpy difference (solid vs liquid)', 'ensemble': None}, 'temperature_K': 933.0, 'description': 'latent_heat of Al. second figure-of-merit input, at the simulated melting_point (933 K, result d502cce5)', 'melting_point_K': 933.45}
+[referee_premise] post: artifact_type=check, id=465b65be, summary=premise_check: pass, parents=['ef8617e2'], fulfills=None
+[referee_premise] decision: target=ef8617e2, need_index=0, verdict=pass, flags=[], source=carried, usage=None, task=None
+[referee_rules] claim: target=ef8617e2, need_index=0, query=audit the two-phase coexistence melting_point run for In
+[referee_rules] post: artifact_type=check, id=c2450978, summary=method_audit: pass, parents=['ef8617e2'], fulfills=('ef8617e2', 0)
+[referee_rules] decision: result=ef8617e2, candidate=In, property=melting_point, verdict=pass, flags=[], rerun=None
+[librarian] claim: target=ef8617e2, need_index=2, query=measured melting_point of In with a citable source
+[librarian] post: artifact_type=reference_value, id=2ddc4a12, summary=measured In melting_point = 429.748 K [Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90], parents=['ef8617e2'], fulfills=('ef8617e2', 2)
+[librarian] decision: candidate=In, property=melting_point, value=429.748, reason=found in curated dataset
+[referee_rules] claim: target=065ef630, need_index=0, query=audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Cu
+[referee_rules] post: artifact_type=check, id=2048126a, summary=method_audit: pass, parents=['065ef630'], fulfills=('065ef630', 0)
+[referee_rules] decision: result=065ef630, candidate=Cu, property=latent_heat, verdict=pass, flags=[], rerun=None
+[librarian] claim: target=065ef630, need_index=2, query=measured latent_heat of Cu with a citable source
+[librarian] post: artifact_type=reference_value, id=00c27d33, summary=measured Cu latent_heat = 206748 J/kg [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt], parents=['065ef630'], fulfills=('065ef630', 2)
+[librarian] decision: candidate=Cu, property=latent_heat, value=206748.0, reason=found in curated dataset
+[referee_rules] claim: target=8ccfb876, need_index=0, query=audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Al
+[referee_rules] post: artifact_type=check, id=337ee42f, summary=method_audit: pass, parents=['8ccfb876'], fulfills=('8ccfb876', 0)
+[referee_rules] decision: result=8ccfb876, candidate=Al, property=latent_heat, verdict=pass, flags=[], rerun=None
+[librarian] claim: target=8ccfb876, need_index=2, query=measured latent_heat of Al with a citable source
+[librarian] post: artifact_type=reference_value, id=a183e46e, summary=measured Al latent_heat = 396975 J/kg [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt], parents=['8ccfb876'], fulfills=('8ccfb876', 2)
+[librarian] decision: candidate=Al, property=latent_heat, value=396975.0, reason=found in curated dataset
