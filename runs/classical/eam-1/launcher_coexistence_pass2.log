@@ -1,0 +1,62 @@
+Cu-coexist-T1250         cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1250.lammps -var T 1250 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1270         cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1270.lammps -var T 1270 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1290         cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1290.lammps -var T 1290 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1310         cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1310.lammps -var T 1310 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1330         cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1330.lammps -var T 1330 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1350         cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1350.lammps -var T 1350 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Al-coexist-T1035         cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T1035.lammps -var T 1035 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T1050         cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T1050.lammps -var T 1050 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T1065         cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T1065.lammps -var T 1065 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T1080         cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T1080.lammps -var T 1080 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T1095         cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T1095.lammps -var T 1095 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T1110         cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T1110.lammps -var T 1110 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T1065: exit 0, 0.8 min
+Al-coexist-T1050: exit 0, 0.8 min
+Al-coexist-T1080: exit 0, 0.8 min
+Al-coexist-T1035: exit 0, 0.8 min
+Cu-coexist-T1270: exit 0, 1.3 min
+Cu-coexist-T1330: exit 0, 1.3 min
+Cu-coexist-T1290: exit 0, 1.3 min
+Cu-coexist-T1350: exit 0, 1.3 min
+Cu-coexist-T1310: exit 0, 1.3 min
+Cu-coexist-T1250: exit 0, 1.3 min
+Al-coexist-T1095: exit 0, 0.8 min
+Al-coexist-T1110: exit 0, 0.8 min
+[
+ {
+  "element": "Cu",
+  "kind": "coexistence",
+  "exit": 0,
+  "stdout_tail": "PS--ipr1\",\n    \"doi\": \"10.1103/physrevb.63.224106\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 2744,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 1327.0,\n  \"uncertainty\": 10.0,\n  \"bracket_K\": [\n    1310.0,\n    1330.0\n  ]\n}\n"
+ },
+ {
+  "element": "Al",
+  "kind": "coexistence",
+  "exit": 0,
+  "stdout_tail": "MMPS--ipr1\",\n    \"doi\": \"10.1103/physrevb.59.3393\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1728,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 1041.4,\n  \"uncertainty\": 11.6,\n  \"bracket_K\": [\n    1026.8,\n    1050.0\n  ]\n}\n"
+ }
+]
+	Command being timed: ".venv/bin/python scripts/run_classical_local.py --run eam-1 --elements Cu Al --kind coexistence --parallel 10 --temps Cu=1250,1270,1290,1310,1330,1350 Al=1035,1050,1065,1080,1095,1110"
+	User time (seconds): 766.69
+	System time (seconds): 1.50
+	Percent of CPU this job got: 754%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:41.75
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 48764
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 180
+	Minor (reclaiming a frame) page faults: 99460
+	Voluntary context switches: 1598
+	Involuntary context switches: 3246
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 14848
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+exit 0

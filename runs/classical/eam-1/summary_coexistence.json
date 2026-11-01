@@ -1,0 +1,80 @@
+{
+ "run": "eam-1",
+ "kind": "coexistence",
+ "jobs": [
+  {
+   "id": "Cu-coexist-T1250",
+   "exit": 0,
+   "wall_min": 1.3
+  },
+  {
+   "id": "Cu-coexist-T1270",
+   "exit": 0,
+   "wall_min": 1.3
+  },
+  {
+   "id": "Cu-coexist-T1290",
+   "exit": 0,
+   "wall_min": 1.3
+  },
+  {
+   "id": "Cu-coexist-T1310",
+   "exit": 0,
+   "wall_min": 1.3
+  },
+  {
+   "id": "Cu-coexist-T1330",
+   "exit": 0,
+   "wall_min": 1.3
+  },
+  {
+   "id": "Cu-coexist-T1350",
+   "exit": 0,
+   "wall_min": 1.3
+  },
+  {
+   "id": "Al-coexist-T1035",
+   "exit": 0,
+   "wall_min": 0.8
+  },
+  {
+   "id": "Al-coexist-T1050",
+   "exit": 0,
+   "wall_min": 0.8
+  },
+  {
+   "id": "Al-coexist-T1065",
+   "exit": 0,
+   "wall_min": 0.8
+  },
+  {
+   "id": "Al-coexist-T1080",
+   "exit": 0,
+   "wall_min": 0.8
+  },
+  {
+   "id": "Al-coexist-T1095",
+   "exit": 0,
+   "wall_min": 0.8
+  },
+  {
+   "id": "Al-coexist-T1110",
+   "exit": 0,
+   "wall_min": 0.8
+  }
+ ],
+ "analysis": [
+  {
+   "element": "Cu",
+   "kind": "coexistence",
+   "exit": 0,
+   "stdout_tail": "PS--ipr1\",\n    \"doi\": \"10.1103/physrevb.63.224106\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 2744,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 1327.0,\n  \"uncertainty\": 10.0,\n  \"bracket_K\": [\n    1310.0,\n    1330.0\n  ]\n}\n"
+  },
+  {
+   "element": "Al",
+   "kind": "coexistence",
+   "exit": 0,
+   "stdout_tail": "MMPS--ipr1\",\n    \"doi\": \"10.1103/physrevb.59.3393\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1728,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 1041.4,\n  \"uncertainty\": 11.6,\n  \"bracket_K\": [\n    1026.8,\n    1050.0\n  ]\n}\n"
+  }
+ ]
+}

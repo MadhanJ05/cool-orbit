@@ -1,0 +1,3 @@
+{"ts": "2026-11-01T06:10:42+00:00", "agent": "referee_rules", "event": "claim", "target": "94311022", "need_index": 0, "query": "audit the two-phase coexistence melting_point run for Cu"}
+{"ts": "2026-11-01T06:10:42+00:00", "agent": "referee_rules", "event": "post", "artifact_type": "check", "id": "3986ed02", "summary": "method_audit: pass", "parents": ["94311022"], "fulfills": ["94311022", 0]}
+{"ts": "2026-11-01T06:10:42+00:00", "agent": "referee_rules", "event": "decision", "result": "94311022", "candidate": "Cu", "property": "melting_point", "verdict": "pass", "flags": [], "rerun": null}

@@ -23,8 +23,9 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 METALS = REPO / "data" / "nebius" / "metals"
-ACTIVE = ["In", "Sn", "Bi"]
-ALL = ["Ga", "In", "Sn", "Bi"]
+EAM = ["Cu", "Al"]                  # high-melting validation metals, Mishin EAM (pair_style eam/alloy)
+ACTIVE = ["In", "Sn", "Bi"] + EAM
+ALL = ["Ga", "In", "Sn", "Bi"] + EAM
 VALIDATION = METALS / "Sn" / "validation"
 
 spec = importlib.util.spec_from_file_location("nebius_analyze", METALS / "analyze.py")
@@ -159,7 +160,22 @@ class BundleTest(unittest.TestCase):
             m = manifest(el)
             self.assertEqual(m["method"]["engine"], "LAMMPS")
             self.assertIn(m["potential"]["nist_implementation"], m["method"]["model"])
-            self.assertGreater(m["atomic_mass_amu"], 100)
+            from ase.data import atomic_masses, atomic_numbers
+            self.assertAlmostEqual(m["atomic_mass_amu"], atomic_masses[atomic_numbers[el]], places=2)
+
+    def test_eam_bundles_use_eam_alloy_and_record_their_nist_source(self) -> None:
+        for el in EAM:
+            m, mod = manifest(el), (METALS / el / "potential.mod").read_text()
+            self.assertIn("\npair_style eam/alloy\n", mod)
+            self.assertNotIn("meam", mod.lower())
+            self.assertTrue(m["method"]["model"].startswith("EAM, NIST IPR "))
+            p = m["potential"]
+            for name in p["files"]:
+                self.assertTrue(p["download_urls"][name].startswith("https://www.ctcms.nist.gov/potentials/Download/"))
+                header = (METALS / el / "potential" / name).read_text().splitlines()[3].split()
+                self.assertEqual(header, ["1", el], "setfl header: one element, this one")
+            self.assertTrue(p["nist_implementation_url"].endswith(f"{p['nist_implementation']}.html"))
+            self.assertEqual(len(p["release_notes"]["sha256"]), 64)
 
     def test_coexist_thermostat_measures_only_the_liquid(self) -> None:
         c = code("in.coexist.lmp")

@@ -1,0 +1,212 @@
+{
+  "element": "Al",
+  "purpose": "Independent classical-MD check (EAM) of the GB10's MACE melting point and latent heat.",
+  "status": "inputs only; NOT submitted. Ask Madhan before submitting any Nebius job.",
+  "engine": "LAMMPS (needs the MANYBODY package: check `lmp -h | grep -i eam` on the Nebius image)",
+  "potential": {
+    "citation": "Y. Mishin, D. Farkas, M.J. Mehl, and D.A. Papaconstantopoulos (1999), \"Interatomic potentials for monoatomic metals from experimental data and ab initio calculations\", Physical Review B 59(5), 3393-3407.",
+    "doi": "10.1103/physrevb.59.3393",
+    "nist_entry": "1999--Mishin-Y-Farkas-D-Mehl-M-J-Papaconstantopoulos-D-A--Al",
+    "nist_implementation": "1999--Mishin-Y--Al--LAMMPS--ipr1",
+    "pair_coeff": "pair_coeff * * potential/Al99.eam.alloy Al",
+    "nist_url": "https://www.ctcms.nist.gov/potentials/entry/1999--Mishin-Y-Farkas-D-Mehl-M-J-Papaconstantopoulos-D-A--Al/",
+    "files": {
+      "Al99.eam.alloy": "60c8a085be79d273324ab421f5b1447578fef55c1acfc6492c0999f15ee8a284"
+    },
+    "caveats": [
+      "NIST's own iprPy two-phase estimate for this implementation is 1040.41 +/- 1.04 K (fcc), +11.5% vs the measured 933.45 K, i.e. just outside the +/-10% tier1 gate. If our run agrees, this potential is not a usable check for Al. Context only; it does not set the bracket.",
+      "The abstract (as listed on NIST) does not name the melting point among the fitted or reproduced properties; the paper's fitting database itself was not checked."
+    ],
+    "pair_style": "eam/alloy",
+    "nist_implementation_url": "https://www.ctcms.nist.gov/potentials/entry/1999--Mishin-Y-Farkas-D-Mehl-M-J-Papaconstantopoulos-D-A--Al/1999--Mishin-Y--Al--LAMMPS--ipr1.html",
+    "download_urls": {
+      "Al99.eam.alloy": "https://www.ctcms.nist.gov/potentials/Download/1999--Mishin-Y-Farkas-D-Mehl-M-J-Papaconstantopoulos-D-A--Al/2/Al99.eam.alloy"
+    },
+    "release_notes": {
+      "file": "Al99_releaseNotes_1.pdf",
+      "sha256": "a740ce36126559fbee65273b8d4380d29d8cc0ecac7a97680e166cea093dbe30",
+      "url": "https://www.ctcms.nist.gov/potentials/Download/1999--Mishin-Y-Farkas-D-Mehl-M-J-Papaconstantopoulos-D-A--Al/2/Al99_releaseNotes_1.pdf"
+    },
+    "fingerprint_check": {
+      "structure": "fcc",
+      "a_A": 4.05,
+      "E_eV_per_atom": -3.359999988125,
+      "source": "release notes (SOLD vs LAMMPS minimum energy)"
+    },
+    "nist_computed_melting_K": {
+      "value": 1040.41,
+      "stderr": 1.04,
+      "structure": "A1--Cu--fcc",
+      "method": "NIST iprPy melting_temperature (two-phase, NPH + Berendsen, 200,000 steps)",
+      "url": "https://www.ctcms.nist.gov/potentials/entry/1999--Mishin-Y-Farkas-D-Mehl-M-J-Papaconstantopoulos-D-A--Al/1999--Mishin-Y--Al--LAMMPS--ipr1.html"
+    }
+  },
+  "structure": {
+    "phase": "Al (Fm-3m, cF4)",
+    "source": "coolorbit/sim/alloys.py ELEMENT_CRYSTALS (Donohue, The Structures of the Elements, 1974; alpha-Ga: Sharma & Donohue 1962). Starting lattice constants; NPT relaxes them.",
+    "orthogonal_unit_cell_atoms": 4,
+    "coexist": {
+      "file": "data.coexist.lmp",
+      "reps": [
+        6,
+        6,
+        12
+      ],
+      "n_atoms": 1728,
+      "box_A": [
+        24.3,
+        24.3,
+        48.6
+      ]
+    },
+    "solid": {
+      "file": "data.solid.lmp",
+      "reps": [
+        5,
+        5,
+        5
+      ],
+      "n_atoms": 500,
+      "box_A": [
+        20.25,
+        20.25,
+        20.25
+      ]
+    }
+  },
+  "melting_point_guess": {
+    "value_K": 933.45,
+    "source": "data/calibration/tier1.json (NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt)",
+    "use": "ONLY to place the temperature bracket. Not a reference value: the calibration references live in data/calibration/ (Teammate 1)."
+  },
+  "settings": {
+    "dt_ps": 0.002,
+    "tdamp_ps": 0.1,
+    "pdamp_ps": 1.0,
+    "equil_steps": 4000,
+    "melt_steps": 6000,
+    "quench_steps": 3000,
+    "prod_steps": 25000,
+    "record_every": 50,
+    "pe_threshold_eV_per_atom": 0.002,
+    "t_melt_factor": 3.0,
+    "latent_t_hot_factor": 3.0,
+    "seed": 2026,
+    "bracket_factors": [
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2
+    ],
+    "T_prep_K": 933.5,
+    "T_melt_K": 2800.5
+  },
+  "jobs": [
+    {
+      "id": "Al-coexist-T746.8",
+      "kind": "coexistence",
+      "T_K": 746.8,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Al-coexist-T746.8.lammps -var T 746.8 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026",
+      "outputs": [
+        "pe_T746.8.dat",
+        "log_Al-coexist-T746.8.lammps"
+      ]
+    },
+    {
+      "id": "Al-coexist-T840.1",
+      "kind": "coexistence",
+      "T_K": 840.1,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Al-coexist-T840.1.lammps -var T 840.1 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026",
+      "outputs": [
+        "pe_T840.1.dat",
+        "log_Al-coexist-T840.1.lammps"
+      ]
+    },
+    {
+      "id": "Al-coexist-T933.5",
+      "kind": "coexistence",
+      "T_K": 933.5,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Al-coexist-T933.5.lammps -var T 933.5 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026",
+      "outputs": [
+        "pe_T933.5.dat",
+        "log_Al-coexist-T933.5.lammps"
+      ]
+    },
+    {
+      "id": "Al-coexist-T1026.8",
+      "kind": "coexistence",
+      "T_K": 1026.8,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Al-coexist-T1026.8.lammps -var T 1026.8 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026",
+      "outputs": [
+        "pe_T1026.8.dat",
+        "log_Al-coexist-T1026.8.lammps"
+      ]
+    },
+    {
+      "id": "Al-coexist-T1120.1",
+      "kind": "coexistence",
+      "T_K": 1120.1,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Al-coexist-T1120.1.lammps -var T 1120.1 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026",
+      "outputs": [
+        "pe_T1120.1.dat",
+        "log_Al-coexist-T1120.1.lammps"
+      ]
+    },
+    {
+      "id": "Al-latent-solid",
+      "kind": "latent",
+      "phase": "solid",
+      "T_K": "TM_MEAM_K",
+      "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
+      "command": "lmp -in ../in.latent.lmp -log log_Al-latent-solid.lammps -var phase solid -var T TM_MEAM_K -var seed 2026",
+      "outputs": [
+        "h_solid_TTM_MEAM_K.dat",
+        "log_Al-latent-solid.lammps"
+      ]
+    },
+    {
+      "id": "Al-latent-liquid",
+      "kind": "latent",
+      "phase": "liquid",
+      "T_K": "TM_MEAM_K",
+      "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
+      "command": "lmp -in ../in.latent.lmp -log log_Al-latent-liquid.lammps -var phase liquid -var T TM_MEAM_K -var seed 2026",
+      "outputs": [
+        "h_liquid_TTM_MEAM_K.dat",
+        "log_Al-latent-liquid.lammps"
+      ]
+    }
+  ],
+  "atomic_mass_amu": 26.9815,
+  "method": {
+    "engine": "LAMMPS",
+    "model": "EAM, NIST IPR 1999--Mishin-Y--Al--LAMMPS--ipr1",
+    "nist_implementation": "1999--Mishin-Y--Al--LAMMPS--ipr1",
+    "doi": "10.1103/physrevb.59.3393",
+    "timestep_fs": 2.0,
+    "seed": 2026,
+    "coexistence": {
+      "protocol": "two-phase coexistence",
+      "ensemble": "NPT (Nose-Hoover, aniso)",
+      "n_atoms": 1728,
+      "sim_length_ps": 50.0
+    },
+    "latent": {
+      "protocol": "solid vs liquid enthalpy at Tm",
+      "ensemble": "NPT (Nose-Hoover; solid aniso, liquid iso)",
+      "n_atoms": 500,
+      "sim_length_ps": 50.0
+    }
+  },
+  "analysis": {
+    "coexistence": "python ../analyze.py coexist pe_T*.dat",
+    "latent": "python ../analyze.py latent h_solid_TTM_MEAM_K.dat h_liquid_TTM_MEAM_K.dat --log-solid log_Al-latent-solid.lammps --log-liquid log_Al-latent-liquid.lammps"
+  },
+  "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
+}

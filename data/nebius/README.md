@@ -4,6 +4,19 @@
 submission, so nothing ran on Nebius). Ask Madhan before submitting any Nebius job (billing
 unclear; the team key is private and never goes in git).
 
+## Validation metals Cu, Al (`metals/Cu`, `metals/Al`): EAM, results in `docs/results/classical-check-eam.md`
+
+| Element | Potential (NIST IPR implementation) | Citation | Coexistence box | Result (GB10 CPU, `runs/classical/eam-1`) |
+|---|---|---|---|---|
+| Cu | `2001--Mishin-Y--Cu-1--LAMMPS--ipr1` (EAM, `pair_style eam/alloy`) | Mishin et al., PRB 63, 224106 (2001) | 2744 atoms | **passed:** Tm 1327.0 ± 10 K (−2.3%), L 188.7 kJ/kg (−8.7%) |
+| Al | `1999--Mishin-Y--Al--LAMMPS--ipr1` (EAM, `pair_style eam/alloy`) | Mishin et al., PRB 59, 3393 (1999) | 1728 atoms | **failed the Tm gate:** Tm 1041.4 ± 11.6 K (+11.6%); L 362.0 kJ/kg (−8.8%) |
+
+Same inputs, settings and analysis as the MEAM metals below; `pair_style eam/alloy` needs the MANYBODY package.
+Brackets were 0.8–1.2 x the measured Tm (Cu ITS-90 1357.77 K; Al JANAF 933.45 K), then refined with `--temps`.
+The latent-job placeholder is still spelled `TM_MEAM_K` (the launcher substitutes it); it means "this potential's
+own Tm". NIST lists its own melting estimates for both implementations (Cu 1323.3 K, Al 1040.4 K), and they agree
+with ours; see `metals/<El>/potential/SOURCES.md`.
+
 ## Metal-alloy track first: In, Sn, Bi (`metals/`); Ga dropped
 
 The independent check for the GB10's MACE melting points and latent heats of the low-melting metals: classical

@@ -19,6 +19,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -38,6 +39,21 @@ def measured(snap, candidate: str, prop: str):
     refs = [r for r in snap.of_type("reference_value") if norm(r.payload["candidate"]) == norm(candidate)
             and r.payload["property"] == prop and r.payload["value"] is not None]
     return refs[-1] if refs else None
+
+
+def gate_reference(snap, candidate: str, prop: str) -> "tuple[Optional[float], Optional[str]]":
+    """(measured value, source) for the reliability gate: the board's sourced reference_value, else the same sourced
+    calibration set the Librarian posts from (data/calibration/tier1.json). Without the fallback, a potential that
+    misses the measurement would be counted whenever the Librarian had not posted yet (found 2026-11-01 for Al)."""
+    ref = measured(snap, candidate, prop)
+    if ref is not None:
+        return ref.payload["value"], ref.payload.get("source")
+    from coolorbit.agents.librarian import DEFAULT_DATA, index_records, load_calibration
+
+    rec = index_records(load_calibration(DEFAULT_DATA)).get((norm(candidate), prop)) or {}
+    if rec.get("value") is not None and str(rec.get("source") or "").strip():
+        return float(rec["value"]), rec["source"]
+    return None, None
 
 
 def plan(board: Board, run: str, rules: dict, gate: bool,
@@ -60,20 +76,24 @@ def plan(board: Board, run: str, rules: dict, gate: bool,
             continue
         method = {k: v for k, v in (a.get("method") or {}).items() if v is not None}
         method.setdefault("engine", "LAMMPS")
-        ref = measured(snap, p["candidate"], "melting_point")
-        note = (f"Classical MD (MEAM) two-phase coexistence: Tm = {a['value']:g} +/- {a['uncertainty']:g} K, bracket "
-                f"{a.get('bracket_K')}; from runs/classical/{run}/metals/{p['candidate']}/analysis_coexistence.json.")
-        unreliable = gate and ref is not None and tol.get("tier1") and not within(a["value"], ref.payload["value"],
-                                                                                  tol["tier1"])
+        ref_value, ref_source = gate_reference(snap, p["candidate"], "melting_point")
+        note = (f"Classical MD ({method.get('model', 'classical potential')}) two-phase coexistence: "
+                f"Tm = {a['value']:g} +/- {a['uncertainty']:g} K, bracket {a.get('bracket_K')}; from "
+                f"runs/classical/{run}/metals/{p['candidate']}/analysis_coexistence.json.")
+        unreliable = gate and ref_value is not None and tol.get("tier1") and not within(a["value"], ref_value,
+                                                                                         tol["tier1"])
         if unreliable:
             payload = {"check_type": "classical_md", "verdict": "inconclusive", "flags": ["independent_method_unreliable"],
-                       "note": note + f" Not counted: this potential misses the measured {ref.payload['value']:g} K by "
-                               f"{a['value'] - ref.payload['value']:+.0f} K, beyond the tier1 tolerance {tol['tier1']}."}
+                       "note": note + f" Not counted: this potential misses the measured {ref_value:g} K "
+                               f"[{ref_source}] by {a['value'] - ref_value:+.0f} K, beyond the tier1 tolerance "
+                               f"{tol['tier1']}."}
         else:
             agree = bool(tol.get("agree")) and within(a["value"], p["value"], tol["agree"])
             payload = {"check_type": "classical_md", "verdict": "agree" if agree else "disagree", "value": a["value"],
                        "units": "K", "uncertainty": a["uncertainty"], "method": method,
-                       "note": note + (f" Measured {ref.payload['value']:g} K." if ref else " No measured value on the board.")}
+                       "note": note + (f" Measured {ref_value:g} K [{ref_source}]; the potential is within the tier1 "
+                                       f"tolerance of it." if ref_value is not None
+                                       else " No sourced measured value, so this potential is not calibrated.")}
         need = next(((res.artifact_id, i) for i, n in enumerate(res.needs)
                      if n.get("artifact_type") == "check" and n.get("check_type") == "classical_md"), None)
         out.append({"result": res, "payload": payload, "fulfills": need})

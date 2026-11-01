@@ -1,0 +1,12 @@
+{"ts": "2026-11-01T04:51:38+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "636b77c4", "summary": "candidate Bi (low_melting_metal, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-11-01T04:51:38+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Bi", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "636b77c4"}
+{"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "96074d6b", "summary": "candidate In (low_melting_metal, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "decision", "candidate": "In", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "96074d6b"}
+{"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "a5b51afa", "summary": "candidate Sn (low_melting_metal, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Sn", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "a5b51afa"}
+{"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "f04022e9", "summary": "candidate Cu (validation_metal, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Cu", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "f04022e9"}
+{"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "da6aca07", "summary": "candidate Al (validation_metal, trust tier)", "parents": [], "fulfills": null}
+{"ts": "2026-11-01T04:54:42+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Al", "action": "requested ['melting_point']", "route": "ALCHEMI", "id": "da6aca07"}
+{"ts": "2026-11-01T06:10:42+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "request", "id": "06c67470", "summary": "request: latent_heat of Cu at the simulated melting_point", "parents": ["f04022e9", "94311022"], "fulfills": null}
+{"ts": "2026-11-01T06:10:42+00:00", "agent": "scout_metals", "event": "decision", "candidate": "Cu", "action": "requested latent_heat", "at_K": 1358.0}

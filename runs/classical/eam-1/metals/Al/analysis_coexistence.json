@@ -1,0 +1,148 @@
+{
+  "mode": "coexistence",
+  "per_temperature": [
+    {
+      "delta_pe_eV_per_atom": -0.030063710417556067,
+      "block_noise_eV_per_atom": 0.004435373383836809,
+      "threshold_eV_per_atom": 0.013306120151510427,
+      "verdict": "freezing",
+      "file": "pe_T746.8.dat",
+      "T_target_K": 746.8,
+      "T_measured_K": 746.8,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 138.141649374944
+    },
+    {
+      "delta_pe_eV_per_atom": -0.03008222183716036,
+      "block_noise_eV_per_atom": 0.0063850336981329595,
+      "threshold_eV_per_atom": 0.01915510109439888,
+      "verdict": "freezing",
+      "file": "pe_T840.1.dat",
+      "T_target_K": 840.1,
+      "T_measured_K": 841.7,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 130.289016720307
+    },
+    {
+      "delta_pe_eV_per_atom": -0.039371307394473476,
+      "block_noise_eV_per_atom": 0.0049553562591782676,
+      "threshold_eV_per_atom": 0.014866068777534804,
+      "verdict": "freezing",
+      "file": "pe_T933.5.dat",
+      "T_target_K": 933.5,
+      "T_measured_K": 933.7,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 111.085042797131
+    },
+    {
+      "delta_pe_eV_per_atom": -0.046280109838551464,
+      "block_noise_eV_per_atom": 0.004877860423147647,
+      "threshold_eV_per_atom": 0.01463358126944294,
+      "verdict": "freezing",
+      "file": "pe_T1026.8.dat",
+      "T_target_K": 1026.8,
+      "T_measured_K": 1027.2,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 102.933927747204
+    },
+    {
+      "delta_pe_eV_per_atom": 0.0032156929917559474,
+      "block_noise_eV_per_atom": 0.0029479958639370466,
+      "threshold_eV_per_atom": 0.00884398759181114,
+      "verdict": "stable",
+      "file": "pe_T1035.dat",
+      "T_target_K": 1035.0,
+      "T_measured_K": 1035.2,
+      "melt_check_ok": true,
+      "ecouple_change_eV": 8.80386790225941
+    },
+    {
+      "delta_pe_eV_per_atom": 0.013937501068280067,
+      "block_noise_eV_per_atom": 0.0020345567479238768,
+      "threshold_eV_per_atom": 0.00610367024377163,
+      "verdict": "melting",
+      "file": "pe_T1050.dat",
+      "T_target_K": 1050.0,
+      "T_measured_K": 1049.9,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -32.143970827211
+    },
+    {
+      "delta_pe_eV_per_atom": 0.03672102394715937,
+      "block_noise_eV_per_atom": 0.0035587512456971737,
+      "threshold_eV_per_atom": 0.010676253737091522,
+      "verdict": "melting",
+      "file": "pe_T1065.dat",
+      "T_target_K": 1065.0,
+      "T_measured_K": 1065.6,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -70.9288744552432
+    },
+    {
+      "delta_pe_eV_per_atom": 0.03912746284706525,
+      "block_noise_eV_per_atom": 0.003378654455992005,
+      "threshold_eV_per_atom": 0.010135963367976016,
+      "verdict": "melting",
+      "file": "pe_T1080.dat",
+      "T_target_K": 1080.0,
+      "T_measured_K": 1081.5,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -89.3402492714554
+    },
+    {
+      "delta_pe_eV_per_atom": 0.037064283331465386,
+      "block_noise_eV_per_atom": 0.0033894759558082406,
+      "threshold_eV_per_atom": 0.010168427867424721,
+      "verdict": "melting",
+      "file": "pe_T1095.dat",
+      "T_target_K": 1095.0,
+      "T_measured_K": 1096.0,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -96.825693017664
+    },
+    {
+      "delta_pe_eV_per_atom": 0.029176088468941597,
+      "block_noise_eV_per_atom": 0.003980098924014816,
+      "threshold_eV_per_atom": 0.011940296772044447,
+      "verdict": "melting",
+      "file": "pe_T1110.dat",
+      "T_target_K": 1110.0,
+      "T_measured_K": 1110.6,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -76.0896835046591
+    },
+    {
+      "delta_pe_eV_per_atom": 0.025733704991567574,
+      "block_noise_eV_per_atom": 0.004091517538824043,
+      "threshold_eV_per_atom": 0.012274552616472128,
+      "verdict": "melting",
+      "file": "pe_T1120.1.dat",
+      "T_target_K": 1120.1,
+      "T_measured_K": 1121.0,
+      "melt_check_ok": true,
+      "ecouple_change_eV": -89.167770645541
+    }
+  ],
+  "method": {
+    "engine": "LAMMPS",
+    "model": "EAM, NIST IPR 1999--Mishin-Y--Al--LAMMPS--ipr1",
+    "nist_implementation": "1999--Mishin-Y--Al--LAMMPS--ipr1",
+    "doi": "10.1103/physrevb.59.3393",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT (Nose-Hoover, aniso)",
+    "timestep_fs": 2.0,
+    "n_atoms": 1728,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "seed": 2026
+  },
+  "status": "ok",
+  "property": "melting_point",
+  "units": "K",
+  "value": 1041.4,
+  "uncertainty": 11.6,
+  "bracket_K": [
+    1026.8,
+    1050.0
+  ]
+}

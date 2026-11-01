@@ -1,0 +1,4 @@
+science run on /home/dell/Desktop/cool-orbit/boards/science-2: metals ['Bi', 'In', 'Sn', 'Cu', 'Al'], alloys [], organics no, preset production
+[scout_metals] post: artifact_type=candidate, id=636b77c4, summary=candidate Bi (low_melting_metal, trust tier), parents=[], fulfills=None
+[scout_metals] decision: candidate=Bi, action=requested ['melting_point'], route=ALCHEMI, id=636b77c4
+[simulator_gb10] RUN: melting_point of Bi via two-phase coexistence (ALCHEMI), 768 atoms x 4 temps, preset production, attempt 1, ~73 min

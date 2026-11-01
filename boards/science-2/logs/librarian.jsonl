@@ -1,0 +1,3 @@
+{"ts": "2026-11-01T06:10:42+00:00", "agent": "librarian", "event": "claim", "target": "94311022", "need_index": 2, "query": "measured melting_point of Cu with a citable source"}
+{"ts": "2026-11-01T06:10:42+00:00", "agent": "librarian", "event": "post", "artifact_type": "reference_value", "id": "56dd388b", "summary": "measured Cu melting_point = 1357.77 K [ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint]", "parents": ["94311022"], "fulfills": ["94311022", 2]}
+{"ts": "2026-11-01T06:10:42+00:00", "agent": "librarian", "event": "decision", "candidate": "Cu", "property": "melting_point", "value": 1357.77, "reason": "found in curated dataset"}

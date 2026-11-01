@@ -1,0 +1,66 @@
+{
+  "mode": "latent",
+  "solid": {
+    "file": "h_solid_T1327.0.dat",
+    "phase": "solid",
+    "T_target_K": 1327.0,
+    "T_measured_K": 1327.0240193078835,
+    "H_eV_per_atom": -3.1660863303594198,
+    "H_sem": 0.0004528361092167404,
+    "H_drift_eV_per_atom": 0.00044340411569665505,
+    "H_drift_significant": false,
+    "volume_A3": 11017.58023562306,
+    "box_A_mean": [
+      22.2735,
+      22.2589,
+      22.2242
+    ],
+    "box_shape_change": [
+      0.0026,
+      0.0013
+    ],
+    "ecouple_change_eV": 5.798419099233996
+  },
+  "liquid": {
+    "file": "h_liquid_T1327.0.dat",
+    "phase": "liquid",
+    "T_target_K": 1327.0,
+    "T_measured_K": 1325.6766112845555,
+    "H_eV_per_atom": -3.041817422503013,
+    "H_sem": 0.0005177427455032211,
+    "H_drift_eV_per_atom": -0.0023366658996670786,
+    "H_drift_significant": false,
+    "volume_A3": 11570.988852381126,
+    "box_A_mean": [
+      22.6181,
+      22.6181,
+      22.6181
+    ],
+    "box_shape_change": [
+      0.0,
+      0.0
+    ],
+    "ecouple_change_eV": -13.031187123799015
+  },
+  "delta_H_eV_per_atom": 0.12426890785640676,
+  "method": {
+    "engine": "LAMMPS",
+    "model": "EAM, NIST IPR 2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+    "nist_implementation": "2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+    "doi": "10.1103/physrevb.63.224106",
+    "protocol": "solid vs liquid enthalpy at Tm",
+    "ensemble": "NPT (Nose-Hoover; solid aniso, liquid iso)",
+    "timestep_fs": 2.0,
+    "n_atoms": 864,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "seed": 2026
+  },
+  "solid_moved_fraction": 0.0,
+  "liquid_moved_fraction": 0.994212962962963,
+  "status": "ok",
+  "property": "latent_heat",
+  "units": "J/kg",
+  "value": 188684,
+  "uncertainty": 1044
+}

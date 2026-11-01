@@ -1,0 +1,213 @@
+{
+  "element": "Cu",
+  "purpose": "Independent classical-MD check (EAM) of the GB10's MACE melting point and latent heat.",
+  "status": "inputs only; NOT submitted. Ask Madhan before submitting any Nebius job.",
+  "engine": "LAMMPS (needs the MANYBODY package: check `lmp -h | grep -i eam` on the Nebius image)",
+  "potential": {
+    "citation": "Y. Mishin, M.J. Mehl, D.A. Papaconstantopoulos, A.F. Voter, and J.D. Kress (2001), \"Structural stability and lattice defects in copper: Ab initio, tight-binding, and embedded-atom calculations\", Physical Review B 63(22), 224106.",
+    "doi": "10.1103/physrevb.63.224106",
+    "nist_entry": "2001--Mishin-Y-Mehl-M-J-Papaconstantopoulos-D-A-et-al--Cu-1",
+    "nist_implementation": "2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+    "pair_coeff": "pair_coeff * * potential/Cu01.eam.alloy Cu",
+    "nist_url": "https://www.ctcms.nist.gov/potentials/entry/2001--Mishin-Y-Mehl-M-J-Papaconstantopoulos-D-A-et-al--Cu-1/",
+    "files": {
+      "Cu01.eam.alloy": "5e374260448eea5c26de59432d75e702c1778cc6999d2527a789e5387ce9dc9e"
+    },
+    "caveats": [
+      "This is the paper's EAM1 potential (NIST notes: 'This listing is for the reference's EAM1 potential'); its EAM2 is listed without LAMMPS files.",
+      "NIST's own iprPy two-phase estimate for this implementation is 1323.26 +/- 1.46 K (fcc), on its implementation page. Context only; it does not set the bracket or the reference.",
+      "The abstract (as listed on NIST) does not name the melting point among the fitted or reproduced properties; the paper's fitting database itself was not checked."
+    ],
+    "pair_style": "eam/alloy",
+    "nist_implementation_url": "https://www.ctcms.nist.gov/potentials/entry/2001--Mishin-Y-Mehl-M-J-Papaconstantopoulos-D-A-et-al--Cu-1/2001--Mishin-Y--Cu-1--LAMMPS--ipr1.html",
+    "download_urls": {
+      "Cu01.eam.alloy": "https://www.ctcms.nist.gov/potentials/Download/2001--Mishin-Y-Mehl-M-J-Papaconstantopoulos-D-A-et-al--Cu-1/2/Cu01.eam.alloy"
+    },
+    "release_notes": {
+      "file": "Cu01_releaseNotes_1.pdf",
+      "sha256": "cb000976d3760baf6bb3718ca91b9eec1ed1db27019994a4702f31bffffe54cb",
+      "url": "https://www.ctcms.nist.gov/potentials/Download/2001--Mishin-Y-Mehl-M-J-Papaconstantopoulos-D-A-et-al--Cu-1/2/Cu01_releaseNotes_1.pdf"
+    },
+    "fingerprint_check": {
+      "structure": "fcc",
+      "a_A": 3.615,
+      "E_eV_per_atom": -3.539999968,
+      "source": "release notes (SOLD vs LAMMPS minimum energy)"
+    },
+    "nist_computed_melting_K": {
+      "value": 1323.26,
+      "stderr": 1.46,
+      "structure": "A1--Cu--fcc",
+      "method": "NIST iprPy melting_temperature (two-phase, NPH + Berendsen, 200,000 steps)",
+      "url": "https://www.ctcms.nist.gov/potentials/entry/2001--Mishin-Y-Mehl-M-J-Papaconstantopoulos-D-A-et-al--Cu-1/2001--Mishin-Y--Cu-1--LAMMPS--ipr1.html"
+    }
+  },
+  "structure": {
+    "phase": "Cu (Fm-3m, cF4)",
+    "source": "coolorbit/sim/alloys.py ELEMENT_CRYSTALS (Donohue, The Structures of the Elements, 1974; alpha-Ga: Sharma & Donohue 1962). Starting lattice constants; NPT relaxes them.",
+    "orthogonal_unit_cell_atoms": 4,
+    "coexist": {
+      "file": "data.coexist.lmp",
+      "reps": [
+        7,
+        7,
+        14
+      ],
+      "n_atoms": 2744,
+      "box_A": [
+        25.305,
+        25.305,
+        50.61
+      ]
+    },
+    "solid": {
+      "file": "data.solid.lmp",
+      "reps": [
+        6,
+        6,
+        6
+      ],
+      "n_atoms": 864,
+      "box_A": [
+        21.69,
+        21.69,
+        21.69
+      ]
+    }
+  },
+  "melting_point_guess": {
+    "value_K": 1357.77,
+    "source": "data/calibration/tier1.json (ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint)",
+    "use": "ONLY to place the temperature bracket. Not a reference value: the calibration references live in data/calibration/ (Teammate 1)."
+  },
+  "settings": {
+    "dt_ps": 0.002,
+    "tdamp_ps": 0.1,
+    "pdamp_ps": 1.0,
+    "equil_steps": 4000,
+    "melt_steps": 6000,
+    "quench_steps": 3000,
+    "prod_steps": 25000,
+    "record_every": 50,
+    "pe_threshold_eV_per_atom": 0.002,
+    "t_melt_factor": 3.0,
+    "latent_t_hot_factor": 3.0,
+    "seed": 2026,
+    "bracket_factors": [
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2
+    ],
+    "T_prep_K": 1357.8,
+    "T_melt_K": 4073.4
+  },
+  "jobs": [
+    {
+      "id": "Cu-coexist-T1086.2",
+      "kind": "coexistence",
+      "T_K": 1086.2,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Cu-coexist-T1086.2.lammps -var T 1086.2 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026",
+      "outputs": [
+        "pe_T1086.2.dat",
+        "log_Cu-coexist-T1086.2.lammps"
+      ]
+    },
+    {
+      "id": "Cu-coexist-T1222",
+      "kind": "coexistence",
+      "T_K": 1222.0,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Cu-coexist-T1222.lammps -var T 1222 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026",
+      "outputs": [
+        "pe_T1222.dat",
+        "log_Cu-coexist-T1222.lammps"
+      ]
+    },
+    {
+      "id": "Cu-coexist-T1357.8",
+      "kind": "coexistence",
+      "T_K": 1357.8,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Cu-coexist-T1357.8.lammps -var T 1357.8 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026",
+      "outputs": [
+        "pe_T1357.8.dat",
+        "log_Cu-coexist-T1357.8.lammps"
+      ]
+    },
+    {
+      "id": "Cu-coexist-T1493.5",
+      "kind": "coexistence",
+      "T_K": 1493.5,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Cu-coexist-T1493.5.lammps -var T 1493.5 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026",
+      "outputs": [
+        "pe_T1493.5.dat",
+        "log_Cu-coexist-T1493.5.lammps"
+      ]
+    },
+    {
+      "id": "Cu-coexist-T1629.3",
+      "kind": "coexistence",
+      "T_K": 1629.3,
+      "status": "ready (needs approval to submit)",
+      "command": "lmp -in ../in.coexist.lmp -log log_Cu-coexist-T1629.3.lammps -var T 1629.3 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026",
+      "outputs": [
+        "pe_T1629.3.dat",
+        "log_Cu-coexist-T1629.3.lammps"
+      ]
+    },
+    {
+      "id": "Cu-latent-solid",
+      "kind": "latent",
+      "phase": "solid",
+      "T_K": "TM_MEAM_K",
+      "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
+      "command": "lmp -in ../in.latent.lmp -log log_Cu-latent-solid.lammps -var phase solid -var T TM_MEAM_K -var seed 2026",
+      "outputs": [
+        "h_solid_TTM_MEAM_K.dat",
+        "log_Cu-latent-solid.lammps"
+      ]
+    },
+    {
+      "id": "Cu-latent-liquid",
+      "kind": "latent",
+      "phase": "liquid",
+      "T_K": "TM_MEAM_K",
+      "status": "BLOCKED until this potential's own melting point is known from the coexistence jobs (latent heat is defined at the model's Tm, not the experimental one)",
+      "command": "lmp -in ../in.latent.lmp -log log_Cu-latent-liquid.lammps -var phase liquid -var T TM_MEAM_K -var seed 2026",
+      "outputs": [
+        "h_liquid_TTM_MEAM_K.dat",
+        "log_Cu-latent-liquid.lammps"
+      ]
+    }
+  ],
+  "atomic_mass_amu": 63.546,
+  "method": {
+    "engine": "LAMMPS",
+    "model": "EAM, NIST IPR 2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+    "nist_implementation": "2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+    "doi": "10.1103/physrevb.63.224106",
+    "timestep_fs": 2.0,
+    "seed": 2026,
+    "coexistence": {
+      "protocol": "two-phase coexistence",
+      "ensemble": "NPT (Nose-Hoover, aniso)",
+      "n_atoms": 2744,
+      "sim_length_ps": 50.0
+    },
+    "latent": {
+      "protocol": "solid vs liquid enthalpy at Tm",
+      "ensemble": "NPT (Nose-Hoover; solid aniso, liquid iso)",
+      "n_atoms": 864,
+      "sim_length_ps": 50.0
+    }
+  },
+  "analysis": {
+    "coexistence": "python ../analyze.py coexist pe_T*.dat",
+    "latent": "python ../analyze.py latent h_solid_TTM_MEAM_K.dat h_liquid_TTM_MEAM_K.dat --log-solid log_Cu-latent-solid.lammps --log-liquid log_Cu-latent-liquid.lammps"
+  },
+  "if_bracket_missed": "all melting -> shift the bracket down by 20%; all freezing -> up by 20% (same rule as the GB10 Simulator), then refine around the crossover with 4 temperatures 2% apart."
+}

@@ -1,0 +1,58 @@
+Cu-coexist-T1086.2       cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1086.2.lammps -var T 1086.2 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1222         cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1222.lammps -var T 1222 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1357.8       cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1357.8.lammps -var T 1357.8 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1493.5       cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1493.5.lammps -var T 1493.5 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Cu-coexist-T1629.3       cwd=runs/classical/eam-1/metals/Cu  -in ../in.coexist.lmp -log log_Cu-coexist-T1629.3.lammps -var T 1629.3 -var Tprep 1357.8 -var Tmelt 4073.4 -var seed 2026
+Al-coexist-T746.8        cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T746.8.lammps -var T 746.8 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T840.1        cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T840.1.lammps -var T 840.1 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T933.5        cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T933.5.lammps -var T 933.5 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T1026.8       cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T1026.8.lammps -var T 1026.8 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T1120.1       cwd=runs/classical/eam-1/metals/Al  -in ../in.coexist.lmp -log log_Al-coexist-T1120.1.lammps -var T 1120.1 -var Tprep 933.5 -var Tmelt 2800.5 -var seed 2026
+Al-coexist-T840.1: exit 0, 0.8 min
+Al-coexist-T746.8: exit 0, 0.8 min
+Al-coexist-T933.5: exit 0, 0.8 min
+Al-coexist-T1120.1: exit 0, 0.8 min
+Cu-coexist-T1086.2: exit 0, 1.2 min
+Al-coexist-T1026.8: exit 0, 1.3 min
+Cu-coexist-T1222: exit 0, 1.3 min
+Cu-coexist-T1493.5: exit 0, 1.3 min
+Cu-coexist-T1357.8: exit 0, 1.3 min
+Cu-coexist-T1629.3: exit 0, 1.3 min
+[
+ {
+  "element": "Cu",
+  "kind": "coexistence",
+  "exit": 0,
+  "stdout_tail": "PS--ipr1\",\n    \"doi\": \"10.1103/physrevb.63.224106\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 2744,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 1291.5,\n  \"uncertainty\": 67.9,\n  \"bracket_K\": [\n    1222.0,\n    1357.8\n  ]\n}\n"
+ },
+ {
+  "element": "Al",
+  "kind": "coexistence",
+  "exit": 0,
+  "stdout_tail": "MMPS--ipr1\",\n    \"doi\": \"10.1103/physrevb.59.3393\",\n    \"protocol\": \"two-phase coexistence\",\n    \"ensemble\": \"NPT (Nose-Hoover, aniso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 1728,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"status\": \"ok\",\n  \"property\": \"melting_point\",\n  \"units\": \"K\",\n  \"value\": 1086.8,\n  \"uncertainty\": 46.6,\n  \"bracket_K\": [\n    1026.8,\n    1120.1\n  ]\n}\n"
+ }
+]
+	Command being timed: ".venv/bin/python scripts/run_classical_local.py --run eam-1 --elements Cu Al --kind coexistence --parallel 10"
+	User time (seconds): 653.75
+	System time (seconds): 1.26
+	Percent of CPU this job got: 844%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:17.60
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 47944
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 277
+	Minor (reclaiming a frame) page faults: 84245
+	Voluntary context switches: 1645
+	Involuntary context switches: 4906
+	Swaps: 0
+	File system inputs: 256
+	File system outputs: 12432
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+exit 0

@@ -1,0 +1,46 @@
+Cu-latent-solid          cwd=runs/classical/eam-1/metals/Cu  -in ../in.latent.lmp -log log_Cu-latent-solid.lammps -var phase solid -var T 1327.0 -var seed 2026
+Cu-latent-liquid         cwd=runs/classical/eam-1/metals/Cu  -in ../in.latent.lmp -log log_Cu-latent-liquid.lammps -var phase liquid -var T 1327.0 -var seed 2026
+Al-latent-solid          cwd=runs/classical/eam-1/metals/Al  -in ../in.latent.lmp -log log_Al-latent-solid.lammps -var phase solid -var T 1041.4 -var seed 2026
+Al-latent-liquid         cwd=runs/classical/eam-1/metals/Al  -in ../in.latent.lmp -log log_Al-latent-liquid.lammps -var phase liquid -var T 1041.4 -var seed 2026
+Al-latent-solid: exit 0, 0.2 min
+Al-latent-liquid: exit 0, 0.2 min
+Cu-latent-solid: exit 0, 0.3 min
+Cu-latent-liquid: exit 0, 0.3 min
+[
+ {
+  "element": "Cu",
+  "kind": "latent",
+  "exit": 0,
+  "stdout_tail": "otocol\": \"solid vs liquid enthalpy at Tm\",\n    \"ensemble\": \"NPT (Nose-Hoover; solid aniso, liquid iso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 864,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"solid_moved_fraction\": 0.0,\n  \"liquid_moved_fraction\": 0.994212962962963,\n  \"status\": \"ok\",\n  \"property\": \"latent_heat\",\n  \"units\": \"J/kg\",\n  \"value\": 188684,\n  \"uncertainty\": 1044\n}\n"
+ },
+ {
+  "element": "Al",
+  "kind": "latent",
+  "exit": 0,
+  "stdout_tail": "93\",\n    \"protocol\": \"solid vs liquid enthalpy at Tm\",\n    \"ensemble\": \"NPT (Nose-Hoover; solid aniso, liquid iso)\",\n    \"timestep_fs\": 2.0,\n    \"n_atoms\": 500,\n    \"sim_length_ps\": 50.0,\n    \"seeds\": 1,\n    \"seed\": 2026\n  },\n  \"solid_moved_fraction\": 0.0,\n  \"liquid_moved_fraction\": 0.994,\n  \"status\": \"ok\",\n  \"property\": \"latent_heat\",\n  \"units\": \"J/kg\",\n  \"value\": 362002,\n  \"uncertainty\": 2382\n}\n"
+ }
+]
+	Command being timed: ".venv/bin/python scripts/run_classical_local.py --run eam-1 --elements Cu Al --kind latent --tm Cu=1327.0 Al=1041.4 --parallel 4"
+	User time (seconds): 55.32
+	System time (seconds): 0.43
+	Percent of CPU this job got: 284%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:19.59
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 44488
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 37169
+	Voluntary context switches: 114
+	Involuntary context switches: 264
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 2880
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+exit 0
