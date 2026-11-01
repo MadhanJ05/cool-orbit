@@ -1,0 +1,40 @@
+Warp 1.18.0 initialized:
+   CUDA Toolkit 12.9, Driver 12.8
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA H100 PCIe" (79 GiB, sm_90, mempool enabled)
+   Kernel cache:
+     /home/ubuntu/.cache/warp/1.18.0
+coexistence: 768 atoms x 4 system(s); ~8 min at the measured GB10 rate. Flags: none
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Preparing two-phase box (protocol 2): 768 atoms, T_prep=545 K, T_melt=1090 K, T_ref=544.6, solid barostat anisotropic
+  [prep_vc_relax_fire2] 300 steps x 768 atoms in 80 s
+  0 K variable-cell relaxation: volume +2.9%
+  [prep_solid_npt] 500 steps x 768 atoms in 62 s
+  [prep_melt_nvt_r1] 1500 steps x 768 atoms in 172 s
+  only 31% melted; melting 750 more steps at 1362 K
+  [prep_melt_nvt_r2] 750 steps x 768 atoms in 74 s
+  only 61% melted; melting 750 more steps at 1635 K
+  [prep_melt_nvt_r3] 750 steps x 768 atoms in 72 s
+  [prep_quench_nvt] 500 steps x 768 atoms in 48 s
+  liquid half: 83% of atoms moved > 1.5 A; crystal half: 0%
+  [production_npt] 2500 steps x 3072 atoms in 283 s
+  T=  463.0 K (measured   464.2): dPE = -0.0063 eV/atom (threshold 0.0066), mobility 0.39 -> stable [pe]
+  T=  518.0 K (measured   520.2): dPE = +0.0011 eV/atom (threshold 0.0043), mobility 0.46 -> stable [pe]
+  T=  572.0 K (measured   571.9): dPE = +0.0008 eV/atom (threshold 0.0020), mobility 0.50 -> stable [pe]
+  T=  627.0 K (measured   629.1): dPE = +0.0112 eV/atom (threshold 0.0074), mobility 0.64 -> melting [pe]
+
+RESULT (failed): undecided: the interface barely moved at the coldest temperatures, so the melting point is near them; rerun the same temperatures longer
+Flags: ['quick_settings_not_production']   Wall time: 13.2 min   Output: runs/melting/v2-validation/Bi/20261101T044452Z_Bi-v2_coexistence_quick

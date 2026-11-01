@@ -1,0 +1,49 @@
+{
+  "mode": "latent",
+  "phases": {
+    "solid": {
+      "H_eV_per_atom": -2.593704971474235,
+      "H_sem": 0.0017006789532635006,
+      "T_measured_K": 429.67724990844727,
+      "volume_per_atom_A3": 29.029676308631895,
+      "moved_fraction": 0.8949999809265137
+    },
+    "liquid": {
+      "H_eV_per_atom": -2.5774288275571164,
+      "H_sem": 0.0004800408151203205,
+      "T_measured_K": 427.7551555633545,
+      "volume_per_atom_A3": 29.536226596832275,
+      "moved_fraction": 0.9950000047683716
+    }
+  },
+  "density_g_cm3": {
+    "solid": 6.567754063871067,
+    "liquid": 6.455116191765905
+  },
+  "delta_H_eV_per_atom": 0.016276143917118624,
+  "liquid_prep": {
+    "melted_fraction": 0.8949999809265137,
+    "melt_temperatures_K": [
+      687.6,
+      859.5,
+      1074.4
+    ]
+  },
+  "solid_shape_relaxation": {
+    "cell_lengths_before_A": [
+      16.26,
+      16.26,
+      19.784
+    ],
+    "cell_lengths_after_A": [
+      16.2569,
+      16.3915,
+      21.9612
+    ]
+  },
+  "status": "failed",
+  "failure": "phase_check",
+  "reason": "solid may have melted (many atoms diffused)",
+  "wall_s": 4135.1,
+  "flags": []
+}

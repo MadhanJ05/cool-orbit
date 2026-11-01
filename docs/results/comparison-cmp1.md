@@ -48,6 +48,39 @@ counted it as a perfect one (error 0 K).
    settings (~48 min estimated on an idle GPU), ran the whole hour and was cut off; C spent $0 of LLM on it.
 5. Small sample: 8 tasks, one repeat. No statistical claims.
 
+## Repeat 2 (2026-11-01 02:44 to 06:29 UTC; GPU shared with the science runs, as in repeat 1)
+
+Scored `runs/cmp1_r2_metrics.txt` (pre-registered) and `runs/cmp1_r2_metrics_posthoc.txt` (post-hoc rule); no arm
+reported a measured value instead of simulating, so the two agree.
+
+| Repeat 2 | A | B | C |
+|---|---|---|---|
+| Trap catch | 60% (2 unanswered) | 60% (2 unanswered) | **100%** (5 of 5) |
+| False alarms | **0 of 3** | 1 of 3 | 1 of 3 |
+| Silent errors | 0 | 0 | 0 |
+
+C's answers on the tasks it timed out on in repeat 1 (`boards/eval/cmp-1/C-r2/`):
+- **Aluminium: 895.4 K** (-4.1%, within ±10%), produced with the quick preset because of the post-hoc budget fit
+  (listed in its `run_record.json` under `post_hoc_changes`). The rule referee failed the method audit (run too short),
+  the LLM referee passed it, and the adjudicator upheld the fail, so the result is **flagged**: the collective would not
+  vouch for a short run even though the number was right.
+- **Liquid lithium (Langevin trap task):** answered without the trap signature, with a residual-pressure caveat flag.
+- **O/Cu(111):** -4.85 eV (within tolerance), but the worker flagged its own atomic-O reference: a false alarm.
+
+## Both repeats (`runs/cmp1_{A,B,C}_both.json` and `_both_posthoc.json`: mean, min-max over the 2 repeats)
+
+| | A | B | C |
+|---|---|---|---|
+| Trap catch, pre-registered | 60% | 70% (60-80) | **80%** (60-100) |
+| Trap catch, post-hoc rule | 60% | 60% | **80%** (60-100) |
+| False alarms | 17% (0-33) | 33% | 17% (0-33) |
+| Silent errors | 0 | 0 | 0 |
+| Mean \|relative error\| | 1.7% | 1.7% | 1.9% |
+
+Reading: C has the highest trap catch over two repeats, but its gain comes from repeat 2, after the disclosed post-hoc
+budget fit; it ties A on false alarms and beats B; no arm shipped a confident wrong answer. 8 tasks x 2 repeats: no
+statistical claims.
+
 ## Changes made after repeat 1 (disclosed; repeat 2 uses them)
 
 - **Scorer:** the post-hoc rule above, opt-in. Without `--reference-rule` the scorer is the pre-registered one, so

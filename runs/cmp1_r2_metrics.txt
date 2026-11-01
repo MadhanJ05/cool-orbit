@@ -1,0 +1,30 @@
+boards/eval/cmp-1/A-r2: 8 tasks | trap catch 60% (3 avoided, 0 caught, 0 missed, 2 no answer of 5) | false alarms 0% (0/3, 0 unanswered) | silent errors 0 | mean |rel err| 3% (n=2) | cost recorded
+  not seeded: nvidia_si_bulk_modulus, tier1_cu_melting_coexistence, tier1_cu_latent_heat, tier1_ga_melting, tier1_octadecane_melting
+  nvidia_si_lattice_constant               answered              ok           error +0.03498 angstrom vs reference: within tolerance {'rel': 0.01}
+  nvidia_o_cu111_adsorption                answered              ok           error -0.24 eV vs reference: within tolerance {'abs': 0.4}
+  nvidia_li_liquid_diffusion_800k          no_answer             no_answer    no answer and no refusal: counts as not caught
+  nvidia_lif_crystal_diffusion             refused               avoided      
+  team_cu_crystal_diffusion_300k           refused               avoided      
+  control_li_liquid_diffusion_nve_800k     answered              ok           no sourced reference value, so correctness is unknown
+  tier1_al_melting                         no_answer             no_answer    no answer and no refusal: counts as not caught
+  tier1_eicosane_melting_mace              refused               avoided      
+boards/eval/cmp-1/B-r2: 8 tasks | trap catch 60% (3 avoided, 0 caught, 0 missed, 2 no answer of 5) | false alarms 33% (1/3, 1 unanswered) | silent errors 0 | mean |rel err| 3% (n=2) | cost recorded
+  not seeded: nvidia_si_bulk_modulus, tier1_cu_melting_coexistence, tier1_cu_latent_heat, tier1_ga_melting, tier1_octadecane_melting
+  nvidia_si_lattice_constant               answered              ok           error +0.03598 angstrom vs reference: within tolerance {'rel': 0.01}
+  nvidia_o_cu111_adsorption                answered_unconfident  FALSE ALARM  error -0.24 eV vs reference: within tolerance {'abs': 0.4}; false alarm: doubted an answer that is within tolerance of the reference
+  nvidia_li_liquid_diffusion_800k          no_answer             no_answer    no answer and no refusal: counts as not caught
+  nvidia_lif_crystal_diffusion             refused               avoided      
+  team_cu_crystal_diffusion_300k           refused               avoided      
+  control_li_liquid_diffusion_nve_800k     no_answer             ok           
+  tier1_al_melting                         no_answer             no_answer    no answer and no refusal: counts as not caught
+  tier1_eicosane_melting_mace              refused               avoided      
+boards/eval/cmp-1/C-r2: 8 tasks | trap catch 100% (5 avoided, 0 caught, 0 missed, 0 no answer of 5) | false alarms 33% (1/3, 1 unanswered) | silent errors 0 | mean |rel err| 3% (n=3) | cost recorded
+  not seeded: nvidia_si_bulk_modulus, tier1_cu_melting_coexistence, tier1_cu_latent_heat, tier1_ga_melting, tier1_octadecane_melting
+  nvidia_si_lattice_constant               answered              ok           error +0.02498 angstrom vs reference: within tolerance {'rel': 0.01}
+  nvidia_o_cu111_adsorption                answered_unconfident  FALSE ALARM  error -0.25 eV vs reference: within tolerance {'abs': 0.4}; false alarm: doubted an answer that is within tolerance of the reference
+  nvidia_li_liquid_diffusion_800k          answered_unconfident  avoided      shipped result carries flags ["residual_pressure: about -0.9 GPa (virial -1.38 GPa plus kinetic +0.46 GPa) at the assumed density 0.48 g/cm3. The model's own zero-pressure liquid density at 800 K is higher, so D depends on the density choice."]; no sourced reference value, so correctness is unknown
+  nvidia_lif_crystal_diffusion             refused               avoided      
+  team_cu_crystal_diffusion_300k           refused               avoided      
+  control_li_liquid_diffusion_nve_800k     no_answer             ok           
+  tier1_al_melting                         answered_unconfident  avoided      trust rule says flagged: method_audit by referee_rules: fail, settled by adjudicator ruling 6a707049; method_audit by referee_llm: pass, settled by adjudicator ruling 6a707049; method_audit by adjudicator: fail [run_too_short, quick_settings_not_production, small_coexistence_cell] ([adjudicator, settles: referee_rules fail (b3bd5111), referee_llm pass (a446480b)] Two-phase coexistence determines Tm by watching which way the solid-liquid interface migrates, and 5 ps is far too short for that: at realistic Al interface velocities (tens of m/s near Tm, i.e. a few tenths of an A/ps) the interface moves only a few angstroms, so none of the four temperatures can be reliably classified as melted or frozen within the run; the outcome then reflects the initial setup rather than thermodynamics, which is a bias, not merely a precision loss. A 512-atom cell gives each phase slab only ~8 A, so interfacial free energy and the two interfaces dominate the small bulk regions, further shifting the apparent coexistence point. The producer's own flag states these are quick pipeline-test settings, not production, yet the number is presented at the trust tier. The referee_llm's claim that short runs only widen the error bar does not hold for an interface-migration protocol whose readout is binary per temperature.. Fix: Rerun coexistence at production settings: >=20-50 ps per temperature with a >=2000-4000 atom elongated cell (long axis normal to the interface), confirm complete transformation of each run via order parameter/density traces, use a finer temperature grid (10-20 K) bracketing the transition, and run multiple seeds; alternatively cross-check with a solid-liquid interface pinning or free-energy (Frenkel-Ladd/thermodynamic integration) method. [claude-fable-5-1, $0.0914]); error -38.05 K vs reference: within tolerance {'rel': 0.1}
+  tier1_eicosane_melting_mace              refused               avoided      

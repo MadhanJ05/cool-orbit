@@ -1,0 +1,78 @@
+{
+ "run": "cmp-1",
+ "arm": "B",
+ "repeat": 2,
+ "task_id": "tier1_al_melting",
+ "task_request_id": "a8b41dee-b3fe-4980-b10c-4f37900e08fe",
+ "started": "2026-11-01T05:12:18.823082+00:00",
+ "finished": "2026-11-01T06:13:26.238324+00:00",
+ "budget": {
+  "task_budget_usd": 1.5,
+  "spent_usd": 0.3279,
+  "stopped_by_budget": null,
+  "timeout_s": 3600.0,
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "role": "arm_baseline"
+ },
+ "sandbox": "docker",
+ "sessions": [
+  {
+   "role": "worker",
+   "agent": "worker",
+   "sandbox": "/home/dell/coolorbit-eval-work/cmp-1/B-r2/tier1_al_melting/worker-1",
+   "transcript": "transcripts/worker-1.jsonl",
+   "result": {
+    "exit_code": 124,
+    "timed_out": false,
+    "wall_s": 3606.5004606830007,
+    "input_tokens": 272417,
+    "output_tokens": 5306,
+    "cache_read_input_tokens": 237557,
+    "cache_creation_input_tokens": 34840,
+    "usd": 0.3279114,
+    "num_turns": 11,
+    "model": "claude-opus-5-5",
+    "error": null,
+    "key_name": "ANTHROPIC_API_KEY_PRIMARY",
+    "uncached_input_tokens": 20,
+    "model_usage": {
+     "claude-opus-5-5": {
+      "input_tokens": 20,
+      "output_tokens": 5306,
+      "cache_read_input_tokens": 237557,
+      "cache_creation_input_tokens": 34840,
+      "reported_usd": 0.3279114
+     }
+    },
+    "usd_reported": 0.3279114,
+    "unpriced_models": null,
+    "usd_check": 0.1537114,
+    "usd_source": "reported",
+    "warmup": {
+     "ok": true,
+     "model": "medium-mpa-0",
+     "steps": 20,
+     "load_s": 18.73,
+     "md_s": 36.91,
+     "seconds": 60.91
+    }
+   },
+   "contamination": [],
+   "integrity": []
+  }
+ ],
+ "infra_failed_attempts": [],
+ "integrity_violations": [],
+ "warmup": [
+  {
+   "ok": true,
+   "model": "medium-mpa-0",
+   "steps": 20,
+   "load_s": 18.73,
+   "md_s": 36.91,
+   "seconds": 60.91
+  }
+ ],
+ "contamination": []
+}

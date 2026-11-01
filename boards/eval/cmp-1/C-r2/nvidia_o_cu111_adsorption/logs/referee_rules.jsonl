@@ -1,0 +1,2 @@
+{"ts": "2026-11-01T02:55:39+00:00", "agent": "referee_rules", "event": "post", "artifact_type": "check", "id": "ef3c8184", "summary": "method_audit: pass", "parents": ["88f92e5b"], "fulfills": null}
+{"ts": "2026-11-01T02:55:39+00:00", "agent": "referee_rules", "event": "decision", "result": "88f92e5b", "candidate": "Cu", "property": "adsorption_energy", "verdict": "pass", "flags": [], "rerun": null}

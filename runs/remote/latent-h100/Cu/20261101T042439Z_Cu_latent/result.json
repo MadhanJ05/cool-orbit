@@ -1,0 +1,50 @@
+{
+  "mode": "latent",
+  "phases": {
+    "solid": {
+      "H_eV_per_atom": -3.7164754484657663,
+      "H_sem": 0.0014902565852874408,
+      "T_measured_K": 1357.5573107910157,
+      "volume_per_atom_A3": 13.153086369037629,
+      "moved_fraction": 0.0
+    },
+    "liquid": {
+      "H_eV_per_atom": -3.5902181140493328,
+      "H_sem": 0.0009898988977446556,
+      "T_measured_K": 1361.0460690307618,
+      "volume_per_atom_A3": 13.888433911800384,
+      "moved_fraction": 0.9921875
+    }
+  },
+  "density_g_cm3": {
+    "solid": 8.022498489370465,
+    "liquid": 7.597733207090216
+  },
+  "delta_H_eV_per_atom": 0.1262573344164335,
+  "liquid_prep": {
+    "melted_fraction": 0.921875,
+    "melt_temperatures_K": [
+      2172.4,
+      2715.5
+    ]
+  },
+  "solid_shape_relaxation": {
+    "cell_lengths_before_A": [
+      14.46,
+      14.46,
+      14.46
+    ],
+    "cell_lengths_after_A": [
+      14.9827,
+      14.8949,
+      15.0248
+    ]
+  },
+  "status": "ok",
+  "property": "latent_heat",
+  "units": "J/kg",
+  "value": 191703,
+  "uncertainty": 2716,
+  "wall_s": 3972.4,
+  "flags": []
+}

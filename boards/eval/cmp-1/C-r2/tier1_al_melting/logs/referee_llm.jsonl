@@ -1,0 +1,2 @@
+{"ts": "2026-11-01T05:04:29+00:00", "agent": "referee_llm", "event": "post", "artifact_type": "check", "id": "a446480b", "summary": "method_audit: pass", "parents": ["ae1ba529"], "fulfills": null}
+{"ts": "2026-11-01T05:04:29+00:00", "agent": "referee_llm", "event": "decision", "result": "ae1ba529", "candidate": "Al", "property": "melting_point", "verdict": "pass", "flags": [], "usage": {"role": "referee_llm_audit", "model": "claude-opus-5-5", "cost_usd": 0.021928, "input_tokens": 1397, "output_tokens": 817}}

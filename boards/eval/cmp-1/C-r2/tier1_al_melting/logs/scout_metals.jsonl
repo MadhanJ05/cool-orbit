@@ -1,0 +1,3 @@
+{"ts": "2026-11-01T04:48:51+00:00", "agent": "scout_metals", "event": "claim", "target": "ff35b474", "need_index": 0, "query": "Find the melting point of aluminum at ambient pressure."}
+{"ts": "2026-11-01T04:48:51+00:00", "agent": "scout_metals", "event": "post", "artifact_type": "candidate", "id": "702ba3a5", "summary": "candidate Al (validation_metal, trust tier)", "parents": ["ff35b474"], "fulfills": ["ff35b474", 0]}
+{"ts": "2026-11-01T04:48:51+00:00", "agent": "scout_metals", "event": "decision", "eval_task": "tier1_al_melting", "candidate": "Al", "action": "answered task: requested melting_point", "route": "ALCHEMI"}

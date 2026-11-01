@@ -1,0 +1,144 @@
+{
+ "run": "cmp-1",
+ "arm": "B",
+ "repeat": 2,
+ "task_id": "nvidia_si_lattice_constant",
+ "task_request_id": "f0af5529-e050-47e1-9d54-8255e0ec5dce",
+ "started": "2026-11-01T02:45:04.594812+00:00",
+ "finished": "2026-11-01T02:56:19.145202+00:00",
+ "budget": {
+  "task_budget_usd": 1.5,
+  "spent_usd": 0.6905,
+  "stopped_by_budget": null,
+  "timeout_s": 3600.0,
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "role": "arm_baseline"
+ },
+ "sandbox": "docker",
+ "sessions": [
+  {
+   "role": "worker",
+   "agent": "worker",
+   "sandbox": "/home/dell/coolorbit-eval-work/cmp-1/B-r2/nvidia_si_lattice_constant/worker-1",
+   "transcript": "transcripts/worker-1.jsonl",
+   "result": {
+    "exit_code": 0,
+    "timed_out": false,
+    "wall_s": 432.2493834739955,
+    "input_tokens": 470886,
+    "output_tokens": 9394,
+    "cache_read_input_tokens": 438629,
+    "cache_creation_input_tokens": 32229,
+    "usd": 0.4632269,
+    "num_turns": 16,
+    "model": "claude-opus-5-5,claude-haiku-5-5",
+    "error": null,
+    "key_name": "ANTHROPIC_API_KEY_PRIMARY",
+    "uncached_input_tokens": 28,
+    "model_usage": {
+     "claude-opus-5-5": {
+      "input_tokens": 28,
+      "output_tokens": 9394,
+      "cache_read_input_tokens": 438629,
+      "cache_creation_input_tokens": 32229,
+      "reported_usd": 0.4368628
+     },
+     "claude-haiku-5-5": {
+      "input_tokens": 47766,
+      "output_tokens": 3175,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "reported_usd": 0.0263641
+     }
+    },
+    "usd_reported": 0.4632269,
+    "unpriced_models": null,
+    "usd_check": 0.2820819,
+    "usd_source": "reported",
+    "warmup": {
+     "ok": true,
+     "model": "medium-mpa-0",
+     "steps": 20,
+     "load_s": 42.02,
+     "md_s": 33.87,
+     "seconds": 83.72
+    }
+   },
+   "contamination": [],
+   "integrity": []
+  },
+  {
+   "role": "checker",
+   "agent": "checker",
+   "sandbox": "/home/dell/coolorbit-eval-work/cmp-1/B-r2/nvidia_si_lattice_constant/checker-1",
+   "transcript": "transcripts/checker-1.jsonl",
+   "result": {
+    "exit_code": 0,
+    "timed_out": false,
+    "wall_s": 92.56206378700357,
+    "input_tokens": 203759,
+    "output_tokens": 4514,
+    "cache_read_input_tokens": 186168,
+    "cache_creation_input_tokens": 17575,
+    "usd": 0.2273199,
+    "num_turns": 8,
+    "model": "claude-opus-5-5,claude-haiku-5-5",
+    "error": null,
+    "key_name": "ANTHROPIC_API_KEY_PRIMARY",
+    "uncached_input_tokens": 16,
+    "model_usage": {
+     "claude-opus-5-5": {
+      "input_tokens": 16,
+      "output_tokens": 4514,
+      "cache_read_input_tokens": 186168,
+      "cache_creation_input_tokens": 17575,
+      "reported_usd": 0.2154526
+     },
+     "claude-haiku-5-5": {
+      "input_tokens": 14063,
+      "output_tokens": 922,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "reported_usd": 0.0118673
+     }
+    },
+    "usd_reported": 0.2273199,
+    "unpriced_models": null,
+    "usd_check": 0.1294449,
+    "usd_source": "reported",
+    "warmup": {
+     "ok": true,
+     "model": "medium-mpa-0",
+     "steps": 20,
+     "load_s": 28.48,
+     "md_s": 32.34,
+     "seconds": 66.01
+    }
+   },
+   "contamination": [],
+   "integrity": []
+  }
+ ],
+ "infra_failed_attempts": [],
+ "integrity_violations": [],
+ "warmup": [
+  {
+   "ok": true,
+   "model": "medium-mpa-0",
+   "steps": 20,
+   "load_s": 42.02,
+   "md_s": 33.87,
+   "seconds": 83.72
+  },
+  {
+   "ok": true,
+   "model": "medium-mpa-0",
+   "steps": 20,
+   "load_s": 28.48,
+   "md_s": 32.34,
+   "seconds": 66.01
+  }
+ ],
+ "contamination": []
+}

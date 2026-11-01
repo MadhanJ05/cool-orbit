@@ -1,0 +1,2 @@
+{"ts": "2026-11-01T03:47:53+00:00", "agent": "referee_llm", "event": "post", "artifact_type": "check", "id": "a76f66d1", "summary": "method_audit: pass", "parents": ["29077af7"], "fulfills": null}
+{"ts": "2026-11-01T03:47:53+00:00", "agent": "referee_llm", "event": "decision", "result": "29077af7", "candidate": "Li", "property": "self_diffusion", "verdict": "pass", "flags": [], "usage": {"role": "referee_llm_audit", "model": "claude-opus-5-5", "cost_usd": 0.029532, "input_tokens": 2088, "output_tokens": 1059}}

@@ -1,0 +1,2 @@
+{"ts": "2026-11-01T02:45:04+00:00", "agent": "referee_premise", "event": "post", "artifact_type": "check", "id": "4859fbc0", "summary": "premise_check: pass", "parents": ["561ab167"], "fulfills": null}
+{"ts": "2026-11-01T02:45:04+00:00", "agent": "referee_premise", "event": "decision", "target": "561ab167", "need_index": 0, "verdict": "pass", "flags": [], "source": "rules", "usage": null, "task": {"property": "lattice_constant", "description": "Compute the equilibrium lattice constant of diamond-cubic silicon from an equation-of-state fit."}}

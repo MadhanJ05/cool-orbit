@@ -1,0 +1,53 @@
+{
+  "mode": "coexistence",
+  "protocol_version": 2,
+  "t_melt_K": 1010.0,
+  "t_ref_K": 505.0,
+  "seed": 2026,
+  "prep": {
+    "protocol_version": 2,
+    "liquid_expansion": 0.05,
+    "t_melt_K": 1010.0,
+    "t_ref_K": 505.0,
+    "prep_coupling": "isotropic",
+    "solid_detector": {
+      "system": 0,
+      "n_atoms_tracked": 512,
+      "nn_distance_A": 3.017,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.0,
+      "max_mobile_fraction": 0.578125,
+      "melted": true,
+      "melt_step": 1750,
+      "melt_temperature_K": 515.1,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    },
+    "solid_shape": {
+      "cell_lengths_before_A": [
+        23.328,
+        23.328,
+        25.456
+      ],
+      "cell_lengths_after_A": [
+        24.2619,
+        24.2619,
+        26.4751
+      ]
+    },
+    "gate": "crystal_lost_in_prep",
+    "stopped_after": "prep_solid_npt"
+  },
+  "per_temperature": [],
+  "flags": [
+    "crystal_lost_in_prep",
+    "quick_settings_not_production"
+  ],
+  "status": "failed",
+  "failure": "crystal_lost_in_prep",
+  "reason": "the crystal did not survive the solid preparation (half or more of its atoms moved > 0.5 nearest-neighbour distances), so the box would never hold a crystal half; stopped before melting and production",
+  "stopped_after": "prep_solid_npt",
+  "wall_s": 302.1
+}

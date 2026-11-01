@@ -1,0 +1,85 @@
+{
+ "run": "cmp-1",
+ "arm": "A",
+ "repeat": 2,
+ "task_id": "nvidia_li_liquid_diffusion_800k",
+ "task_request_id": "79e4c3e0-08d3-455d-9e2b-8c0336170f2e",
+ "started": "2026-11-01T02:54:23.931389+00:00",
+ "finished": "2026-11-01T03:55:30.980040+00:00",
+ "budget": {
+  "task_budget_usd": 1.5,
+  "spent_usd": 0.6553,
+  "stopped_by_budget": null,
+  "timeout_s": 3600.0,
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "role": "arm_baseline"
+ },
+ "sandbox": "docker",
+ "sessions": [
+  {
+   "role": "single_agent",
+   "agent": "single_agent",
+   "sandbox": "/home/dell/coolorbit-eval-work/cmp-1/A-r2/nvidia_li_liquid_diffusion_800k/single_agent-1",
+   "transcript": "transcripts/single_agent-1.jsonl",
+   "result": {
+    "exit_code": 124,
+    "timed_out": false,
+    "wall_s": 3607.431965217002,
+    "input_tokens": 124475,
+    "output_tokens": 544,
+    "cache_read_input_tokens": 95400,
+    "cache_creation_input_tokens": 29069,
+    "usd": 0.6553208,
+    "num_turns": 3,
+    "model": "claude-opus-5-5,claude-haiku-5-5",
+    "error": null,
+    "key_name": "ANTHROPIC_API_KEY_PRIMARY",
+    "uncached_input_tokens": 6,
+    "model_usage": {
+     "claude-opus-5-5": {
+      "input_tokens": 44,
+      "output_tokens": 9779,
+      "cache_read_input_tokens": 684324,
+      "cache_creation_input_tokens": 57032,
+      "reported_usd": 0.6177808
+     },
+     "claude-haiku-5-5": {
+      "input_tokens": 45255,
+      "output_tokens": 6029,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "reported_usd": 0.037540000000000004
+     }
+    },
+    "usd_reported": 0.6553208,
+    "unpriced_models": null,
+    "usd_check": 0.34016080000000004,
+    "usd_source": "reported",
+    "warmup": {
+     "ok": true,
+     "model": "medium-mpa-0",
+     "steps": 20,
+     "load_s": 23.54,
+     "md_s": 30.97,
+     "seconds": 59.61
+    }
+   },
+   "contamination": [],
+   "integrity": []
+  }
+ ],
+ "infra_failed_attempts": [],
+ "integrity_violations": [],
+ "warmup": [
+  {
+   "ok": true,
+   "model": "medium-mpa-0",
+   "steps": 20,
+   "load_s": 23.54,
+   "md_s": 30.97,
+   "seconds": 59.61
+  }
+ ],
+ "contamination": []
+}

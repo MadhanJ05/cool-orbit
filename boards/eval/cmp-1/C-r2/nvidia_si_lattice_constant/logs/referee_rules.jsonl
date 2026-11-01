@@ -1,0 +1,2 @@
+{"ts": "2026-11-01T02:50:23+00:00", "agent": "referee_rules", "event": "post", "artifact_type": "check", "id": "d1dd0e67", "summary": "method_audit: pass", "parents": ["f61d8fe8"], "fulfills": null}
+{"ts": "2026-11-01T02:50:23+00:00", "agent": "referee_rules", "event": "decision", "result": "f61d8fe8", "candidate": "Si", "property": "lattice_constant", "verdict": "pass", "flags": [], "rerun": null}
