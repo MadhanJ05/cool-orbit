@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cool Orbit · thermal materials for AI in orbit</title>
+  <link rel="preload" href="/v2/fonts/source-serif-4-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/v2/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/v2/style.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#overview"><span class="crescent" aria-hidden="true"></span>Cool Orbit</a>
+      <nav class="tabs" aria-label="Sections">
+        <a href="#overview">Overview</a><a href="#materials">Materials</a><a href="#trust">Trust</a><a href="#agents">Agents</a>
+      </nav>
+      <div class="nav-right">
+        <label class="sr-only" for="board-select">Board</label>
+        <select id="board-select" title="Results board shown in the workflow, agents and raw board"></select>
+        <span id="live" class="live" hidden></span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="overview" class="hero wrap">
+      <div class="hero-text">
+        <p class="eyebrow">Thermal material discovery</p>
+        <h1>Finding the right materials to keep AI <em>cool in orbit</em></h1>
+        <p class="lede">A multi-agent system on NVIDIA ALCHEMI + Dell Pro Max GB10 that simulates, cross-checks and
+          ranks thermal-battery materials for space.</p>
+        <div class="cta">
+          <button id="replay" class="btn-dark" type="button" hidden>&#9655; Replay copper run</button>
+          <a class="link" href="#trust">See the evidence &rarr;</a>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="planet"></div><div class="orbit"></div><div class="planet-glow"></div>
+      </div>
+    </section>
+
+    <section class="wrap"><div id="stats" class="stats"></div></section>
+
+    <section id="answer" class="wrap"></section>
+
+    <section class="wrap grid-12 workflow-row">
+      <div class="col-7 card" id="workflow-card"></div>
+      <div class="col-5 card" id="results-card"></div>
+    </section>
+
+    <section id="materials" class="wrap section"></section>
+    <section id="trust" class="wrap section"></section>
+    <section id="timeline" class="wrap section"></section>
+    <section id="agents" class="wrap section"></section>
+    <section id="raw" class="wrap section"></section>
+  </main>
+
+  <footer class="wrap footer" id="footer"></footer>
+
+  <noscript><p class="wrap">This page needs JavaScript to read the board export.</p></noscript>
+  <script src="/data/data.js"></script>
+  <script src="/v2/app.js"></script>
+  <script type="module" src="/ga3d.js"></script>
+</body>
+</html>

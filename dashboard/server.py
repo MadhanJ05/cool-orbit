@@ -26,14 +26,23 @@ from pathlib import Path
 from typing import Callable, Optional
 
 HERE = Path(__file__).resolve().parent
-STATIC = {"/": "index.html", "/index.html": "index.html", "/app.js": "app.js", "/style.css": "style.css",
+# The classic dashboard (index.html + app.js + style.css + ga3d.js); also served under /classic/ (see below).
+CLASSIC = {"/index.html": "index.html", "/app.js": "app.js", "/style.css": "style.css",
           "/ga3d.js": "ga3d.js",
           # three.js r160 (MIT, vendor/three/LICENSE), served from here because the CSP allows only our own scripts;
           # the two addons import the core by relative path (patched from the bare 'three' specifier).
           "/vendor/three/three.module.min.js": "vendor/three/three.module.min.js",
           "/vendor/three/addons/OrbitControls.js": "vendor/three/addons/OrbitControls.js",
           "/vendor/three/addons/RoomEnvironment.js": "vendor/three/addons/RoomEnvironment.js"}
-TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
+CLASSIC["/ga3d.js"] = "ga3d.js"
+# The v2 landing page + dashboard (dashboard/v2/) is the home page; fonts are self-hosted (OFL, v2/fonts/OFL-*.txt).
+V2 = {"/": "v2/index.html", "/v2/app.js": "v2/app.js", "/v2/style.css": "v2/style.css",
+      "/v2/fonts/inter-latin-var.woff2": "v2/fonts/inter-latin-var.woff2",
+      "/v2/fonts/source-serif-4-latin-var.woff2": "v2/fonts/source-serif-4-latin-var.woff2",
+      "/v2/fonts/source-serif-4-italic-latin-var.woff2": "v2/fonts/source-serif-4-italic-latin-var.woff2"}
+STATIC = {**CLASSIC, **V2, "/classic/": "index.html",
+          **{f"/classic{k}": v for k, v in CLASSIC.items()}}
+TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".woff2": "font/woff2",
          ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8"}
 DATA_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,200}\.(json|js)$")
 METADATA_TOKEN = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
@@ -135,6 +144,12 @@ def make_handler(cache: Cache, static_root: Path = HERE):
 
         def do_GET(self) -> None:  # noqa: N802
             path = urllib.parse.urlsplit(self.path).path
+            if path == "/classic":  # the classic page uses relative links, so it must live under /classic/
+                self.send_response(301)
+                self.send_header("Location", "/classic/")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
             if path in ("/health", "/healthz"):  # Cloud Run's front end reserves /healthz; use /health there
                 return self._send(200, b"ok\n", "text/plain; charset=utf-8")
             if path in STATIC:
@@ -144,8 +159,8 @@ def make_handler(cache: Cache, static_root: Path = HERE):
                 except FileNotFoundError:  # a whitelisted file missing from the image: answer, don't drop the connection
                     return self._send(404, b"not found\n", "text/plain; charset=utf-8")
                 return self._send(200, body, TYPES[f.suffix], cache_s=60)
-            if path.startswith("/data/"):
-                name = path[len("/data/"):]
+            if path.startswith(("/data/", "/classic/data/")):  # the classic page asks for its data relatively
+                name = path.split("/data/", 1)[1]
                 if not DATA_NAME.match(name):
                     return self._send(404, b"not found\n", "text/plain; charset=utf-8")
                 try:

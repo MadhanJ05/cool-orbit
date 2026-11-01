@@ -382,6 +382,7 @@ def score_repeat(path: str | Path, task_set: TaskSet, rules: Optional[dict] = No
         raise FileNotFoundError(f"{path} is neither a board nor a folder of boards")
     found: dict[str, tuple] = {}
     cost_rows: list[dict] = []
+    no_cost: list[str] = []
     for sub in subs:
         board = Board(sub)
         snap = board.snapshot()
@@ -389,7 +390,10 @@ def score_repeat(path: str | Path, task_set: TaskSet, rules: Optional[dict] = No
             if task_id in found:
                 raise ValueError(f"task {task_id} is seeded on two boards in {path}: {found[task_id][2]} and {sub}")
             found[task_id] = (snap, req, sub)
-        cost_rows += read_costs(sub)
+        rows = read_costs(sub)
+        if not rows:
+            no_cost.append(sub.name)
+        cost_rows += rows
     outcomes = []
     for t in task_set.tasks:
         if t.id in found:
@@ -397,7 +401,9 @@ def score_repeat(path: str | Path, task_set: TaskSet, rules: Optional[dict] = No
             outcomes.append(score_task(snap, t, req, rules, reference_rule))
         else:
             outcomes.append(score_task(None, t, None, rules))  # type: ignore[arg-type]
-    return _aggregate(str(path), outcomes, cost_rows, reference_rule)
+    score = _aggregate(str(path), outcomes, cost_rows, reference_rule)
+    score.cost["tasks_without_cost_log"] = no_cost
+    return score
 
 
 def summarize_arm(scores: list[BoardScore]) -> dict:
@@ -411,6 +417,12 @@ def summarize_arm(scores: list[BoardScore]) -> dict:
     for k in ("input_tokens", "output_tokens", "gpu_hours"):
         out[f"total_{k}"] = sum(s.cost["total"][k] for s in scores)
     out["cost_recorded_on_all_boards"] = all(s.cost["recorded"] for s in scores)
+    # Dollars as logged (Claude Code's total_cost_usd per session). Tasks whose board has no cost log at all (e.g.
+    # refused before any session) are counted, so a page can say the total leaves them out instead of hiding it.
+    usds = [s.cost["total"].get("usd") for s in scores]
+    out["total_usd"] = sum(u for u in usds if u is not None) if any(u is not None for u in usds) else None
+    out["usd_known_on_all_repeats"] = all(u is not None for u in usds)
+    out["tasks_without_cost_log"] = sum(len(s.cost.get("tasks_without_cost_log", [])) for s in scores)
     return out
 
 

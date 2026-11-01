@@ -200,6 +200,9 @@ class DiscoveryTest(unittest.TestCase):
             (run_cmp,) = bundle["index"]["comparison"]
             self.assertEqual(run_cmp["arms"]["A"]["repeats"], 1, "one repeat made of two per-task boards")
             self.assertEqual(run_cmp["arms"]["A"]["trap_catch_rate"]["mean"], 1.0)
+            # neither SYNTHETIC task board wrote a cost log: the summary says so instead of reporting $0
+            self.assertEqual(run_cmp["arms"]["A"]["tasks_without_cost_log"], 2)
+            self.assertIsNone(run_cmp["arms"]["A"]["total_usd"])
 
     def test_synthetic_runner_repeats_are_excluded_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
