@@ -1,0 +1,30 @@
+Warp 1.18.0 initialized:
+   CUDA Toolkit 12.9, Driver 12.8
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA H100 PCIe" (79 GiB, sm_90, mempool enabled)
+   Kernel cache:
+     /home/ubuntu/.cache/warp/1.18.0
+coexistence: 512 atoms x 4 system(s); ~48 min at the measured GB10 rate. Flags: none
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Preparing two-phase box (protocol 2): 512 atoms, T_prep=425 K, T_melt=1010 K, T_ref=425.0, solid barostat anisotropic
+  [prep_vc_relax_fire2] 300 steps x 512 atoms in 58 s
+  0 K variable-cell relaxation: volume +5.1%
+  [prep_solid_npt] 4000 steps x 512 atoms in 363 s
+  [prep_melt_nvt_r1] 6000 steps x 512 atoms in 510 s
+  only 77% melted; melting 3000 more steps at 1262 K
+  [prep_melt_nvt_r2] 3000 steps x 512 atoms in 257 s
+  [prep_quench_nvt] 3000 steps x 512 atoms in 259 s
+  liquid half: 88% of atoms moved > 1.5 A; crystal half: 0%

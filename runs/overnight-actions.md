@@ -27,14 +27,19 @@ bracket in the pitch. **In: 370.0 ± 10.0 K** (freezes 320-360, melts 380); with
 In Tm is ~360-366 K (-15%): two seeds agree. **Bi: inconsistent** (freezes 360/390, "conflict" at 420 = box fully
 mobile but PE fell, stable 450): v2 correctly refuses a number; with the board bracket, MACE's Bi Tm is ~390-463 K
 (15-28% low) and its near-melting behaviour is anomalous (cf. the diagnosis's open question on MACE's A7 Bi crystal).
+**Latent heat at MACE's own Tm (supplementary, H100):** In 23,546 ± 364 J/kg at 363 K vs 28,662.4 (Archer & Rudtsch
+2003) = **-17.8%**; Bi 35,501 ± 236 J/kg at 420 K vs 53,146 = **-33%**. With Cu -8.0% and Al -10.6% (board), the
+latent-heat pattern matches the melting points: fcc metals pass ±15%, the low-melting post-transition metals fail.
+Sn: at 410-425 K MACE's beta-Sn crystal does hold (it does not at 505 K); a production Sn bracket (380-470 K) is running.
 
 Reading: MACE-MPA-0 is good for fcc Cu/Al (Tm within ~5%, latent within ~10%) and 20-25% low on the low-melting
 post-transition metals (In, Bi, Sn) that matter most for thermal batteries. Earlier MACE latent runs at the measured
 Tm: Al -10.2%, Cu -7.3%, Bi -46% (superheated solid, suspect), In/Sn solid melted.
 
-**Comparison (both repeats, docs/results/comparison-cmp1.md):** trap catch A 60% / B 60-70% / **C 80%**; false alarms
-A 17% / B 33% / C 17%; silent errors 0 everywhere; LLM cost per repeat A ~$4.5 / B ~$3.5 / **C ~$2.4**. Caveat: C's
-gain is in repeat 2, after the disclosed budget fit. **Repeat 3 is running** (~$10, done ~11:30 UTC).
+**Comparison (3 repeats, docs/results/comparison-cmp1.md):** trap catch A 60% / B 60% / **C 80%** (post-hoc rule);
+false alarms A 11% / B 22% / **C 11%**; silent errors 0 everywhere; LLM cost per repeat A ~$4.57 / B ~$3.50 /
+**C ~$2.40**. Caveat: C's gain appears after the disclosed budget fit (r1 60%, r2 100%, r3 80%). **Repeat 4 started
+10:23 UTC** on the then-idle GB10 (~$10, done ~13:30; stop with `tmux kill-session -t cmp4` if you need the GPU).
 
 **What broke and got fixed:** our coexistence analysis was wrong (block-0 reference, cold liquid prep, Sn crystal lost,
 retry loop) -> diagnosis + opt-in protocol v2 with tests; the hook falsely flags heavy two-phase boxes (README corrected,
@@ -117,3 +122,9 @@ supplementary refined-bracket runs (not posted to any board).
 | 07:57 | On the idle H100 (checkout ~/cool-orbit-v2, v2 code, seed 2030), 4 refined-bracket production runs, NOT posted to any board: Cu 1330-1390 K, Al 900-960 K, Bi 360-450 K, In 320-380 K; out ~/cool-orbit-v2/runs/refine | the H100 was idle and billing; narrower brackets + a second seed sharpen the MACE calibration numbers (e.g. Cu ±68 K) without touching trusted board results | running |
 | 08:18 | Stopped tmux `science2` (the original loop with the in-process GB10 Simulator; no child job running) | Bi had landed; its referees/Librarian duplicated `science2loop`'s; the standalone `gb10sim2` covers the GB10 GPU | science2loop (team) + gb10sim2 + 3 H100 simulators remain |
 | 09:08 | Refined runs: **Al 910.0 ± 10.0 K** (900 F, 920/940/960 M); **Cu all melt 1330-1390 K** -> with the board's 1290 K freeze, MACE Cu Tm in 1290-1330 K | | the board's Cu 1358 K is a bracket midpoint; trusted status still holds; pitch must quote ~1310 K. Repeat 3: 5/8 each |
+| 09:18 | Refined In 370.0 ± 10.0 K (two seeds agree on ~360-366 K, -15%); Bi inconsistent (freeze 360/390, conflict 420, stable 450) | | committed c78534d |
+| 10:19 | **Repeat 3 done**: trap catch A 60 / B 60 / **C 80%**; false alarms 0/0/0; silent 0; cost A $4.65 / B $3.58 / C $2.39. Three-repeat summary written to docs/results/comparison-cmp1.md | | committed d6840a9 |
+| 10:23 | **Started repeat 4** (tmux `cmp4`) on the idle GB10 | 3 repeats -> 4 strengthens the 25% criterion; ~$10; done ~13:30, before the freeze | running |
+| 10:52 | H100 idle since ~09:15 (~$27 total by now): 3 supplementary runs on ~/cool-orbit-v2/runs/supp, not posted: In latent at MACE's own Tm (363 K), Bi latent at 420 K (inside MACE's Tm range; the -46% at 544.6 K came from a superheated solid), Sn crystal stability at ~410 K (quick, gate only) | idle paid GPU; these sharpen the calibration (latent at the model's own Tm, and whether MACE holds beta-Sn at all) | running |
+| 11:01 | Sn stability at T_prep 410 K (quick): **the crystal survived the solid prep** (unlike at 505 K); stopped at `liquid_not_prepared` (melt 820 K too low in quick mode). So MACE Sn's Tm is probably between ~410 and 505 K | | |
+| 11:03 | Started a production Sn bracket on the H100 (380/410/440/470 K, v2, t-ref 425, **t-melt 1010**, seed 2031; supplementary, not posted). My ssh launch line hung (backgrounded `&&` chain held the session; same slip as 04:45) and was killed by `timeout`, but the job started | first real MACE bracket for Sn | running |

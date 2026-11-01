@@ -1,0 +1,34 @@
+Warp 1.18.0 initialized:
+   CUDA Toolkit 12.9, Driver 12.8
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA H100 PCIe" (79 GiB, sm_90, mempool enabled)
+   Kernel cache:
+     /home/ubuntu/.cache/warp/1.18.0
+coexistence: 512 atoms x 4 system(s); ~6 min at the measured GB10 rate. Flags: none
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Preparing two-phase box (protocol 2): 512 atoms, T_prep=410 K, T_melt=820 K, T_ref=410.0, solid barostat anisotropic
+  [prep_vc_relax_fire2] 300 steps x 512 atoms in 53 s
+  0 K variable-cell relaxation: volume +5.1%
+  [prep_solid_npt] 2000 steps x 512 atoms in 182 s
+  [prep_melt_nvt_r1] 1500 steps x 512 atoms in 124 s
+  only 16% melted; melting 750 more steps at 1025 K
+  [prep_melt_nvt_r2] 750 steps x 512 atoms in 63 s
+  only 38% melted; melting 750 more steps at 1230 K
+  [prep_melt_nvt_r3] 750 steps x 512 atoms in 63 s
+  GATE liquid_not_prepared: only 62% of the liquid half moved > 1.5 A after 3 melt round(s) at [820.0, 1025.0, 1230.0] K
+
+RESULT (failed): the liquid half was not melted (< 80% of its atoms moved > 1.5 A after all melt rounds), so the box would not be two-phase; stopped before production
+Flags: ['liquid_not_prepared', 'quick_settings_not_production']   Wall time: 8.1 min   Output: runs/supp/Sn-410/20261101T105132Z_Sn-stability-410_coexistence_quick
