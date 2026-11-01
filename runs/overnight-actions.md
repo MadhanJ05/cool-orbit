@@ -19,7 +19,16 @@ pre-registered tolerances/tasks/scoring, deleting results, sudo, git push.
 | Bi melting point (ran on the GB10) | 408.3 ± 54.7 K (-25%) | 544.556 K | FLAGGED (and MEAM Bi disagrees) |
 | Sn | crystal does not survive at 505 K in MACE | 505.078 K | stopped at the new prep gate |
 
-Reading: MACE-MPA-0 is good for fcc Cu/Al (Tm within 0.1%, latent within ~10%) and 20-25% low on the low-melting
+**Refined brackets (supplementary, H100, seed 2030, 20 K spacing; not posted to any board):** Al 910.0 ± 10.0 K
+(freezes 900, melts 920+; -2.5%); **Cu: all of 1330-1390 K melt**, so with the board run (froze ~1290 K) MACE's Cu Tm
+is **1290-1330 K (~1310 K, -2% to -5%)**: the board's 1358 K is a wide bracket's midpoint, and its 0.23 K match with
+the measured value is luck. Cu stays trusted (1310 K is inside ±10% and EAM's 1327 K agrees), but quote the refined
+bracket in the pitch. **In: 370.0 ± 10.0 K** (freezes 320-360, melts 380); with the board run (366 K melted) MACE's
+In Tm is ~360-366 K (-15%): two seeds agree. **Bi: inconsistent** (freezes 360/390, "conflict" at 420 = box fully
+mobile but PE fell, stable 450): v2 correctly refuses a number; with the board bracket, MACE's Bi Tm is ~390-463 K
+(15-28% low) and its near-melting behaviour is anomalous (cf. the diagnosis's open question on MACE's A7 Bi crystal).
+
+Reading: MACE-MPA-0 is good for fcc Cu/Al (Tm within ~5%, latent within ~10%) and 20-25% low on the low-melting
 post-transition metals (In, Bi, Sn) that matter most for thermal batteries. Earlier MACE latent runs at the measured
 Tm: Al -10.2%, Cu -7.3%, Bi -46% (superheated solid, suspect), In/Sn solid melted.
 
@@ -106,3 +115,5 @@ supplementary refined-bracket runs (not posted to any board).
 | 07:36 | **Did NOT post the EAM Al latent check** although the dry run says "agree 362,002" (the potential passes the ±15% latent gate, -8.8%) | the same potential fails the melting-point gate (+11.6%) and its latent heat is computed at its own wrong Tm; counting it on a per-property technicality is an interpretation of the pre-registered rule: **Madhan's call** | Al latent stays under review |
 | 07:45 | **Bi MACE (v2 attempt 2, on the GB10): 408.3 ± 54.7 K vs measured 544.556 K (-25%) -> FLAGGED**. 07:46 the overnight queue posted the MEAM Bi check (passes its gate): **disagree** (586.7 vs 408.3 K) | | Bi flagged on two counts. Board: Cu Tm + Cu L TRUSTED; Al Tm + Al L under review; In, Bi flagged; Sn stopped at the prep gate |
 | 07:57 | On the idle H100 (checkout ~/cool-orbit-v2, v2 code, seed 2030), 4 refined-bracket production runs, NOT posted to any board: Cu 1330-1390 K, Al 900-960 K, Bi 360-450 K, In 320-380 K; out ~/cool-orbit-v2/runs/refine | the H100 was idle and billing; narrower brackets + a second seed sharpen the MACE calibration numbers (e.g. Cu ±68 K) without touching trusted board results | running |
+| 08:18 | Stopped tmux `science2` (the original loop with the in-process GB10 Simulator; no child job running) | Bi had landed; its referees/Librarian duplicated `science2loop`'s; the standalone `gb10sim2` covers the GB10 GPU | science2loop (team) + gb10sim2 + 3 H100 simulators remain |
+| 09:08 | Refined runs: **Al 910.0 ± 10.0 K** (900 F, 920/940/960 M); **Cu all melt 1330-1390 K** -> with the board's 1290 K freeze, MACE Cu Tm in 1290-1330 K | | the board's Cu 1358 K is a bracket midpoint; trusted status still holds; pitch must quote ~1310 K. Repeat 3: 5/8 each |
