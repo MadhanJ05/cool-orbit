@@ -1,0 +1,275 @@
+{
+  "mode": "coexistence",
+  "protocol_version": 2,
+  "t_melt_K": 860.0,
+  "t_ref_K": 430.0,
+  "seed": 2027,
+  "prep": {
+    "protocol_version": 2,
+    "liquid_expansion": 0.05,
+    "t_melt_K": 860.0,
+    "t_ref_K": 430.0,
+    "prep_coupling": "anisotropic",
+    "vc_relaxation": {
+      "optimizer": "FIRE2VariableCell",
+      "steps": 300,
+      "dt": 0.05,
+      "cell_lengths_before_A": [
+        19.512,
+        19.512,
+        39.568
+      ],
+      "cell_lengths_after_A": [
+        19.8881,
+        19.8881,
+        39.6746
+      ],
+      "cell_angles_before_deg": [
+        90.0,
+        90.0,
+        90.0
+      ],
+      "cell_angles_after_deg": [
+        90.0,
+        90.0,
+        90.0
+      ],
+      "volume_change": 0.041722558945940236,
+      "pe_first_eV_per_atom": -2.7185139656066895,
+      "pe_last_eV_per_atom": -2.7233619689941406,
+      "rejected": null
+    },
+    "solid_detector": {
+      "system": 0,
+      "n_atoms_tracked": 576,
+      "nn_distance_A": 3.309,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.0,
+      "max_mobile_fraction": 0.010416666666666666,
+      "melted": false,
+      "melt_step": null,
+      "melt_temperature_K": null,
+      "flags": [
+        "superheating_risk"
+      ]
+    },
+    "solid_shape": {
+      "cell_lengths_before_A": [
+        19.8881,
+        19.8881,
+        39.6746
+      ],
+      "cell_lengths_after_A": [
+        20.1036,
+        20.3552,
+        40.6599
+      ]
+    },
+    "melt_rounds": 2,
+    "melt_temperatures_K": [
+      860.0,
+      1075.0
+    ],
+    "melted_half_moved_fraction_after_melt": 0.8027210831642151,
+    "frozen_half_moved_fraction": 0.0,
+    "melted_half_moved_fraction": 0.8061224222183228
+  },
+  "per_temperature": [
+    {
+      "T_target_K": 366.0,
+      "T_measured_K": 366.1,
+      "ref_pe_eV_per_atom": -2.6515454162250864,
+      "end_pe_eV_per_atom": -2.643188123703003,
+      "delta_pe_eV_per_atom": 0.008357292522083615,
+      "block_means_eV_per_atom": [
+        -2.650785698890686,
+        -2.651427984237671,
+        -2.650573935508728,
+        -2.649026246070862,
+        -2.6492328739166258,
+        -2.6467240715026854,
+        -2.643510112762451,
+        -2.6441004610061647,
+        -2.643926944732666,
+        -2.643188123703003
+      ],
+      "block_noise_eV_per_atom": 0.0022190576201873806,
+      "threshold_eV_per_atom": 0.006657172860562142,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+        0.5,
+        1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9826388888888888,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+    },
+    {
+      "T_target_K": 408.0,
+      "T_measured_K": 407.9,
+      "ref_pe_eV_per_atom": -2.6448578617789527,
+      "end_pe_eV_per_atom": -2.636642909049988,
+      "delta_pe_eV_per_atom": 0.008214952728964775,
+      "block_means_eV_per_atom": [
+        -2.644425768852234,
+        -2.6411829137802125,
+        -2.638852233886719,
+        -2.6371055698394774,
+        -2.635129623413086,
+        -2.6366411781311037,
+        -2.636147117614746,
+        -2.635531158447266,
+        -2.636757755279541,
+        -2.636642909049988
+      ],
+      "block_noise_eV_per_atom": 0.001186275549439115,
+      "threshold_eV_per_atom": 0.003558826648317345,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+        0.5,
+        1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9965277777777778,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+    },
+    {
+      "T_target_K": 452.0,
+      "T_measured_K": 451.9,
+      "ref_pe_eV_per_atom": -2.637119401584972,
+      "end_pe_eV_per_atom": -2.6293912506103516,
+      "delta_pe_eV_per_atom": 0.00772815097462054,
+      "block_means_eV_per_atom": [
+        -2.6338784980773924,
+        -2.62812038898468,
+        -2.628477244377136,
+        -2.629210419654846,
+        -2.628966031074524,
+        -2.630028486251831,
+        -2.629591979980469,
+        -2.627914533615112,
+        -2.628177452087402,
+        -2.6293912506103516
+      ],
+      "block_noise_eV_per_atom": 0.0019314716998452054,
+      "threshold_eV_per_atom": 0.0057944150995356165,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+        0.5,
+        1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9982638888888888,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+    },
+    {
+      "T_target_K": 494.0,
+      "T_measured_K": 493.8,
+      "ref_pe_eV_per_atom": -2.6274254322052,
+      "end_pe_eV_per_atom": -2.6213398933410645,
+      "delta_pe_eV_per_atom": 0.006085538864135653,
+      "block_means_eV_per_atom": [
+        -2.6244106578826902,
+        -2.620967493057251,
+        -2.620831618309021,
+        -2.6232146644592285,
+        -2.6218140935897827,
+        -2.620438451766968,
+        -2.620918970108032,
+        -2.621567587852478,
+        -2.6222381258010863,
+        -2.6213398933410645
+      ],
+      "block_noise_eV_per_atom": 0.0011082304396667095,
+      "threshold_eV_per_atom": 0.0033246913190001287,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+        0.5,
+        1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9982638888888888,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+    }
+  ],
+  "flags": [],
+  "superheating_detector": [
+    {
+      "system": 0,
+      "n_atoms_tracked": 576,
+      "nn_distance_A": 3.043,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.010416666666666666,
+      "max_mobile_fraction": 0.9826388888888888,
+      "melted": true,
+      "melt_step": 4850,
+      "melt_temperature_K": 353.5,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    },
+    {
+      "system": 1,
+      "n_atoms_tracked": 576,
+      "nn_distance_A": 3.044,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.010416666666666666,
+      "max_mobile_fraction": 0.9965277777777778,
+      "melted": true,
+      "melt_step": 4050,
+      "melt_temperature_K": 420.6,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    },
+    {
+      "system": 2,
+      "n_atoms_tracked": 576,
+      "nn_distance_A": 3.038,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.026041666666666668,
+      "max_mobile_fraction": 0.9982638888888888,
+      "melted": true,
+      "melt_step": 1650,
+      "melt_temperature_K": 470.1,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    },
+    {
+      "system": 3,
+      "n_atoms_tracked": 576,
+      "nn_distance_A": 3.046,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.026041666666666668,
+      "max_mobile_fraction": 0.9982638888888888,
+      "melted": true,
+      "melt_step": 1250,
+      "melt_temperature_K": 463.6,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    }
+  ],
+  "status": "failed",
+  "failure": "below_bracket",
+  "upper_bound_K": 366.0,
+  "reason": "no temperature froze and the coldest run melted: the melting point is below the bracket",
+  "wall_s": 4105.5
+}

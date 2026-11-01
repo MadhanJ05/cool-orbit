@@ -1,0 +1,81 @@
+{
+  "mode": "coexistence",
+  "protocol_version": 2,
+  "t_melt_K": 1010.0,
+  "t_ref_K": 505.0,
+  "seed": 2027,
+  "prep": {
+    "protocol_version": 2,
+    "liquid_expansion": 0.05,
+    "t_melt_K": 1010.0,
+    "t_ref_K": 505.0,
+    "prep_coupling": "anisotropic",
+    "vc_relaxation": {
+      "optimizer": "FIRE2VariableCell",
+      "steps": 300,
+      "dt": 0.05,
+      "cell_lengths_before_A": [
+        23.328,
+        23.328,
+        25.456
+      ],
+      "cell_lengths_after_A": [
+        23.8203,
+        23.8203,
+        25.6624
+      ],
+      "cell_angles_before_deg": [
+        90.0,
+        90.0,
+        90.0
+      ],
+      "cell_angles_after_deg": [
+        90.0,
+        90.0,
+        90.0
+      ],
+      "volume_change": 0.05110794114069295,
+      "pe_first_eV_per_atom": -3.9556527137756348,
+      "pe_last_eV_per_atom": -3.967007637023926,
+      "rejected": null
+    },
+    "solid_detector": {
+      "system": 0,
+      "n_atoms_tracked": 512,
+      "nn_distance_A": 3.078,
+      "start_state": "crystalline",
+      "early_mobile_fraction": 0.0,
+      "max_mobile_fraction": 0.78125,
+      "melted": true,
+      "melt_step": 2550,
+      "melt_temperature_K": 507.1,
+      "flags": [
+        "superheating_risk",
+        "superheating_observed"
+      ]
+    },
+    "solid_shape": {
+      "cell_lengths_before_A": [
+        23.8203,
+        23.8203,
+        25.6624
+      ],
+      "cell_lengths_after_A": [
+        23.4069,
+        24.7413,
+        26.8751
+      ]
+    },
+    "gate": "crystal_lost_in_prep",
+    "stopped_after": "prep_solid_npt"
+  },
+  "per_temperature": [],
+  "flags": [
+    "crystal_lost_in_prep"
+  ],
+  "status": "failed",
+  "failure": "crystal_lost_in_prep",
+  "reason": "the crystal did not survive the solid preparation (half or more of its atoms moved > 0.5 nearest-neighbour distances), so the box would never hold a crystal half; stopped before melting and production",
+  "stopped_after": "prep_solid_npt",
+  "wall_s": 523.1
+}

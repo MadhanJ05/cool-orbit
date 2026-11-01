@@ -21,8 +21,31 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from coolorbit.board import Board  # noqa: E402
-from coolorbit.sim.simulator_agent import SimulatorAgent  # noqa: E402
+from coolorbit.sim.simulator_agent import JobError, SimulatorAgent  # noqa: E402
 from coolorbit.sim.ssh_runner import SshRunner  # noqa: E402
+
+
+class RemoteSimulatorAgent(SimulatorAgent):
+    """SimulatorAgent whose claim and timeout allow for a shared remote GPU being ``slowdown`` x slower than the
+    idle-GB10 estimate. Seen 2026-11-01: a Cu latent run estimated at 12 min took 56 min on the shared H100, so the
+    default allowance (3 x 12 + 15 = 51 min) killed the SSH session 5 min before the run finished."""
+
+    def __init__(self, *args, slowdown: float = 4.0, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.slowdown = slowdown
+
+    def step(self) -> bool:
+        for on, job in self.pending():
+            target, idx = on.artifact.artifact_id, on.index
+            ttl = 15.0 if isinstance(job, JobError) else self.slowdown * 3 * job.estimate_minutes() + 15
+            if not self.board.claim(self.name, target, idx, ttl_minutes=ttl):
+                continue  # another agent got it first
+            if isinstance(job, JobError):
+                self._refuse(on, job)
+            else:
+                self._run(job, ttl)
+            return True
+        return False
 
 
 def main(argv=None) -> None:
@@ -36,12 +59,15 @@ def main(argv=None) -> None:
                          "checkout other jobs are running from)")
     ap.add_argument("--until", default="2026-11-01T13:00", help="stop at this UTC time (ISO, no zone)")
     ap.add_argument("--poll", type=float, default=30.0)
+    ap.add_argument("--slowdown", type=float, default=4.0,
+                    help="how much slower than the idle-GB10 estimate the shared remote GPU may be (claim + timeout)")
     ap.add_argument("--min-minutes", type=float, default=0.0)
     ap.add_argument("--max-minutes", type=float, default=float("inf"))
     args = ap.parse_args(argv)
     until = datetime.fromisoformat(args.until).replace(tzinfo=timezone.utc)
     board = Board(REPO_ROOT / args.board if not Path(args.board).is_absolute() else args.board)
-    agent = SimulatorAgent(board, args.agent, runner=SshRunner(args.host, port=args.port, remote_dir=args.remote_dir),
+    agent = RemoteSimulatorAgent(board, args.agent, slowdown=args.slowdown,
+                           runner=SshRunner(args.host, port=args.port, remote_dir=args.remote_dir),
                            runs_root=REPO_ROOT / "runs" / "remote" / board.root.name,
                            min_minutes=args.min_minutes, max_minutes=args.max_minutes)
     print(f"[{args.agent}] watching {board.root} via {args.host}:{args.port} until {until.isoformat()}", flush=True)

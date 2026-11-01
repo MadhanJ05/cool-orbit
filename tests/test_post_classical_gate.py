@@ -60,6 +60,25 @@ class GateFallbackTest(unittest.TestCase):
         self.assertIn("933.45", item["payload"]["note"])
         self.assertIn("EAM SYNTHETIC", item["payload"]["note"], "the note names the potential, not 'MEAM'")
 
+    def test_latent_heat_check(self) -> None:
+        cand = self.board.post("scout_metals", "candidate", {"name": "Cu", "family": "validation_metal",
+                                                              "tier": "trust", "rationale": "SYNTHETIC"})
+        self.board.post("simulator_x", "property_result", {
+            "candidate": "Cu", "family": "validation_metal", "tier": "trust", "property": "latent_heat",
+            "value": 190222.0, "units": "J/kg", "note": "SYNTHETIC",
+            "method": {"engine": "ALCHEMI", "model": "SYNTHETIC", "protocol": "NPT enthalpy difference"}},
+            parents=[cand.artifact_id])
+        f = self.tmp / "classical" / "run" / "metals" / "Cu" / "analysis_latent.json"
+        f.parent.mkdir(parents=True)
+        f.write_text(json.dumps({"status": "ok", "value": 188684.0, "uncertainty": 1044.0, "units": "J/kg",
+                                 "method": {"engine": "LAMMPS", "model": "EAM SYNTHETIC", "protocol": "latent"}}))
+        rules = {"properties": {"latent_heat": {"units": ["J/kg"], "agree": {"rel": 0.15}, "tier1": {"rel": 0.15}}}}
+        items = pcc.plan(self.board, "run", rules, gate=True, root=self.tmp / "classical", prop="latent_heat")
+        (item,) = items
+        pl = item["payload"]
+        self.assertEqual((pl["verdict"], pl["value"], pl["units"]), ("agree", 188684.0, "J/kg"))
+        self.assertIn("206748", pl["note"].replace(",", ""), "gated against the sourced measured Cu latent heat")
+
     def test_reliable_potential_is_counted_and_agrees(self) -> None:
         self.mace_result("Cu", 1358.0)
         self.analysis("Cu", 1327.0)  # -2.3% vs the measured 1357.77 K

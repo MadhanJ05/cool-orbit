@@ -1,0 +1,39 @@
+Warp 1.18.0 initialized:
+   CUDA Toolkit 12.9, Driver 12.8
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA H100 PCIe" (79 GiB, sm_90, mempool enabled)
+   Kernel cache:
+     /home/ubuntu/.cache/warp/1.18.0
+WARNING: coexistence works best with the box ~2x longer along z than x/y
+coexistence: 576 atoms x 4 system(s); ~54 min at the measured GB10 rate. Flags: none
+/home/ubuntu/cool-orbit-v2b/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2b/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2b/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2b/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2b/.venv/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+/home/ubuntu/cool-orbit-v2b/.venv/lib/python3.12/site-packages/mace/modules/models.py:85: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  "atomic_numbers", torch.tensor(atomic_numbers, dtype=torch.int64)
+Using medium MPA-0 model as default MACE-MP model, to use previous (before 3.10) default model please specify 'medium' as model argument
+Preparing two-phase box (protocol 2): 576 atoms, T_prep=430 K, T_melt=860 K, T_ref=430.0, solid barostat anisotropic
+  [prep_vc_relax_fire2] 300 steps x 576 atoms in 75 s
+  0 K variable-cell relaxation: volume +4.2%
+  [prep_solid_npt] 4000 steps x 576 atoms in 428 s
+  [prep_melt_nvt_r1] 6000 steps x 576 atoms in 619 s
+  only 69% melted; melting 3000 more steps at 1075 K
+  [prep_melt_nvt_r2] 3000 steps x 576 atoms in 315 s
+  [prep_quench_nvt] 3000 steps x 576 atoms in 321 s
+  liquid half: 81% of atoms moved > 1.5 A; crystal half: 0%
+  [production_npt] 25000 steps x 2304 atoms in 2348 s
+  T=  366.0 K (measured   366.1): dPE = +0.0084 eV/atom (threshold 0.0067), mobility 0.98 -> melting [mobility and pe]
+  T=  408.0 K (measured   407.9): dPE = +0.0082 eV/atom (threshold 0.0036), mobility 1.00 -> melting [mobility and pe]
+  T=  452.0 K (measured   451.9): dPE = +0.0077 eV/atom (threshold 0.0058), mobility 1.00 -> melting [mobility and pe]
+  T=  494.0 K (measured   493.8): dPE = +0.0061 eV/atom (threshold 0.0033), mobility 1.00 -> melting [mobility and pe]
+
+RESULT (failed): no temperature froze and the coldest run melted: the melting point is below the bracket
+Flags: none   Wall time: 68.4 min   Output: runs/remote/96074d6b-n0-a1/20261101T045510Z_In_coexistence
