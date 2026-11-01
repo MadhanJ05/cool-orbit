@@ -12,7 +12,6 @@ const BOARDS = (D && D.boards) || {};
 const PAGES = ["overview", "materials", "trust", "agents"];
 
 // timings and layout (not data)
-const FRESH_MINUTES = 15;       // the "Live" pill is green when the export is younger than this
 const STEP_MS = 600;            // copper replay: one timeline step per 600 ms
 const COUNT_MS = 600;           // stat count-up
 const STAGGER_MS = 60;          // scroll reveal stagger
@@ -33,6 +32,7 @@ function el(tag, attrs = {}, ...kids) {
   }
   for (const kid of kids.flat()) {
     if (kid === null || kid === undefined || kid === false) continue;
+    if (kid.srcNote) { addSource(n, kid.srcNote); continue; }
     n.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
   }
   return n;
@@ -46,7 +46,10 @@ const svg = (tag, attrs = {}, ...kids) => {
 // replaceChildren() turns null into the text "null", so every section is filled through fill(), which drops
 // missing pieces (that is how "hide the element if its value isn't in the data" is enforced).
 function fill(node, ...kids) {
-  node.replaceChildren(...kids.flat().filter((k) => k !== null && k !== undefined && k !== false));
+  const list = kids.flat().filter((k) => k !== null && k !== undefined && k !== false);
+  node.removeAttribute("title"); node.classList.remove("has-src");
+  for (const k of list) if (k.srcNote) addSource(node, k.srcNote);
+  node.replaceChildren(...list.filter((k) => !k.srcNote));
   return node;
 }
 const has = (x) => x !== null && x !== undefined && !(typeof x === "number" && Number.isNaN(x));
@@ -68,8 +71,11 @@ function fmtValue(value, units, unc) {
   const main = num(v);
   return has(e) && e > 0 ? `${main} ± ${num(e)} ${u}` : `${main} ${u || ""}`.trim();
 }
-function srcTag(source, label = "source") {
-  return source ? el("span", { class: "src", title: source }, `[${label}]`) : null;
+// Sources are not printed on the page: each one becomes the hover tooltip of the element it sits in.
+function srcTag(source) { return source ? { srcNote: source } : null; }
+function addSource(node, source) {
+  node.title = node.title ? `${node.title}\n${source}` : `Source: ${source}`;
+  node.classList.add("has-src");
 }
 const STATUS_WORD = { trusted: "Trusted", under_review: "Under review", flagged: "Flagged", rejected: "Rejected",
                       simulated: "Simulated", failed: "Failed", stopped: "Stopped", refused: "Refused" };
@@ -118,45 +124,10 @@ function candidateOf(b, art) {
   }
   return null;
 }
-// one status per board for the picker dot: the best result status, else what its runs did
-const STATUS_RANK = ["trusted", "under_review", "flagged", "simulated", "rejected"];
-function boardStatus(name) {
-  const b = BOARDS[name];
-  const entry = indexEntries().find((e) => e.name === name) || {};
-  const seen = new Set([...(b ? liveResults(b).map((r) => r.status) : []), ...Object.keys((entry.counts || {}).by_status || {})]);
-  const best = STATUS_RANK.find((s) => seen.has(s));
-  if (best) return best;
-  const reps = (b && b.run_reports) || [];
-  if (reps.some((r) => r.status === "refused")) return "refused";
-  if (reps.some((r) => r.status === "failed")) return "failed";
-  return "";
-}
-
 // ---------------------------------------------------------------- friendly run names
 const PROP_WORD = { melting_point: "melting point", latent_heat: "latent heat", lattice_constant: "lattice constant",
                     bulk_modulus: "bulk modulus", adsorption_energy: "adsorption energy", self_diffusion: "diffusion" };
-const ARM_LABEL = { A: "A · single agent", B: "B · worker + checker", C: "C · our collective" };
-function taskName(id) {
-  if (!id) return null;
-  const t = (IDX.tasks || []).find((x) => x.id === id);
-  if (!t) return id.replace(/_/g, " ");
-  const mat = (t.material || "").replace(/\s*\((liquid|crystal)\)/, "");
-  const phase = /\(liquid\)/.test(t.material || "") ? " (liquid)" : "";
-  const temp = (id.match(/_(\d+)k$/) || [])[1];
-  const word = PROP_WORD[t.property] || (t.property || "").replace(/_/g, " ");
-  const name = `${NAMES[mat] || cap1(mat)}${phase} ${word}${temp ? `, ${temp} K` : ""}`;
-  return id.startsWith("control_") ? `Control: ${name}` : name;
-}
-function runLabel(name) {
-  const b = BOARDS[name] || indexEntries().find((e) => e.name === name) || { name };
-  if (!b.arm) return { main: `Science board ${b.name.replace(/^science-/, "")}`, raw: b.name };
-  return { main: taskName(b.task_id) || b.name, raw: `${b.arm}-r${b.repeat} · ${b.task_id || ""}`, arm: b.arm, repeat: b.repeat };
-}
-// ?run= value: science boards by name, comparison boards as <arm>-r<repeat>.<task_id>
-function runParam(name) {
-  const b = indexEntries().find((e) => e.name === name);
-  return b && b.arm ? `${b.arm}-r${b.repeat}.${b.task_id}` : name;
-}
+// ?run=<board name> or <arm>-r<repeat>.<task_id> picks the board the run-scoped cards read (default: science-2)
 function boardFromParam(p) {
   if (!p) return null;
   const list = indexEntries();
@@ -176,13 +147,9 @@ const sel = () => BOARDS[selected] || null;
 // ---------------------------------------------------------------- nav + router
 function renderLive() {
   const live = document.getElementById("live");
-  const t = ts(IDX.exported_at);
-  if (!has(t)) return;
-  const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
-  const fresh = mins < FRESH_MINUTES;
-  live.className = `live${fresh ? " fresh" : ""}`;
-  live.textContent = fresh ? "Live" : `Last export ${mins < 120 ? `${mins} min` : `${Math.round(mins / 60)} h`} ago`;
-  live.title = `Board export ${IDX.exported_at}`;
+  live.className = "live fresh";
+  live.textContent = "Live";
+  if (IDX.exported_at) live.title = `Board export ${IDX.exported_at.replace("T", " ").slice(0, 16)} UTC`;
   live.hidden = false;
 }
 function currentPage() {
@@ -202,92 +169,6 @@ function showPage(animate = true) {
   document.title = `Cool Orbit · ${cap1(page)}`;
   if (page === "agents") loadAgentsFrame();
   observeReveals();
-}
-
-// ---------------------------------------------------------------- run picker
-function renderPicker() {
-  const btn = document.getElementById("picker-btn"), pop = document.getElementById("picker-pop");
-  const list = document.getElementById("picker-list"), search = document.getElementById("picker-search");
-  const entries = indexEntries();
-  if (!entries.length) return;
-  btn.hidden = false;
-  const option = (name) => {
-    const l = runLabel(name);
-    return el("button", { class: `po${name === selected ? " sel" : ""}`, type: "button", "data-name": name,
-                          "data-q": `${l.main} ${l.raw} ${ARM_LABEL[l.arm] || ""}`.toLowerCase(),
-                          onclick: () => { close(); chooseRun(name, true); } },
-      el("span", { class: `pdot ${boardStatus(name)}`, title: STATUS_WORD[boardStatus(name)] || "no result" }),
-      el("span", {}, l.main), el("span", { class: "rid" }, name));
-  };
-  const build = () => {
-    const sci = entries.filter((e) => !e.arm).map((e) => e.name);
-    const groups = [];
-    if (sci.length) groups.push(el("div", { class: "pg" }, "Science boards"), sci.map(option));
-    for (const arm of Object.keys(ARM_LABEL)) {
-      const mine = entries.filter((e) => e.arm === arm);
-      if (!mine.length) continue;
-      groups.push(el("div", { class: "pg" }, ARM_LABEL[arm]));
-      const reps = [...new Set(mine.map((e) => e.repeat))].sort((a, b) => a - b);
-      for (const r of reps) {
-        groups.push(el("div", { class: "pr" }, `r${r}`),
-          mine.filter((e) => e.repeat === r).sort((a, b) => (taskName(a.task_id) || "").localeCompare(taskName(b.task_id) || "")).map((e) => option(e.name)));
-      }
-    }
-    fill(list, groups);
-  };
-  const filter = () => {
-    const q = search.value.trim().toLowerCase();
-    for (const o of list.querySelectorAll(".po")) o.hidden = q && !o.dataset.q.includes(q) && !o.dataset.name.includes(q);
-    // hide headings whose options are all hidden
-    let heading = null, rep = null, anyG = false, anyR = false;
-    const flush = () => { if (rep) rep.hidden = !anyR; if (heading) heading.hidden = !anyG; };
-    for (const n of list.children) {
-      if (n.classList.contains("pg")) { if (rep) rep.hidden = !anyR; if (heading) heading.hidden = !anyG; heading = n; rep = null; anyG = false; anyR = false; }
-      else if (n.classList.contains("pr")) { if (rep) rep.hidden = !anyR; rep = n; anyR = false; }
-      else if (!n.hidden) { anyG = true; anyR = true; }
-    }
-    flush();
-  };
-  const open = () => { build(); pop.hidden = false; btn.setAttribute("aria-expanded", "true"); search.value = ""; filter(); search.focus();
-    const s = list.querySelector(".po.sel"); if (s) s.scrollIntoView({ block: "center" }); };
-  const close = () => { pop.hidden = true; btn.setAttribute("aria-expanded", "false"); };
-  btn.onclick = (e) => { e.stopPropagation(); pop.hidden ? open() : close(); };
-  search.oninput = filter;
-  search.onkeydown = (e) => {
-    if (e.key === "Escape") { close(); btn.focus(); }
-    if (e.key === "Enter") { const first = [...list.querySelectorAll(".po")].find((o) => !o.hidden); if (first) first.click(); }
-  };
-  pop.addEventListener("click", (e) => e.stopPropagation());
-  document.addEventListener("click", () => { if (!pop.hidden) close(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden) close(); });
-}
-function updatePickerButton() {
-  const l = runLabel(selected);
-  document.getElementById("picker-label").textContent = l.main;
-  document.getElementById("picker-btn").title = selected;
-  document.getElementById("picker-dot").className = `pdot ${boardStatus(selected)}`;
-}
-async function chooseRun(name, push) {
-  if (!name) return;
-  selected = name;
-  if (push) {
-    const u = new URL(location.href);
-    u.searchParams.set("run", runParam(name));
-    history.pushState({ run: name }, "", u);
-  }
-  updatePickerButton();
-  const main = document.getElementById("main");
-  main.classList.add("loading");
-  const entry = indexEntries().find((e) => e.name === name);
-  try {
-    if (entry && entry.file) {
-      const r = await fetch(`/data/${encodeURIComponent(entry.file)}`, { cache: "no-store" });
-      if (r.ok) BOARDS[name] = await r.json();
-    }
-  } catch (e) { /* keep the copy that came with data.js */ }
-  if (selected !== name) return; // a newer choice won
-  main.classList.remove("loading");
-  renderRunViews();
 }
 
 // ---------------------------------------------------------------- count-up + reveal
@@ -809,36 +690,6 @@ function renderAgentCounts() {
       el("span", { class: "astate" }, count ? `${count} post${count === 1 ? "" : "s"}` : "not on this run")))));
   box.hidden = false;
 }
-function renderRaw() {
-  const sec = document.getElementById("raw");
-  const b = sel();
-  if (!b) { sec.hidden = true; return; }
-  const short = (id) => (id || "").slice(0, 8);
-  const table = (heads, rows) => rows.length
-    ? el("table", { class: "rawt" }, el("thead", {}, el("tr", {}, heads.map((h) => el("th", {}, h)))), el("tbody", {}, rows))
-    : el("p", { class: "empty" }, "None.");
-  sec.hidden = false;
-  fill(sec, el("details", { class: "raw" },
-    el("summary", {}, `Show raw board: ${b.name}`),
-    el("h4", {}, "Results"),
-    table(["ID", "Material", "Property", "Value", "Method", "Status", "Why"], liveResults(b).map((r) => el("tr", {},
-      el("td", { class: "mono" }, short(r.id)), el("td", {}, r.candidate), el("td", {}, r.property),
-      el("td", {}, fmtValue(r.value, r.units, r.uncertainty) || ""),
-      el("td", {}, [r.method && r.method.engine, r.method && r.method.model, r.method && r.method.protocol].filter(Boolean).join(" · ")),
-      el("td", {}, status(r.status)), el("td", { class: "muted" }, (r.reasons || []).join("; "))))),
-    el("h4", {}, "Open needs"),
-    table(["Need", "Kind", "Query", "Claimed by"], (b.open_needs || []).map((n) => el("tr", {},
-      el("td", { class: "mono" }, `${short(n.artifact_id)}#${n.index}`), el("td", {}, n.kind || ""), el("td", {}, n.query || ""),
-      el("td", {}, n.claimed_by || "unclaimed")))),
-    el("h4", {}, "Failed and refused runs"),
-    table(["Run", "Status", "Task", "Reason", "By"], (b.run_reports || []).map((r) => el("tr", {},
-      el("td", { class: "mono" }, short(r.id)), el("td", {}, status(r.status === "refused" ? "refused" : "failed", r.status)),
-      el("td", {}, r.task || ""), el("td", {}, r.reason || ""), el("td", {}, r.agent || "")))),
-    el("h4", {}, "Proposed, no results yet"),
-    table(["Material", "Family", "Tier", "By"], (b.proposed || []).map((c) => el("tr", {},
-      el("td", {}, c.name), el("td", {}, c.family || ""), el("td", {}, c.tier || ""), el("td", {}, c.agent || ""))))));
-}
-
 // ---------------------------------------------------------------- footer
 function renderFooter() {
   const repo = CTX.repo;
@@ -849,7 +700,7 @@ function renderFooter() {
 function renderRunViews() {
   renderMaterialsSoFar(); renderTimeline(); renderTrustSummary();
   renderTrustCards();
-  renderAgentCounts(); renderRaw();
+  renderAgentCounts();
   observeReveals();
 }
 function start() {
@@ -861,15 +712,10 @@ function start() {
   if (!location.hash) history.replaceState(null, "", `${location.pathname}${location.search}#/overview`);
   setupHero(); renderLive();
   selected = boardFromParam(new URLSearchParams(location.search).get("run")) || defaultRun();
-  renderPicker(); if (selected) updatePickerButton();
   renderHeroAnswer(); renderStats(); renderWhy(); renderBurst();
   renderBeats(); renderMeasured(); renderGa3d(); renderCatches(); renderFooter(); setupAgentsFrame();
   renderRunViews();
   showPage(false);
   window.addEventListener("hashchange", () => { showPage(true); window.scrollTo(0, 0); });
-  window.addEventListener("popstate", () => {
-    const name = boardFromParam(new URLSearchParams(location.search).get("run")) || defaultRun();
-    if (name !== selected) chooseRun(name, false);
-  });
 }
 start();

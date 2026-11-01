@@ -29,6 +29,10 @@ function setAttrs(node, attrs) {
 function addKids(node, kids) {
   for (const kid of kids.flat(Infinity)) {
     if (kid === null || kid === undefined || kid === false || kid === "") continue;
+    if (kid.srcNote) { // embed mode: no footnote numbers; the source becomes the hover text of its element
+      node.setAttribute("title", node.getAttribute("title") ? `${node.getAttribute("title")}\n${kid.srcNote}` : `Source: ${kid.srcNote}`);
+      continue;
+    }
     node.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
   }
   return node;
@@ -125,6 +129,7 @@ const SOURCE_KEYS = new Map();
 const safeUrl = (u) => (typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);
 function cite(source, url) {
   if (!source) return null;
+  if (EMBED) return { srcNote: String(source) };
   const key = `${source}\u0000${url || ""}`;
   let n = SOURCE_KEYS.get(key);
   if (!n) {
