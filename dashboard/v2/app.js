@@ -628,7 +628,9 @@ function renderCatches() {
   const acc = accuracyPoints();
   const step = (cls, label, part, extra) => el("div", { class: `ms ${cls}` }, el("span", { class: "d" }),
     el("div", { class: "lbl" }, label),
-    part && part.key ? el("div", { class: "key" }, part.key.text) : null, extra || null);
+    // older exports (before context.py added keys) still name who caught it
+    part && part.key ? el("div", { class: "key" }, part.key.text)
+      : part && part.who ? el("div", { class: "key" }, part.who.replace(/\.$/, "")) : null, extra || null);
   fill(sec,
     el("h3", { class: "sect reveal" }, C.title || "Caught by the loop"),
     el("p", { class: "intro reveal" }, C.lede || ""),
