@@ -67,9 +67,14 @@ def build_agents(board: Board, seeds: dict, alloys: list[str], *, preset: Option
     return agents
 
 
-def run_until_idle(agents: list, max_rounds: int) -> dict:
-    """Step every agent in turn until a full round does nothing. One agent's crash is recorded, not fatal."""
-    rounds, errors, t0 = 0, [], time.time()
+def run_until_idle(agents: list, max_rounds: int, until: Optional[float] = None, poll: float = 30.0,
+                   clock: Callable[[], float] = time.time, sleep: Callable[[float], None] = time.sleep) -> dict:
+    """Step every agent in turn until a full round does nothing. One agent's crash is recorded, not fatal.
+
+    With ``until`` (epoch seconds) an idle round waits ``poll`` seconds and looks again until then, so results posted
+    by agents in other processes (e.g. a second Simulator on a remote GPU) still get refereed and followed up.
+    """
+    rounds, errors, t0 = 0, [], clock()
     while rounds < max_rounds:
         rounds += 1
         did = False
@@ -80,7 +85,11 @@ def run_until_idle(agents: list, max_rounds: int) -> dict:
                 errors.append(f"round {rounds} {getattr(agent, 'name', type(agent).__name__)}: {exc!r}"[:300])
                 traceback.print_exc()
         if not did:
-            return {"stopped": "idle", "rounds": rounds, "errors": errors, "wall_min": (time.time() - t0) / 60}
+            if until is not None and clock() < until:
+                sleep(poll)
+                continue
+            return {"stopped": "idle" if until is None else "until", "rounds": rounds, "errors": errors,
+                    "wall_min": (clock() - t0) / 60}
     return {"stopped": "max_rounds", "rounds": rounds, "errors": errors, "wall_min": (time.time() - t0) / 60}
 
 
@@ -140,6 +149,9 @@ def main(argv: Optional[list[str]] = None) -> None:
     ap.add_argument("--preset", choices=["quick", "production"], default=None, help="default: production")
     ap.add_argument("--llm", choices=["inconclusive", "always", "never"], default="inconclusive")
     ap.add_argument("--max-rounds", type=int, default=10_000)
+    ap.add_argument("--until", default=None,
+                    help="keep watching the board until this UTC time (ISO, no zone) instead of stopping when idle, "
+                         "e.g. while a second Simulator in another process (scripts/run_remote_simulator.py) works")
     ap.add_argument("--dry-run", action="store_true", help="print the plan and GPU estimate; run nothing")
     args = ap.parse_args(argv)
 
@@ -162,8 +174,13 @@ def main(argv: Optional[list[str]] = None) -> None:
     runs_root = REPO_ROOT / "runs" / "science" / board.root.name
     print(f"science run on {board.root}: metals {args.metals}, alloys {args.alloys}, "
           f"organics {'no' if args.no_organics else 'yes'}, preset {args.preset or 'production'}", flush=True)
+    until = None
+    if args.until:
+        from datetime import datetime, timezone
+
+        until = datetime.fromisoformat(args.until).replace(tzinfo=timezone.utc).timestamp()
     out = run_until_idle(build_agents(board, seeds, args.alloys, preset=args.preset, llm=args.llm,
-                                      runner=subprocess_runner, runs_root=runs_root), args.max_rounds)
+                                      runner=subprocess_runner, runs_root=runs_root), args.max_rounds, until=until)
     print(f"{out['stopped']} after {out['rounds']} round(s), {out['wall_min']:.0f} min; agent errors: "
           f"{len(out['errors'])}", flush=True)
     for e in out["errors"]:
