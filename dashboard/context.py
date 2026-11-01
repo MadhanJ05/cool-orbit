@@ -1408,6 +1408,19 @@ def catches() -> dict:
                              "may not confirm a good result.",
                      "source": _cr("S27", "docs/results/classical-check-eam.md")}},
     ]
+    # One short key per step for the dashboard's mini timeline. Each key restates a value already in that step's
+    # sourced text above (same source), so the page shows it without parsing sentences or typing numbers in.
+    keys = {
+        "superheating": ("1600 ± 100 K", "SuperheatingDetectorHook", "1327 K agrees"),
+        "domain": ("MACE-MPA-0 on paraffin wax", "Premise checker", "Rerouted to classical MD"),
+        "accuracy": ("20% and 25% low", "±10% tolerance + measurements", "Never ranked"),
+        "prep": ("Tin crystal lost at 505 K", "Run gate (protocol 2)", "Reported as a failure"),
+        "approximation": ("25.3 ± 0.2 kJ/kg", "Fable adjudicator", "Labelled an underestimate"),
+        "checker": ("Al EAM 1041.4 K (+11.6%)", "Calibration gate", "Al stays under review"),
+    }
+    for case in cases:
+        for step, text in zip(("shipped", "caught", "outcome"), keys[case["id"]]):
+            case[step]["key"] = {"text": text, "source": case[step]["source"]}
     return {"eyebrow": "Caught by the loop",
             "title": "Where a clean-looking run hid a wrong assumption",
             "lede": "ALCHEMI computes exactly what it is given; it cannot tell a sound set-up from a flawed one. "

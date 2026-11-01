@@ -11,52 +11,110 @@
 <body>
   <header class="nav">
     <div class="wrap nav-inner">
-      <a class="brand" href="#overview"><span class="crescent" aria-hidden="true"></span>Cool Orbit</a>
-      <nav class="tabs" aria-label="Sections">
-        <a href="#overview">Overview</a><a href="#materials">Materials</a><a href="#trust">Trust</a><a href="#agents">Agents</a>
+      <a class="brand" href="#/overview"><span class="crescent" aria-hidden="true"></span>Cool Orbit</a>
+      <nav class="tabs" aria-label="Pages">
+        <a href="#/overview" data-page="overview">Overview</a>
+        <a href="#/materials" data-page="materials">Materials</a>
+        <a href="#/trust" data-page="trust">Trust</a>
+        <a href="#/agents" data-page="agents">Agents</a>
       </nav>
       <div class="nav-right">
-        <label class="sr-only" for="board-select">Board</label>
-        <select id="board-select" title="Results board shown in the workflow, agents and raw board"></select>
+        <div class="picker" id="picker">
+          <button id="picker-btn" class="picker-btn" type="button" aria-haspopup="dialog" aria-expanded="false" hidden>
+            <span class="pdot" id="picker-dot"></span><span id="picker-label">Run</span><span class="caret" aria-hidden="true">▾</span>
+          </button>
+          <div id="picker-pop" class="picker-pop" role="dialog" aria-label="Choose a run" hidden>
+            <input id="picker-search" type="search" placeholder="Search runs and tasks" autocomplete="off">
+            <div id="picker-list" class="picker-list"></div>
+          </div>
+        </div>
         <span id="live" class="live" hidden></span>
       </div>
     </div>
+    <nav class="tabs tabs-mobile wrap" aria-label="Pages (mobile)">
+      <a href="#/overview" data-page="overview">Overview</a><a href="#/materials" data-page="materials">Materials</a>
+      <a href="#/trust" data-page="trust">Trust</a><a href="#/agents" data-page="agents">Agents</a>
+    </nav>
   </header>
 
-  <main>
-    <section id="overview" class="hero wrap">
-      <div class="hero-text">
-        <p class="eyebrow">Thermal material discovery</p>
-        <h1>Finding the right materials to keep AI <em>cool in orbit</em></h1>
-        <p class="lede">A multi-agent system on NVIDIA ALCHEMI + Dell Pro Max GB10 that simulates, cross-checks and
-          ranks thermal-battery materials for space.</p>
-        <div class="cta">
-          <button id="replay" class="btn-dark" type="button" hidden>&#9655; Replay copper run</button>
-          <a class="link" href="#trust">See the evidence &rarr;</a>
+  <main id="main">
+    <!-- OVERVIEW -->
+    <section class="page" data-page="overview">
+      <div class="hero wrap">
+        <div class="hero-text">
+          <p class="eyebrow">Thermal material discovery</p>
+          <h1>Finding the right materials to keep AI <em>cool in orbit</em></h1>
+          <p class="lede">A multi-agent system on NVIDIA ALCHEMI + Dell Pro Max GB10 that simulates, cross-checks and
+            ranks thermal-battery materials for space.</p>
+          <div class="cta">
+            <button id="replay" class="btn-dark" type="button" hidden>&#9655; Replay copper run</button>
+            <a class="link" href="#/trust">See the evidence &rarr;</a>
+          </div>
+        </div>
+        <div class="hero-visual" id="hero-visual">
+          <div class="parallax" id="parallax">
+            <div class="float">
+              <picture id="planet-pic">
+                <source srcset="/v2/img/cool-orbit-planet.webp" type="image/webp">
+                <img id="planet-img" src="/v2/img/cool-orbit-planet.png" alt="Lavender planet with an orbiting satellite"
+                     loading="eager" width="560" height="560" decoding="async">
+              </picture>
+              <div class="css-planet" id="css-planet" aria-hidden="true" hidden>
+                <div class="planet"></div><div class="orbit"></div><div class="planet-glow"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="planet"></div><div class="orbit"></div><div class="planet-glow"></div>
+      <div class="wrap"><div id="stats" class="stats reveal"></div></div>
+      <div class="wrap grid-12 runs-row">
+        <div class="col-5 card reveal" id="materials-so-far"></div>
+        <div class="col-7 card reveal" id="timeline-card"></div>
       </div>
     </section>
 
-    <section class="wrap"><div id="stats" class="stats"></div></section>
-
-    <section id="answer" class="wrap"></section>
-
-    <section class="wrap grid-12 workflow-row">
-      <div class="col-7 card" id="workflow-card"></div>
-      <div class="col-5 card" id="results-card"></div>
+    <!-- MATERIALS -->
+    <section class="page" data-page="materials" hidden>
+      <div class="wrap page-head reveal">
+        <p class="eyebrow">Materials</p>
+        <h2>Is there something better than paraffin?</h2>
+        <p class="intro" id="materials-intro"></p>
+      </div>
+      <div class="wrap grid-12 materials-row">
+        <div class="col-7 card reveal" id="beats"></div>
+        <div class="col-5 stack">
+          <div class="card reveal" id="measured"></div>
+          <div class="card reveal ga3d-card" id="ga3d-card"></div>
+        </div>
+      </div>
     </section>
 
-    <section id="materials" class="wrap section"></section>
-    <section id="trust" class="wrap section"></section>
-    <section id="timeline" class="wrap section"></section>
-    <section id="agents" class="wrap section"></section>
-    <section id="raw" class="wrap section"></section>
+    <!-- TRUST -->
+    <section class="page" data-page="trust" hidden>
+      <div class="wrap page-head reveal">
+        <p class="eyebrow">Trust</p>
+        <h2>How a result earns trust</h2>
+        <p class="intro">A result is trusted only when all three hold. No agent can set a status.</p>
+      </div>
+      <div class="wrap"><div id="trust-cards" class="three"></div><p class="rule-line reveal">No agent can set a status. Failures are posted, never dropped.</p></div>
+      <div class="wrap" id="catches"></div>
+    </section>
+
+    <!-- AGENTS -->
+    <section class="page" data-page="agents" hidden>
+      <div class="wrap page-head reveal">
+        <p class="eyebrow">Agents</p>
+        <h2>How our agents work, in a loop</h2>
+        <p class="intro" id="agents-intro"></p>
+      </div>
+      <div class="wrap" id="flow"></div>
+      <div class="wrap" id="agent-counts"></div>
+      <div class="wrap" id="raw"></div>
+    </section>
   </main>
 
   <footer class="wrap footer" id="footer"></footer>
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <noscript><p class="wrap">This page needs JavaScript to read the board export.</p></noscript>
   <script src="/data/data.js"></script>

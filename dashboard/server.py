@@ -40,10 +40,15 @@ V2 = {"/": "v2/index.html", "/v2/app.js": "v2/app.js", "/v2/style.css": "v2/styl
       "/v2/fonts/inter-latin-var.woff2": "v2/fonts/inter-latin-var.woff2",
       "/v2/fonts/source-serif-4-latin-var.woff2": "v2/fonts/source-serif-4-latin-var.woff2",
       "/v2/fonts/source-serif-4-italic-latin-var.woff2": "v2/fonts/source-serif-4-italic-latin-var.woff2"}
+# The hero image is optional: if it isn't in the image yet, the route 404s and the page draws a CSS planet instead.
+OPTIONAL = {"/v2/img/cool-orbit-planet.webp": "v2/img/cool-orbit-planet.webp",
+            "/v2/img/cool-orbit-planet.png": "v2/img/cool-orbit-planet.png"}
+V2.update(OPTIONAL)
 STATIC = {**CLASSIC, **V2, "/classic/": "index.html",
           **{f"/classic{k}": v for k, v in CLASSIC.items()}}
 TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".woff2": "font/woff2",
-         ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8"}
+         ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8",
+         ".webp": "image/webp", ".png": "image/png"}
 DATA_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,200}\.(json|js)$")
 METADATA_TOKEN = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
 SECURITY_HEADERS = {

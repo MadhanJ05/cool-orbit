@@ -81,6 +81,8 @@ class PackagingTest(unittest.TestCase):
         dockerfile = (DASH / "Dockerfile").read_text()
         self.assertIn("COPY v2 ./v2", dockerfile)
         for route, rel in server.STATIC.items():
+            if route in server.OPTIONAL:  # the hero image may be added later; the page falls back to a CSS planet
+                continue
             self.assertTrue((DASH / rel).is_file(), f"{route} -> {rel} missing")
 
     def test_fonts_are_self_hosted_with_their_licences(self) -> None:
@@ -94,7 +96,7 @@ class NoHardcodedNumbersTest(unittest.TestCase):
     """v2/app.js must not type in data: every number shown comes from the export (the brief's rule)."""
 
     ALLOWED = {"0", "1", "2", "3", "4", "6", "8", "10", "12", "14", "15", "18", "22", "26", "34", "100", "120",
-               "60", "600", "1000", "4000", "60000", "273.15"}  # formatting, timings, minutes/hour, layout, K -> °C
+               "60", "600", "900", "1000", "4000", "60000", "273.15", "0.15"}  # formatting, timings, minutes/hour, layout (900px breakpoint, 0.15x parallax), K -> °C
 
     def test_only_formatting_and_timing_constants(self) -> None:
         src = (DASH / "v2" / "app.js").read_text()
