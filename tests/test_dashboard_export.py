@@ -11,9 +11,10 @@ import unittest
 from pathlib import Path
 
 from coolorbit.board import Board
-from coolorbit.eval.tasks import DEFAULT_TASKS_PATH, load_tasks
+from coolorbit.eval.metrics import REFERENCE_RULE
+from coolorbit.eval.tasks import DEFAULT_TASKS_PATH, TaskSet, load_tasks, seed_board
 from dashboard.demo import MARKER, build_all, build_eval
-from dashboard.export import export
+from dashboard.export import _scored_task_ids, export
 
 RULES = {
     "frozen": False,
@@ -107,6 +108,21 @@ class ExportTest(unittest.TestCase):
         self.assertEqual(set(run["arms"]), {"A", "C"})
         self.assertGreater(run["arms"]["C"]["trap_catch_rate"]["mean"], run["arms"]["A"]["trap_catch_rate"]["mean"])
         self.assertFalse(run["arms"]["A"]["cost_recorded_on_all_boards"])
+        # One board per repeat (no run records): every seeded task counts as finished, so each repeat is complete
+        # and the complete-repeats headline equals the all-repeats one. No demo answer copies a measured value.
+        self.assertEqual({(d["arm"], d["complete"]) for d in run["repeats"]}, {("A", True), ("C", True)})
+        for key in ("pre_registered", "post_hoc"):
+            self.assertEqual(run["scoring"][key]["A"]["repeats"], 1)
+            self.assertEqual(run["scoring"][key]["C"]["trap_catch_rate"], run["arms"]["C"]["trap_catch_rate"])
+        self.assertEqual(run["scoring"]["post_hoc_rules"], [REFERENCE_RULE])
+
+    def test_eval_boards_carry_both_scorecards(self) -> None:
+        a = self.boards[str(self.paths[1])]
+        self.assertIsNotNone(a["scorecard_post_hoc"])
+        self.assertEqual(a["scorecard"]["post_hoc_rules"], [])
+        self.assertEqual(len(a["scorecard_post_hoc"]["post_hoc_rules"]), 1)
+        self.assertIsNone(self.collective["scorecard_post_hoc"], "a science board has no eval tasks")
+        self.assertIsNone(a["finished"], "single-board repeats have no run records")
 
     def test_repeats_are_grouped_by_run_never_pooled(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -136,6 +152,66 @@ class ExportTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(FileNotFoundError):
                 export([Path(tmp) / "nope"], Path(tmp) / "out", rules=RULES, task_set=self.tasks)
+
+
+class PostHocAndPartialRepeatTest(unittest.TestCase):
+    """SYNTHETIC per-task boards in the runners' layout: one finished task whose shipped answer copies a measured
+    value instead of simulating (arm B in cmp-1 repeat 1), and one task still running (no run_record.json)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._tmp = tempfile.TemporaryDirectory()
+        tmp = Path(cls._tmp.name)
+        cls.tasks = load_tasks(calibration_path=tmp / "none.json")
+        rep = tmp / "eval" / "run1" / "B-r1"
+        al = Board(rep / "tier1_al_melting")
+        one = TaskSet(version=1, frozen=False, tasks=[cls.tasks.by_id()["tier1_al_melting"]])
+        req = seed_board(al, one)["tier1_al_melting"]
+        cand = al.post("worker", "candidate", {"name": "SYNTHETIC-Al", "family": "t", "tier": "discovery"},
+                       fulfills=(req, 0))
+        al.post("worker", "property_result", {
+            "candidate": "SYNTHETIC-Al", "family": "t", "tier": "discovery", "property": "melting_point",
+            "value": 933.45, "units": "K", "note": "SYNTHETIC test: a copied measured value, no simulation",
+            "method": {"engine": "none (measured reference)", "model": "none", "protocol": "copied from a file"}},
+            parents=[cand.artifact_id])
+        (al.root / "run_record.json").write_text("{}", encoding="utf-8")
+        running = Board(rep / "nvidia_lif_crystal_diffusion")
+        seed_board(running, TaskSet(version=1, frozen=False, tasks=[cls.tasks.by_id()["nvidia_lif_crystal_diffusion"]]))
+        cls.bundle = export([tmp / "eval"], tmp / "out", rules=RULES, task_set=cls.tasks,
+                            include_synthetic_in_comparison=True)
+        (cls.cmp_run,) = cls.bundle["index"]["comparison"]
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls._tmp.cleanup()
+
+    def test_finished_comes_from_the_run_record(self) -> None:
+        finished = {e["task_id"]: e["finished"] for e in self.bundle["index"]["boards"]}
+        self.assertEqual(finished, {"tier1_al_melting": True, "nvidia_lif_crystal_diffusion": False})
+
+    def test_partial_repeat_is_reported_and_kept_out_of_the_headline(self) -> None:
+        (rep,) = self.cmp_run["repeats"]
+        self.assertEqual((rep["arm"], rep["repeat"], rep["complete"]), ("B", 1, False))
+        self.assertEqual((rep["tasks_seeded"], rep["tasks_finished"]), (2, 1))
+        self.assertEqual(rep["in_progress"], ["nvidia_lif_crystal_diffusion"])
+        expected = _scored_task_ids(self.tasks)
+        self.assertEqual(rep["tasks_expected"], len(expected))
+        self.assertEqual(set(rep["not_started"]), set(expected) - {"tier1_al_melting", "nvidia_lif_crystal_diffusion"})
+        self.assertEqual(rep["pre"]["n_tasks"], 1, "scored over the finished task only")
+        for key in ("pre_registered", "post_hoc"):
+            self.assertEqual(self.cmp_run["scoring"][key]["B"]["repeats"], 0, "an incomplete repeat is not in the headline")
+        self.assertEqual(self.cmp_run["arms"]["B"]["repeats"], 1, "the all-repeats summary is unchanged")
+
+    def test_post_hoc_rule_scores_a_copied_measurement(self) -> None:
+        (rep,) = self.cmp_run["repeats"]
+        self.assertEqual(rep["pre"]["trap_catch_rate"], 1.0, "pre-registered: counted as an avoided trap")
+        self.assertEqual(rep["post"]["trap_catch_rate"], 0.0, "post-hoc: a reported reference is not a catch")
+        self.assertEqual((rep["pre"]["reported_reference"], rep["post"]["reported_reference"]), (0, 1))
+        al = next(b for b in self.bundle["boards"].values() if b["task_id"] == "tier1_al_melting")
+        pre = {o["task_id"]: o for o in al["scorecard"]["outcomes"]}["tier1_al_melting"]
+        post = {o["task_id"]: o for o in al["scorecard_post_hoc"]["outcomes"]}["tier1_al_melting"]
+        self.assertEqual((pre["disposition"], post["disposition"]), ("answered", "reported_reference"))
+        self.assertEqual(post["trap_outcome"], "reported_reference")
 
 
 class DemoSafetyTest(unittest.TestCase):

@@ -3,99 +3,117 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b1220">
   <meta name="description" content="Cool Orbit: AI agents on NVIDIA ALCHEMI find and cross-check thermal battery materials to cool orbital data centers.">
-  <title>Cool Orbit · thermal batteries for orbital AI</title>
+  <title>Cool Orbit console</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <a class="skip" href="#results">Skip to the results</a>
+  <a class="skip" href="#main">Skip to the content</a>
 
-  <header class="masthead">
+  <header class="topbar">
     <div class="wrap bar">
-      <a class="brand" href="#top">Cool Orbit</a>
-      <nav aria-label="Sections">
-        <a href="#burst">Wax vs metals</a>
-        <a href="#how">How it works</a>
-        <a href="#results">Results</a>
-        <a href="#compare">One agent vs many</a>
-        <a href="#failures">Failures</a>
+      <div class="brand-block">
+        <a class="brand" href="#overview" aria-label="Cool Orbit, overview">
+          <svg class="mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <ellipse cx="12" cy="12" rx="10.5" ry="4.6" transform="rotate(-28 12 12)"></ellipse>
+            <circle class="core" cx="12" cy="12" r="3.2"></circle>
+            <circle class="sat" cx="20.4" cy="7.6" r="1.7"></circle>
+          </svg>
+          <span>Cool Orbit</span>
+        </a>
+        <p class="data-age" id="data-age">Waiting for a board export</p>
+      </div>
+
+      <nav class="tabs" role="tablist" aria-label="Dashboard sections" id="tabs">
+        <a class="tab" role="tab" id="tab-overview" href="#overview" aria-controls="overview" aria-selected="true">Overview</a>
+        <a class="tab" role="tab" id="tab-agents" href="#agents" aria-controls="agents" aria-selected="false" tabindex="-1">Agents</a>
+        <a class="tab" role="tab" id="tab-results" href="#results" aria-controls="results" aria-selected="false" tabindex="-1">Results</a>
+        <a class="tab" role="tab" id="tab-comparison" href="#comparison" aria-controls="comparison" aria-selected="false" tabindex="-1">Comparison</a>
+        <a class="tab" role="tab" id="tab-failures" href="#failures" aria-controls="failures" aria-selected="false" tabindex="-1">Failures</a>
       </nav>
+
+      <div class="pills" id="pills"><span class="pill" id="live-pill"><span class="dot" aria-hidden="true"></span>No data</span></div>
+
+      <div class="clock">
+        <span class="t" id="countdown" role="timer" aria-label="Time to the 1 PM deadline">T-00:00:00</span>
+        <span class="lbl" id="countdown-label">to the 1 PM deadline</span>
+      </div>
     </div>
   </header>
 
-  <main id="top">
+  <main id="main">
     <div id="banners" class="wrap banners"></div>
 
-    <section class="hero" aria-labelledby="question">
-      <div class="wrap hero-grid">
-        <div class="hero-main">
-          <p class="eyebrow">ScienceClaw hackathon · NVIDIA ALCHEMI on the Dell Pro Max GB10</p>
-          <h1 id="question">Which thermal battery best buffers bursty AI-chip heat in orbit, and can we trust the simulations?</h1>
-          <div id="hero-answer">
-            <p class="answer">Loading the latest export. If this message stays, run
-              <code>python -m dashboard.export --board boards/&lt;id&gt;</code> so that <code>dashboard/data/data.js</code> exists.</p>
-          </div>
-          <div id="hero-why"></div>
+    <section class="panel" id="overview" role="tabpanel" aria-labelledby="tab-overview" data-tab="overview">
+      <div class="wrap">
+        <div class="ov-grid">
+          <article class="card ov-q">
+            <p class="eyebrow">The question</p>
+            <h1 id="question">Which thermal battery best buffers bursty AI-chip heat in orbit, and can we trust the simulations?</h1>
+            <div id="hero-answer">
+              <p class="answer">Loading the latest export. If this message stays, run
+                <code>python -m dashboard.export --board boards/&lt;id&gt;</code> so that <code>dashboard/data/data.js</code> exists.</p>
+            </div>
+            <div id="hero-status"></div>
+          </article>
+          <aside class="card ov-why" aria-labelledby="why-h">
+            <p class="eyebrow" id="why-h">Why it matters</p>
+            <div id="hero-why"></div>
+          </aside>
         </div>
-        <aside id="hero-status" class="hero-side" aria-label="Live status of the results board"></aside>
+
+        <article class="card burst" aria-labelledby="burst-h">
+          <header class="sec-head">
+            <p class="eyebrow">The trade-off</p>
+            <h2 id="burst-h">Wax vs metals for a 15-minute burst</h2>
+            <p class="lede" id="burst-lede">How much thermal battery does one compute burst need, and what does the whole device weigh?</p>
+          </header>
+          <div id="burst-body"></div>
+        </article>
       </div>
     </section>
 
-    <section class="sec" id="burst" aria-labelledby="burst-h">
+    <section class="panel" id="agents" role="tabpanel" aria-labelledby="tab-agents" data-tab="agents" hidden>
       <div class="wrap">
-        <header class="sec-head">
-          <p class="eyebrow">The trade-off</p>
-          <h2 id="burst-h">Wax vs metals for a 15-minute burst</h2>
-          <p class="lede" id="burst-lede">How much thermal battery does one compute burst need, and what does the whole device weigh?</p>
+        <header class="tab-head">
+          <p class="eyebrow">The collective</p>
+          <h2>How the agents wrap around NVIDIA ALCHEMI</h2>
+          <p class="lede" id="agents-lede">ALCHEMI is the engine. The agents decide what is worth running, refuse what can't be measured, and try to prove every answer wrong before the trust rule lets it count.</p>
         </header>
-        <div id="burst-body"></div>
+        <div id="agents-body"></div>
       </div>
     </section>
 
-    <section class="sec" id="how" aria-labelledby="how-h">
+    <section class="panel" id="results" role="tabpanel" aria-labelledby="tab-results" data-tab="results" hidden>
       <div class="wrap">
-        <header class="sec-head">
-          <p class="eyebrow">Method</p>
-          <h2 id="how-h">How it works on NVIDIA ALCHEMI</h2>
-          <p class="lede">A team of agents with no boss. Each owns a different job or checking method. They coordinate
-            only through a shared results board, and a result is trusted only when independent evidence agrees.</p>
-        </header>
-        <div id="how-body"></div>
-      </div>
-    </section>
-
-    <section class="sec" id="results" aria-labelledby="results-h">
-      <div class="wrap">
-        <header class="sec-head">
+        <header class="tab-head">
           <p class="eyebrow">Evidence</p>
-          <h2 id="results-h">Results by trust level</h2>
-          <p class="lede">Every simulated value next to the measured one, with the referees' reasons. Known materials are
-            checked against measurements; anything nobody has measured is labelled PREDICTION.</p>
+          <h2>Results by trust level</h2>
+          <p class="lede">Every simulated value next to the measured one, with the referees' reasons. Known materials are checked against measurements; anything nobody has measured is labelled PREDICTION.</p>
         </header>
         <div id="results-body"></div>
       </div>
     </section>
 
-    <section class="sec" id="compare" aria-labelledby="compare-h">
+    <section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-comparison" data-tab="comparison" hidden>
       <div class="wrap">
-        <header class="sec-head">
+        <header class="tab-head">
           <p class="eyebrow">Collective capability</p>
-          <h2 id="compare-h">Single agent vs pipeline vs our collective</h2>
-          <p class="lede">The same tasks, budget and tools for each set-up, including NVIDIA's own traps: an ill-posed
-            property, thermostat-damped diffusion and superheated crystals. Does a team of referees catch what one agent ships?</p>
+          <h2>Single agent vs pipeline vs our collective</h2>
+          <p class="lede">The same tasks, budget and tools for each set-up, including NVIDIA's own traps: an ill-posed property, thermostat-damped diffusion and superheated crystals. Does a team of referees catch what one agent ships?</p>
         </header>
         <div id="compare-body"></div>
       </div>
     </section>
 
-    <section class="sec" id="failures" aria-labelledby="failures-h">
+    <section class="panel" id="failures" role="tabpanel" aria-labelledby="tab-failures" data-tab="failures" hidden>
       <div class="wrap">
-        <header class="sec-head">
+        <header class="tab-head">
           <p class="eyebrow">Reported, not hidden</p>
-          <h2 id="failures-h">What failed</h2>
-          <p class="lede">Failed runs, flagged results and methods that did not hold up. Failures are evidence, so they
-            stay on the page.</p>
+          <h2>What failed</h2>
+          <p class="lede">Failed runs, flagged results, independent methods that did not hold up, and runs refused before they started. Failures are evidence, so they stay on the page.</p>
         </header>
         <div id="failures-body"></div>
       </div>
@@ -105,7 +123,7 @@
   <footer class="foot">
     <div class="wrap foot-grid">
       <div>
-        <p class="brand">Cool Orbit</p>
+        <p class="brand foot-brand">Cool Orbit</p>
         <p><strong>We simulate and rank; we don't claim new materials.</strong> AI force fields have errors, so we
           measure them against data and report them, failures included.</p>
         <p>Every status on this page is derived by the trust rule from the evidence on the results board; no agent can

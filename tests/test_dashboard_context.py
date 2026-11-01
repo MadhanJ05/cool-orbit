@@ -16,8 +16,8 @@ from pathlib import Path
 
 from coolorbit.board import Board
 from coolorbit.eval.tasks import load_tasks
-from dashboard.context import (BURST_INPUTS, DEFAULT_SCENARIO, SCHEMA, build_context, burst, classical_rows,
-                               load_burst_calc)
+from dashboard.context import (BURST_INPUTS, DEFAULT_SCENARIO, LLM_ROLES, REPO, SCHEMA, SCOUT_SEEDS, build_context,
+                               burst, classical_rows, load_burst_calc, short_model_name)
 from dashboard.demo import build_all
 from dashboard.export import _scored_task_ids, export
 
@@ -201,6 +201,89 @@ class ClassicalGateTest(unittest.TestCase):
         self.assertFalse(rows["Xx"]["counts"], "no measured value: cannot be calibrated, so never counted")
         self.assertEqual(rows["Ga"]["status"], "dropped")
         self.assertEqual(unsourced_numbers(list(rows.values())), [])
+
+
+class AgentGraphTest(unittest.TestCase):
+    """The Agents tab's description of who does what around ALCHEMI must match the code it describes."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.ctx = build_context()
+        cls.graph = cls.ctx["agent_graph"]
+        cls.nodes = {n["id"]: n for n in cls.graph["nodes"]}
+        cls.roles = json.loads(LLM_ROLES.read_text(encoding="utf-8"))["roles"]
+
+    def test_short_model_names(self) -> None:
+        self.assertEqual(short_model_name("claude-opus-5-5"), "Opus 5.5")
+        self.assertEqual(short_model_name("claude-fable-5-1"), "Fable 5.1")
+        self.assertEqual(short_model_name("gpt-x"), "gpt-x")
+        self.assertIsNone(short_model_name(None))
+
+    def test_models_come_from_llm_roles(self) -> None:
+        for nid, role in (("premise", "premise_checker"), ("llm", "referee_llm_audit"),
+                          ("adjudicator", "adjudicator"), ("worker", "arm_baseline")):
+            model = self.roles[role]["model"]
+            self.assertEqual(self.nodes[nid]["model"]["id"], model, nid)
+            self.assertEqual(self.nodes[nid]["tag"], short_model_name(model).upper(), nid)
+        for nid in ("scouts", "simulator", "alchemi", "rules", "classical", "librarian", "ranker", "trust", "board"):
+            self.assertIsNone(self.nodes[nid]["model"], f"{nid}: its code makes no LLM call")
+
+    def test_board_agent_names_are_the_names_the_code_posts_under(self) -> None:
+        expect = {  # node: (agent name, file that defines it, the defining text)
+            "premise": ("referee_premise", "coolorbit/agents/premise.py", 'AGENT_NAME = "referee_premise"'),
+            "rules": ("referee_rules", "coolorbit/agents/referee_rules.py", 'AGENT_NAME = "referee_rules"'),
+            "llm": ("referee_llm", "coolorbit/agents/referee_llm.py", 'AGENT_NAME = "referee_llm"'),
+            "adjudicator": ("adjudicator", "coolorbit/agents/referee_llm.py", 'ADJUDICATOR_NAME = "adjudicator"'),
+            "librarian": ("librarian", "coolorbit/agents/librarian.py", 'AGENT_NAME = "librarian"'),
+            "ranker": ("ranker", "coolorbit/agents/ranker.py", 'AGENT_NAME = "ranker"'),
+            "classical": ("referee_classical", "scripts/post_classical_checks.py", 'AGENT = "referee_classical"'),
+            "worker": ("worker_cc", "scripts/run_arm_c.py", 'WORKER = "worker_cc"'),
+            "simulator": ("simulator_gb10", "coolorbit/sim/simulator_agent.py", 'name: str = "simulator_gb10"'),
+        }
+        for nid, (agent, path, text) in expect.items():
+            self.assertEqual(self.nodes[nid]["agents"], [agent], nid)
+            self.assertIn(text, (REPO / path).read_text(encoding="utf-8"), path)
+        seeds = json.loads(SCOUT_SEEDS.read_text(encoding="utf-8"))["scouts"]
+        self.assertEqual(set(self.nodes["scouts"]["agents"]), set(seeds) | {"scout_alloys"})
+        self.assertIn('AGENT_NAME = "scout_alloys"',
+                      (REPO / "coolorbit/agents/alloy_scout.py").read_text(encoding="utf-8"))
+
+    def test_rows_edges_and_code_paths(self) -> None:
+        rows = {r["id"] for r in self.graph["rows"]}
+        self.assertEqual(len(self.nodes), len(self.graph["nodes"]), "node ids are unique")
+        for n in self.graph["nodes"]:
+            self.assertIn(n["row"], rows, n["id"])
+            self.assertTrue(n["source"].strip(), n["id"])
+            self.assertTrue(n["code"], n["id"])
+            for path in n["code"]:
+                self.assertTrue((REPO / path).exists(), f"{n['id']}: {path}")
+        for e in self.graph["edges"]:
+            self.assertIn(e["from"], set(self.nodes) | rows, e["id"])
+            self.assertIn(e["to"], set(self.nodes) | rows, e["id"])
+
+    def test_alchemi_chips_are_imports_our_code_really_makes(self) -> None:
+        alchemi = self.nodes["alchemi"]
+        names = {i["name"] for i in alchemi["imports"]}
+        self.assertTrue({"NPT", "MACEWrapper", "AtomicData", "Batch", "NeighborListHook", "DynamicsStage"} <= names)
+        for i in alchemi["imports"]:
+            self.assertTrue(i["module"].startswith("nvalchemi"), i)
+            for path in i["files"]:
+                text = (REPO / path).read_text(encoding="utf-8")
+                self.assertIn(f"from {i['module']} import", text, i["name"])
+                self.assertIn(i["name"], text)
+        t = alchemi["throughput"]
+        self.assertGreater(t["value"], 0)
+        self.assertIn("GB10_ATOM_STEPS_PER_S", t["source"])
+
+    def test_case_findings_and_deadline(self) -> None:
+        case = self.graph["case"]
+        self.assertEqual((case["candidate"], case["property"]), ("BiInSn", "latent_heat"))
+        self.assertIn("S24", case["source"])
+        findings = self.ctx["comparison_findings"]
+        self.assertTrue(findings["url"].startswith("https://"))
+        self.assertTrue((REPO / "docs/results/comparison-cmp1.md").exists())
+        self.assertEqual(self.ctx["deadline"]["iso"], "2026-11-01T18:00:00Z")
+        self.assertIn("CLAUDE.md", self.ctx["deadline"]["source"])
 
 
 class ExportCarriesContextTest(unittest.TestCase):

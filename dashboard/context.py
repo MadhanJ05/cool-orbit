@@ -7,9 +7,16 @@ GB10 push loop publishes it together with the boards:
   configs/trust_rules.json                              the frozen tolerances (the pre-registration)
   configs/llm_roles.json                                which Claude model each agent role uses
   coolorbit/agents/ranker_config.json                   the operating window
+  coolorbit/agents/scout_seeds.json                     the Scouts (one per material family)
+  coolorbit/sim/melting.py, coolorbit/hooks/superheating.py   the ALCHEMI (nvalchemi) APIs our code imports
   data/calibration/tier1.json                           measured values (classical-check gate, hook control)
   runs/classical/<run>/metals/<El>/analysis_{coexistence,latent}.json   classical MD (MEAM/LAMMPS) checks
   docs/pitch/outline.md (claims register)               wording and sources of the framing lines (S1, S2, ...)
+  docs/results/comparison-cmp1.md                       the written findings of comparison run cmp-1, repeat 1
+
+``agent_graph`` describes the Agents tab: who does what around ALCHEMI, the model each role uses, the flows between
+them, and the real case the page replays from the exported board. Live counts and statuses are not here: the page
+derives them from the exported boards.
 
 Rule (tested in tests/test_dashboard_context.py): every dict in the context that holds a number also carries a
 non-empty ``source``. A material with any unsourced burst input is listed under ``skipped`` with what is missing,
@@ -36,6 +43,8 @@ LLM_ROLES = REPO / "configs" / "llm_roles.json"
 RANKER_CONFIG = REPO / "coolorbit" / "agents" / "ranker_config.json"
 CALIBRATION = REPO / "data" / "calibration" / "tier1.json"
 MELTING_PY = REPO / "coolorbit" / "sim" / "melting.py"
+HOOK_PY = REPO / "coolorbit" / "hooks" / "superheating.py"
+SCOUT_SEEDS = REPO / "coolorbit" / "agents" / "scout_seeds.json"
 CLASSICAL_ROOT = REPO / "runs" / "classical"
 # Runs in priority order: each element is read from the first run that has it (the refined Bi bracket and Bi's
 # latent heat are in meam-bi-refine; In and Sn's widest brackets are in meam-1).
@@ -47,6 +56,7 @@ DEFAULT_SCENARIO = {"power_W": 1000.0, "minutes": 15.0, "dT_K": 10.0, "fin_mm": 
 
 OUTLINE = "docs/pitch/outline.md"
 MEMO = "docs/chemistry-lead-memo-2026-10-31.md"
+CMP1_DOC = "docs/results/comparison-cmp1.md"
 BURST_SRC = "scripts/burst_calc.py evaluate() with data/burst/inputs.json"
 RULES_SRC = "configs/trust_rules.json (pre-registered by the chemistry lead, " + MEMO + ")"
 PREREGISTRATION = {
@@ -134,6 +144,14 @@ def model_name(model_id: Optional[str]) -> Optional[str]:
         return None
     m = re.fullmatch(r"claude-([a-z]+)-(\d+)-(\d+)", model_id)
     return f"Claude {m.group(1).capitalize()} {m.group(2)}.{m.group(3)}" if m else model_id
+
+
+def short_model_name(model_id: Optional[str]) -> Optional[str]:
+    """'claude-opus-5-5' -> 'Opus 5.5' (the Agents tab's box labels)."""
+    if not model_id:
+        return None
+    m = re.fullmatch(r"claude-([a-z]+)-(\d+)-(\d+)", model_id)
+    return f"{m.group(1).capitalize()} {m.group(2)}.{m.group(3)}" if m else model_id
 
 
 # --------------------------------------------------------------------------- the question
@@ -471,50 +489,381 @@ def methods(rules: dict, calibration: dict, classical_root: Path = CLASSICAL_ROO
     ]
 
 
-# --------------------------------------------------------------------------- agents, pipeline, trust rule
+# --------------------------------------------------------------------------- the Agents tab: who does what around ALCHEMI
 
-AGENTS = [  # (id, name, what it does, llm role in configs/llm_roles.json or None, engine when no LLM)
-    ("scouts", "Scouts", "One per material family. Propose candidates and post simulation requests.", "scout", None),
-    ("premise", "Premise checker", "Before any run: is this property measurable with this method, model and "
-                                   "timescale? Unsure cases go to the adjudicator.", "premise_checker", None),
-    ("simulator", "Simulator", "Claims requests and runs ALCHEMI + MACE-MPA-0 on the GB10 GPU; posts every result "
-                               "with its method, and every failure as a run report.", None, "code + GB10 GPU"),
-    ("rules", "Rule referee", "Method audit by rules: single-phase heating, Langevin for transport, out-of-domain "
-                              "model, timestep, box size.", None, "rules, no LLM"),
-    ("llm_referee", "LLM referee", "Audits every result's method for subtler errors.", "referee_llm_audit", None),
-    ("classical", "Classical referee", "Posts LAMMPS/MEAM melting points as independent checks, only from potentials "
-                                       "that recover the measured value.", None, "LAMMPS on the GB10 CPU"),
-    ("adjudicator", "Adjudicator", "Settles referee disagreements and premise questions the others can't decide.",
-     "adjudicator", None),
-    ("librarian", "Librarian", "Supplies measured values with their sources (data/calibration/tier1.json).",
-     "librarian", None),
-    ("ranker", "Ranker", "Keeps the shortlist: trusted results only, inside the operating window, most heat per "
-                         "kilogram first.", None, "code"),
-]
-
-PIPELINE = [
-    {"title": "Propose", "text": "Scouts post candidates and simulation requests to the board.", "agents": ["scouts"]},
-    {"title": "Premise check", "text": "Is the property measurable with this method and timescale?",
-     "agents": ["premise", "adjudicator"]},
-    {"title": "Simulate on the GB10", "text": "ALCHEMI + MACE-MPA-0, batched on the GPU.", "agents": ["simulator"]},
-    {"title": "Try to prove it wrong", "text": "Rule audit, LLM audit, classical MD and measured values; disputes go "
-                                               "to the adjudicator.",
-     "agents": ["rules", "llm_referee", "classical", "librarian", "adjudicator"]},
-    {"title": "Trust rule", "text": "The status is derived from the evidence. No agent can set it.", "agents": []},
-    {"title": "Shortlist", "text": "Trusted results only, inside the operating window.", "agents": ["ranker"]},
-]
+# Every line of text below paraphrases the docstring or code of the file named in its "source".
+NVALCHEMI_IMPORT = re.compile(r"^[ \t]*from[ \t]+(nvalchemi[\w.]*)[ \t]+import[ \t]+([^\n#]+)", re.MULTILINE)
+ALCHEMI_WHAT = {  # what each imported nvalchemi name does in OUR code (read in coolorbit/sim/melting.py, hooks/)
+    "NPT": ("dynamics", "Batched NPT dynamics: one temperature per system, all systems in one GPU job; isotropic or "
+                        "anisotropic barostat (npt() in melting.py)."),
+    "NVTLangevin": ("dynamics", "Langevin NVT. Used only to melt and quench the preparation boxes (nvt() in melting.py); "
+                               "no reported number is measured under it."),
+    "MACEWrapper": ("model", "Loads the MACE-MPA-0 checkpoint (medium-mpa-0) with cuEquivariance kernels in float32, "
+                             "returning energies, forces and stress (load_model() in melting.py)."),
+    "AtomicData": ("data", "One atomic system as a graph: positions, cell, species, velocities."),
+    "Batch": ("data", "Many systems batched together for the GPU (one per trial temperature)."),
+    "AtomCategory": ("data", "Marks atoms as frozen or mobile (the crystal half of a two-phase box)."),
+    "DynamicsStage": ("hooks", "The points in every step where hooks run (BEFORE_COMPUTE, AFTER_STEP, ...)."),
+    "NeighborListHook": ("hooks", "Rebuilds MACE's neighbour list before every force call."),
+    "WrapPeriodicHook": ("hooks", "Wraps atoms back into the periodic cell after each update."),
+    "FreezeAtomsHook": ("hooks", "Holds the crystal half fixed while the other half is melted."),
+    "NaNDetectorHook": ("hooks", "Checks the run for NaNs every 100 steps."),
+    "kinetic_energy_per_graph": ("hooks", "Per-system kinetic energy, for the temperature (a helper in "
+                                          "nvalchemi.dynamics.hooks._utils)."),
+    "KB_EV": ("hooks", "Boltzmann constant in eV/K."),
+}
+ALCHEMI_GROUPS = ("dynamics", "model", "data", "hooks")
 
 
-def agents(roles: dict) -> list[dict]:
-    out = []
-    for aid, name, does, role, engine in AGENTS:
-        cfg = (roles.get("roles") or {}).get(role) if role else None
-        out.append({"id": aid, "name": name, "does": does,
-                    "model": model_name(cfg.get("model")) if cfg else None,
-                    "engine": engine if not cfg else None,
-                    "source": ("configs/llm_roles.json (role " + role + ")") if cfg else
-                              "coolorbit/agents/ and scripts/post_classical_checks.py (no LLM role in configs/llm_roles.json)"})
+def alchemi_imports(paths: tuple[Path, ...] = (MELTING_PY, HOOK_PY)) -> list[dict]:
+    """Every name our code imports from nvalchemi (the ALCHEMI Toolkit), read from the source files themselves."""
+    found: dict[str, dict] = {}
+    for path in paths:
+        if not Path(path).exists():
+            continue
+        for module, names in NVALCHEMI_IMPORT.findall(Path(path).read_text(encoding="utf-8")):
+            for raw in names.strip().strip("()").split(","):
+                name = raw.strip().split(" as ")[0].strip()
+                if not name:
+                    continue
+                group, what = ALCHEMI_WHAT.get(name, ("hooks", f"imported from {module}"))
+                entry = found.setdefault(name, {"name": name, "module": module, "group": group, "what": what,
+                                                "files": []})
+                if _rel(Path(path)) not in entry["files"]:
+                    entry["files"].append(_rel(Path(path)))
+    out = sorted(found.values(), key=lambda e: (ALCHEMI_GROUPS.index(e["group"]) if e["group"] in ALCHEMI_GROUPS
+                                                else len(ALCHEMI_GROUPS), e["name"].lower()))
+    for e in out:
+        e["source"] = f"from {e['module']} import {e['name']} in " + ", ".join(e["files"])
     return out
+
+
+def scouts() -> list[dict]:
+    """The Scouts: one per family in coolorbit/agents/scout_seeds.json, plus the alloy Scout (its own module)."""
+    seeds = _read_json(SCOUT_SEEDS).get("scouts", {}) if SCOUT_SEEDS.exists() else {}
+    out = []
+    for name, cfg in seeds.items():
+        cands = cfg.get("candidates", [])
+        out.append({"agent": name, "label": name.removeprefix("scout_").replace("_", " "),
+                    "families": sorted({c["family"] for c in cands if c.get("family")}),
+                    "enabled": bool(cfg.get("enabled", True)), "general": bool(cfg.get("general")),
+                    "budget": cfg.get("budget"), "seeds": len(cands),
+                    "source": "coolorbit/agents/scout_seeds.json"})
+        if name == "scout_metals":
+            out.append({"agent": "scout_alloys", "label": "alloys", "families": ["low_melting_alloy"],
+                        "enabled": True, "general": False, "budget": None, "seeds": None,
+                        "source": "coolorbit/agents/alloy_scout.py (its candidates are the low_melting_alloy records "
+                                  "in data/calibration/tier1.json)"})
+    return out
+
+
+def _role_model(roles: dict, role: str) -> Optional[dict]:
+    cfg = (roles.get("roles") or {}).get(role) or {}
+    if not cfg.get("model"):
+        return None
+    return {"id": cfg["model"], "name": short_model_name(cfg["model"]), "full_name": model_name(cfg["model"]),
+            "role": role, "effort": cfg.get("effort"), "source": f"configs/llm_roles.json (role {role})"}
+
+
+GRAPH_ROWS = [
+    {"id": "steers", "label": "Steers", "hue": "steer"},
+    {"id": "proposes", "label": "Proposes", "hue": "propose"},
+    {"id": "gates", "label": "Gates", "hue": "gate"},
+    {"id": "simulates", "label": "Simulates", "hue": "sim"},
+    {"id": "checks", "label": "Tries to prove it wrong", "hue": "check"},
+    {"id": "keeps", "label": "Keeps", "hue": "keep"},
+]
+
+GRAPH_EDGES = [  # (id, from, to, label, kind, what carries it). Agents never message each other: see "via".
+    ("e_seed", "humans", "scouts", "seeds · budgets", "config", "coolorbit/agents/scout_seeds.json (a file people edit)"),
+    ("e_prereg", "humans", "trust", "frozen tolerances", "config", "configs/trust_rules.json, frozen in commit 2851934"),
+    ("e_req_prem", "scouts", "premise", "requests", "flow", "a need on a candidate (property_result)"),
+    ("e_req_sim", "scouts", "simulator", "requests", "flow", "a need on a candidate, claimed by the Simulator"),
+    ("e_go", "premise", "worker", "go / refuse", "flow", "premise_check (arm C's worker waits for it)"),
+    ("e_jobs", "simulator", "alchemi", "jobs", "flow", "one subprocess per job: python -m coolorbit.sim.melting"),
+    ("e_res", "simulator", "checks", "results", "bus", "property_result and run_report artifacts"),
+    ("e_res_w", "worker", "checks", "arm C", "bus", "property_result and run_report artifacts (arm C only)"),
+    ("e_dispute", "llm", "adjudicator", "disputes", "flow", "method audits that disagree"),
+    ("e_dispute_r", "rules", "adjudicator", "", "flow", "method audits that disagree"),
+    ("e_checks", "checks", "board", "audits · rulings · checks · measured", "bus",
+     "check and reference_value artifacts (one labelled drop per referee)"),
+    ("e_evidence", "board", "trust", "evidence", "flow", "the board snapshot"),
+    ("e_status", "trust", "ranker", "trusted", "flow", "the derived status of each result (trusted only)"),
+]
+
+
+def agent_graph(roles: dict, rules: dict, ranker: dict) -> dict:
+    win = ranker.get("window_K") or {}
+    lo, hi = win.get("min"), win.get("max")
+    window_text = f"{lo:g}–{hi:g} K" if lo is not None and hi is not None else "the operating window"
+    n_reject = rules.get("rejection_min_referees", 2)
+    throughput = _gb10_throughput()
+    audit_path = REPO / "coolorbit" / "agents" / "audit_rules.json"
+    audit_frozen = bool(_read_json(audit_path).get("frozen")) if audit_path.exists() else False
+    scout_role = _role_model(roles, "scout")
+    librarian_role = _role_model(roles, "librarian")
+    unused = ("configs/llm_roles.json defines a '{role}' role ({model}), but this agent's code makes no LLM call: "
+              "{why}")
+
+    def node(nid, row, tag, role, name, agents, line, does, source, *, model=None, engine=None, inputs=(),
+             outputs=(), code=(), note=None, chips=None, **extra):
+        return {"id": nid, "row": row, "tag": tag, "role": role, "name": name, "agents": list(agents), "line": line,
+                "does": does, "model": model, "engine": engine, "inputs": list(inputs), "outputs": list(outputs),
+                "code": list(code), "note": note, "chips": chips or [], "source": source, **extra}
+
+    def tag(model, fallback):
+        return model["name"].upper() if model else fallback
+
+    premise_m = _role_model(roles, "premise_checker")
+    llm_m = _role_model(roles, "referee_llm_audit")
+    adj_m = _role_model(roles, "adjudicator")
+    worker_m = _role_model(roles, "arm_baseline")
+    nodes = [
+        node("humans", "steers", "TEAM", "STEERS", "The team (people)", [],
+             "pre-register · decide · approve",
+             "People steer; agents do the work. Before any comparison run the team froze the trust tolerances, the "
+             "8-task comparison set and the operating window. They decide the open questions (the operating window, "
+             "whether to include solid-solid PCMs), curate the Scouts' seed lists and approve paid GPU time.",
+             PREREGISTRATION["source"] + "; CLAUDE.md sections 14 and 15; coolorbit/agents/ranker_config.json",
+             engine="people, no board posts",
+             inputs=["the results, failures and comparison on this dashboard"],
+             outputs=["configs/trust_rules.json (frozen)", "coolorbit/eval/tasks.json (frozen task set)",
+                      "coolorbit/agents/ranker_config.json (operating window)", "coolorbit/agents/scout_seeds.json"],
+             code=["configs/trust_rules.json", "coolorbit/eval/tasks.json", "coolorbit/agents/ranker_config.json"],
+             chips=[{"text": f"pre-registered · {PREREGISTRATION['commit']}", "source": PREREGISTRATION["source"]},
+                    {"text": f"window {window_text}",
+                     "source": "coolorbit/agents/ranker_config.json (decided 2026-10-31, " + MEMO + ")"}]),
+        node("scouts", "proposes", "CODE", "SCOUTS", "Scouts", [s["agent"] for s in scouts()],
+             "one per material family · candidates + requests",
+             "Each Scout owns one material family: it posts candidates within its budget, sends each to an engine "
+             "that can handle it (ALCHEMI for inorganic crystals, classical MD for molecular organics) and asks for "
+             "the latent heat once a referee has passed a melting point. The alloy Scout takes its alloys from the "
+             "sourced calibration set and asks for the latent heat at the measured melting point. In comparison runs "
+             "a Scout answers only tasks about its own materials; scout_general takes the rest.",
+             "coolorbit/agents/scout.py; coolorbit/agents/alloy_scout.py; coolorbit/agents/scout_seeds.json",
+             engine="code, no LLM call",
+             inputs=["seed lists (scout_seeds.json; alloys from data/calibration/tier1.json)",
+                     "comparison task requests", "audited melting points on the board"],
+             outputs=["candidate", "simulation requests (needs on the candidate)"],
+             code=["coolorbit/agents/scout.py", "coolorbit/agents/alloy_scout.py", "coolorbit/agents/scout_seeds.json"],
+             note=unused.format(role="scout", model=scout_role["name"], why="its candidates come from "
+                                "coolorbit/agents/scout_seeds.json and data/calibration/tier1.json.")
+             if scout_role else None,
+             scouts=scouts()),
+        node("premise", "gates", tag(premise_m, "CODE"), "PREMISE CHECK", "Premise checker", ["referee_premise"],
+             "measurable at all? rules first, Claude if unsure",
+             "Before a run: is this property well-defined and measurable with this method, model, size and timescale? "
+             "Rules decide what they can (diffusion in a perfect crystal at MD timescales, single-phase heating, a "
+             "thermostat on a transport property, an inorganic-only model on a molecular organic). Claude is asked "
+             "only when the rules can't decide, and the adjudicator when Claude is unsure. It advises rather than "
+             "claims: a fail is carried onto any result made from that request, so the trust rule flags it. In arm C "
+             "the generalist worker waits for its verdict.",
+             "coolorbit/agents/premise.py; scripts/run_arm_c.py (WorkerDispatcher._premise)",
+             model=premise_m, inputs=["every simulation request and comparison task on the board"],
+             outputs=["premise_check: pass / fail / inconclusive"], code=["coolorbit/agents/premise.py"]),
+        node("simulator", "simulates", "GB10 GPU", "SIMULATOR", "Simulator", ["simulator_gb10"],
+             "claims requests · one GPU job at a time",
+             "Owns the GPU queue and nothing else. It claims the requests it can compute (melting point, latent "
+             "heat), runs each as one ALCHEMI job in its own process, and posts a result with full method metadata, "
+             "a failed run as a run report with a retry request (a shifted bracket or a longer run), or a refusal: "
+             "MACE-MPA-0 is out of its training domain for molecular organics, so those are rerouted to classical MD.",
+             "coolorbit/sim/simulator_agent.py", engine="code, no LLM call",
+             inputs=["simulation requests (property_result needs)"],
+             outputs=["property_result", "run_report (failed or refused)", "the checks the trust rule still needs"],
+             code=["coolorbit/sim/simulator_agent.py", "coolorbit/sim/melting.py"]),
+        node("alchemi", "simulates", "NVIDIA ALCHEMI", "ON THE GB10", "NVIDIA ALCHEMI Toolkit on the Dell Pro Max GB10",
+             [], "batched MLIP dynamics on the GPU",
+             "The engine. NVIDIA's ALCHEMI Toolkit runs the MACE-MPA-0 machine-learned force field on the GB10's "
+             "Blackwell GPU, with dynamics batched over systems: each trial temperature is its own system in one GPU "
+             "job. Its hooks API runs code inside every step; our SuperheatingDetectorHook is built on it. ALCHEMI "
+             "computes; it does not decide what to run, which protocol to use or whether to trust the answer.",
+             "coolorbit/sim/melting.py; coolorbit/hooks/superheating.py; coolorbit/hooks/README.md "
+             "(tested with nvalchemi-toolkit 0.2.0)",
+             engine="nvalchemi-toolkit 0.2.0 (not an agent)",
+             inputs=["one job from the Simulator: a structure, temperatures, a protocol"],
+             outputs=["trajectories and energies (runs/melting/... result.json), read back by the Simulator"],
+             code=["coolorbit/sim/melting.py", "coolorbit/hooks/superheating.py"],
+             imports=alchemi_imports(), throughput=throughput,
+             protocol=[
+                 {"text": "two-phase coexistence, several temperatures per job",
+                  "source": "coolorbit/sim/melting.py run_coexistence(); the Simulator runs only this for melting "
+                            "points (coolorbit/sim/simulator_agent.py SUPPORTED)"},
+                 {"text": "latent heat = H(liquid) − H(solid), NPT", "source": "coolorbit/sim/melting.py run_latent()"},
+                 {"text": "alloys: H(liquid) − Σ xᵢ H(pure solid i)",
+                  "source": "coolorbit/sim/melting.py run_alloy_latent() (an approximation the referees flag)"},
+                 {"text": "SuperheatingDetectorHook (ours)", "source": "coolorbit/hooks/superheating.py"},
+             ]),
+        node("worker", "simulates", tag(worker_m, "CODE"), "WORKER · ARM C", "Generalist worker (arm C only)",
+             ["worker_cc"], "sandboxed Claude Code · what no specialist owns",
+             "Arm C only: the same sandboxed Claude Code worker arm A uses (same model, effort, tools, NVIDIA guidance "
+             "and measured-reference file). It takes requests no specialist owns (equation of state, adsorption, "
+             "diffusion, classical-MD reroutes), jobs the Simulator can't set up, and reruns of its own results when "
+             "a referee fails them. It never starts work the premise checker refused.",
+             "scripts/run_arm_c.py (module docstring, WorkerDispatcher)", model=worker_m,
+             inputs=["requests no specialist owns", "failed method audits of its own results"],
+             outputs=["property_result", "run_report"],
+             code=["scripts/run_arm_c.py", "scripts/prompts/arm_c_worker.md"]),
+        node("rules", "checks", "CODE", "RULE REFEREE", "Rule referee", ["referee_rules"],
+             "method audit by fixed rules",
+             "Audits every result's method metadata: single-phase heating for a melting point, a thermostat during a "
+             "transport measurement, an inorganic-only model on a molecular organic, a hydrogen timestep, box size, "
+             "run length, and the producer's own blocking flags. A fail carries a rerun request when the flaw is "
+             "fixable. It never checks its own results.",
+             "coolorbit/agents/referee_rules.py", engine="code, no LLM call",
+             inputs=["every property_result on the board"], outputs=["method_audit: pass / fail (+ rerun request)"],
+             code=["coolorbit/agents/referee_rules.py", "coolorbit/agents/audit_rules.json"],
+             note=None if audit_frozen else "Its audit thresholds are placeholders, not frozen "
+                                            "(coolorbit/agents/audit_rules.json); the trust-rule tolerances are the "
+                                            "pre-registered ones."),
+        node("llm", "checks", tag(llm_m, "CODE"), "LLM REFEREE", "LLM referee", ["referee_llm"],
+             "names the flaw the rules miss",
+             "Reads each result's method metadata and tries to name a concrete physical flaw the fixed rules can "
+             "miss: a wrong protocol for the property, mismatched phases, a model outside its domain, a "
+             "self-validating test, a unit error. It never sees the other referees' checks, so its verdict is "
+             "independent.",
+             "coolorbit/agents/referee_llm.py", model=llm_m,
+             inputs=["every property_result's method metadata"], outputs=["method_audit: pass / fail / inconclusive"],
+             code=["coolorbit/agents/referee_llm.py"]),
+        node("classical", "checks", "GB10 CPU", "CLASSICAL MD", "Classical-MD referee", ["referee_classical"],
+             "LAMMPS + MEAM · must pass its own test first",
+             "A different physics: classical molecular dynamics with published 2NN-MEAM potentials (NIST Interatomic "
+             "Potentials Repository), LAMMPS on the GB10's CPU, same two-phase protocol. A potential counts only if it "
+             "first recovers the measured melting point within the pre-registered tolerance; otherwise its check is "
+             "posted as inconclusive. Only bismuth's passed, and it was fitted to bismuth's melting point. Posted by "
+             "a script, not a polling agent.",
+             "scripts/post_classical_checks.py; docs/results/classical-check.md", engine="LAMMPS on the GB10 CPU",
+             inputs=["MACE melting-point results", "MEAM analyses in runs/classical/"],
+             outputs=["classical_md check: agree / disagree / inconclusive"],
+             code=["scripts/post_classical_checks.py", "docs/results/classical-check.md"]),
+        node("librarian", "checks", "CODE", "LIBRARIAN", "Librarian", ["librarian"],
+             "measured values, each with a source",
+             "Answers every request for a measured value from the curated calibration set, where each value carries "
+             "a checkable source. When there is none it posts a null reference instead of guessing.",
+             "coolorbit/agents/librarian.py; data/calibration/tier1.json", engine="code, no LLM call",
+             inputs=["reference_value needs on trust-tier results"], outputs=["reference_value (or null)"],
+             code=["coolorbit/agents/librarian.py", "data/calibration/tier1.json"],
+             note=unused.format(role="librarian", model=librarian_role["name"], why="every value comes from "
+                                "data/calibration/tier1.json.") if librarian_role else None),
+        node("adjudicator", "checks", tag(adj_m, "CODE"), "ADJUDICATOR", "Adjudicator", ["adjudicator"],
+             "settles referee disputes",
+             "When two referees' method audits of a result disagree, it reads the result and both arguments and "
+             "rules; a decisive ruling settles the audits posted before it. It also settles premise questions the "
+             "premise checker can't decide. The most expensive model, so it is called rarely.",
+             "coolorbit/agents/referee_llm.py (Adjudicator); coolorbit/board/status.py (settled_audits); "
+             "coolorbit/agents/premise.py", model=adj_m,
+             inputs=["a result with a passing and a failing method audit"], outputs=["method_audit ruling"],
+             code=["coolorbit/agents/referee_llm.py", "coolorbit/board/status.py"]),
+        node("board", "keeps", "SCIENCECLAW", "RESULTS BOARD", "Results board", [],
+             "append-only artifacts with lineage",
+             "Every candidate, request, claim, result, check and measured value is an immutable artifact that names "
+             "its parents, so every number keeps its lineage. Agents coordinate only through open needs and claims "
+             "on it: no boss, no direct messages. Nothing on it is ever edited.",
+             "coolorbit/board/store.py; coolorbit/agents/base.py", engine="files on the GB10 (boards/<id>/artifacts)",
+             inputs=["every agent's posts"], outputs=["snapshots, open needs, claims"],
+             code=["coolorbit/board/store.py"]),
+        node("trust", "keeps", "CODE", "TRUST RULE", "Trust rule", [],
+             "status is derived, never set",
+             "A result is trusted only if another agent's method audit passed, an independent method (a different "
+             "engine or model, from a different agent) agrees within tolerance, and for known materials the value "
+             f"matches a sourced measurement. Any failed check flags it; rejection needs {n_reject} independent "
+             "referees; an adjudicator's ruling settles disputed audits. The tolerances were frozen before the "
+             "comparison runs.",
+             "coolorbit/board/status.py; configs/trust_rules.json", engine="code (not an agent)",
+             inputs=["the board: checks, measured values, reruns"], outputs=["trusted / under review / flagged / rejected"],
+             code=["coolorbit/board/status.py", "configs/trust_rules.json"]),
+        node("ranker", "keeps", "CODE", "RANKER", "Ranker", ["ranker"],
+             "trusted only · inside the window",
+             f"Keeps the shortlist from trusted results only: a trusted transition temperature inside the {window_text} "
+             "operating window plus a trusted latent heat, most heat per kilogram first. It posts a new ranking only "
+             "when the shortlist changes.",
+             "coolorbit/agents/ranker.py; coolorbit/agents/ranker_config.json", engine="code, no LLM call",
+             inputs=["results the trust rule says are trusted"], outputs=["ranking"],
+             code=["coolorbit/agents/ranker.py", "coolorbit/agents/ranker_config.json"]),
+    ]
+
+    gh = GITHUB + "/blob/main/"
+    return {
+        "rows": GRAPH_ROWS,
+        "nodes": nodes,
+        "edges": [{"id": i, "from": a, "to": b, "label": label, "kind": kind, "via": via}
+                  for i, a, b, label, kind, via in GRAPH_EDGES],
+        "code_url": gh,
+        "status_rule": {"active_minutes": 60,
+                        "source": "dashboard/context.py (Agents tab rule: ACTIVE = posted within this many minutes "
+                                  "before the export)"},
+        "idea": {
+            "headline": "ALCHEMI runs the physics. The agents decide what is worth running, and try to prove every "
+                        "answer wrong.",
+            "points": [
+                {"lead": "ALCHEMI is the engine.",
+                 "text": "On the Dell Pro Max GB10 it runs MACE-MPA-0 molecular dynamics batched on the GPU: every "
+                         "trial temperature of a two-phase box in one job.",
+                 "source": "coolorbit/sim/melting.py"},
+                {"lead": "The agents decide what runs, and how.",
+                 "text": "Scouts choose candidates; the premise checker asks whether a property is measurable at all; "
+                         "the Simulator refuses models outside their training domain and uses two-phase coexistence, "
+                         "never single-phase heating, so the superheating trap is avoided by design.",
+                 "source": "coolorbit/agents/scout.py; coolorbit/agents/premise.py; coolorbit/sim/simulator_agent.py"},
+                {"lead": "Then they try to prove it wrong.",
+                 "text": "A rule audit, an LLM audit, a classical-MD check that must first recover the measured value, "
+                         "and a sourced measurement. An adjudicator settles audit disputes.",
+                 "source": "coolorbit/agents/referee_rules.py; coolorbit/agents/referee_llm.py; "
+                           "scripts/post_classical_checks.py; coolorbit/agents/librarian.py"},
+                {"lead": "No agent sets a status.",
+                 "text": "The trust rule derives it from the evidence on the board, so a confident number without "
+                         "independent support never counts.",
+                 "source": "coolorbit/board/status.py"},
+            ],
+        },
+        "case": {"candidate": "BiInSn", "property": "latent_heat", "label": "Field's metal (BiInSn), latent heat",
+                 "source": OUTLINE + " claims register S24 (result 7ed6f997 and its checks on boards/science-1)"},
+        "vs": [
+            {"alchemi": "Batched GPU dynamics: NPT with one temperature per system, all systems in one job.",
+             "alchemi_source": "coolorbit/sim/melting.py (npt(): NPT, temperature per system)",
+             "agents": "The protocol: two-phase coexistence at several temperatures for a melting point, never "
+                       "single-phase heating; latent heat as an NPT enthalpy difference.",
+             "agents_source": "coolorbit/sim/simulator_agent.py (SUPPORTED); coolorbit/sim/melting.py"},
+            {"alchemi": "The MACE-MPA-0 force field through its MACE wrapper, with cuEquivariance kernels.",
+             "alchemi_source": "coolorbit/sim/melting.py (load_model(): MACEWrapper.from_checkpoint, enable_cueq)",
+             "agents": "Judgement about the model's domain: the Simulator refuses molecular organics and reroutes them "
+                       "to classical MD; the premise checker and the rule referee flag the same trap.",
+             "agents_source": "coolorbit/sim/simulator_agent.py (ood_reason); coolorbit/agents/premise.py; "
+                              "coolorbit/agents/referee_rules.py"},
+            {"alchemi": "Speed on the GB10:", "metric": throughput,
+             "alchemi_source": throughput["source"] if throughput else "coolorbit/sim/melting.py",
+             "agents": "A budget: the Simulator estimates each job's GPU minutes from that rate; in arm C it drops to "
+                       "the quick preset when a job would not fit half the task's remaining time (a disclosed "
+                       "post-hoc change).",
+             "agents_source": "coolorbit/sim/simulator_agent.py (Job.estimate_minutes); scripts/run_arm_c.py "
+                              "(FIT_TO_BUDGET_NOTE)"},
+            {"alchemi": "A dynamics-hooks API: code that runs at set points of every step (neighbour lists, periodic "
+                        "wrapping, frozen atoms, NaN checks).",
+             "alchemi_source": "coolorbit/sim/melting.py (NeighborListHook, WrapPeriodicHook, FreezeAtomsHook, "
+                               "NaNDetectorHook)",
+             "agents": "SuperheatingDetectorHook, built on that API and shared with other teams: it flags a perfect "
+                       "crystal that melts.",
+             "agents_source": "coolorbit/hooks/superheating.py; coolorbit/hooks/README.md"},
+            {"alchemi": None, "alchemi_source": None,
+             "agents": "Premise checks before any GPU time is spent: is the property measurable with this method at "
+                       "this timescale?",
+             "agents_source": "coolorbit/agents/premise.py"},
+            {"alchemi": None, "alchemi_source": None,
+             "agents": "Independent referees: a rule audit, an LLM audit, classical MD gated on its own calibration, "
+                       "sourced measurements and an adjudicator.",
+             "agents_source": "coolorbit/agents/referee_rules.py; coolorbit/agents/referee_llm.py; "
+                              "scripts/post_classical_checks.py; coolorbit/agents/librarian.py"},
+            {"alchemi": None, "alchemi_source": None,
+             "agents": "Lineage and the trust rule: every number keeps its parents, and its status is derived from "
+                       "the evidence, never set by an agent.",
+             "agents_source": "coolorbit/board/store.py; coolorbit/board/status.py"},
+        ],
+        "coordination": {"text": "No boss: agents coordinate only through the shared results board (artifacts with "
+                                 "lineage, open needs and claims). Every line in the diagram is a board artifact or "
+                                 "a file people edit; there are no direct messages.",
+                         "source": "coolorbit/board/store.py; coolorbit/agents/base.py"},
+        "source": "coolorbit/agents/, coolorbit/sim/, coolorbit/board/, scripts/run_science.py, scripts/run_arm_c.py, "
+                  "configs/llm_roles.json",
+    }
 
 
 def trust_rule(rules: dict, ranker: dict) -> dict:
@@ -565,7 +914,40 @@ def comparison_setup(roles: dict) -> dict:
         "baseline_model": model_name(base.get("model")),
         "budget_usd_per_task_per_arm": {"value": budget, "units": "USD",
                                         "source": "configs/llm_roles.json"} if budget is not None else None,
+        "scoring": {
+            "pre_registered": "Pre-registered scoring: the task set and tolerances frozen in commit "
+                              f"{PREREGISTRATION['commit']}, before any comparison run.",
+            "post_hoc": "Post-hoc rule (added 2026-11-01 after repeat 1, not pre-registered): an answer that ran no "
+                        "simulation and reports a measured value scores as a 'reported reference': no error is "
+                        "computed, and on a trap task it counts against the catch rate.",
+            "source": "coolorbit/eval/metrics.py (module docstring, reference_rule=True); " + CMP1_DOC,
+        },
+        "report": {"text": "Written findings of run cmp-1, repeat 1", "url": GITHUB + "/blob/main/" + CMP1_DOC,
+                   "source": CMP1_DOC},
         "source": "CLAUDE.md section 13; coolorbit/eval/arms.md; " + OUTLINE + " slide 7",
+    }
+
+
+def comparison_findings() -> dict:
+    """What repeat 1 of run cmp-1 showed, as the team wrote it up (docs/results/comparison-cmp1.md)."""
+    return {
+        "title": "What repeat 1 of cmp-1 says",
+        "items": [
+            "No arm shipped a confident wrong answer: 0 silent errors in A, B and C. All three refused the ill-posed "
+            "tasks. With NVIDIA's recommended prompt and web access a single agent already avoids these traps; that "
+            "does not support our thesis that the collective catches more, and we report it as is.",
+            "The collective's measurable edge is false alarms: 0 of 3 well-posed controls for C, against 1 of 3 for A "
+            "and B, which both doubted a correct O/Cu(111) adsorption energy.",
+            "B's worker + checker pipeline 'resolved' a disagreement by replacing its own aluminium simulation "
+            "(862 ± 38 K, within the ±10% tolerance) with the measured value from the calibration file. The "
+            "pre-registered scorer counted that as a perfect answer; under the post-hoc rule B's trap catch falls "
+            "from 80% to 60%, level with A and C.",
+            "Unanswered tasks are timeouts under GPU crowding, and one is our own weakness: C's Simulator chose full "
+            "production settings for aluminium and the 60-minute task clock cut it off.",
+            "Small sample: 8 tasks, one repeat. No statistical claims.",
+        ],
+        "source": CMP1_DOC + " (repeat 1: 2026-10-31 21:45 UTC to 2026-11-01 02:30 UTC)",
+        "url": GITHUB + "/blob/main/" + CMP1_DOC,
     }
 
 
@@ -588,13 +970,14 @@ def build_context(*, inputs_path: str | Path = BURST_INPUTS, rules: Optional[dic
         "question": question(),
         "burst": burst(inputs_path, scenario, window),
         "methods": methods(rules, calibration, Path(classical_root), classical_run),
-        "agents": agents(roles),
-        "pipeline": PIPELINE,
-        "coordination": {"text": "No boss: agents coordinate only through the shared results board (artifacts with "
-                                 "lineage, open needs and claims).",
-                         "source": "coolorbit/board/store.py; coolorbit/agents/__init__.py"},
+        "agent_graph": agent_graph(roles, rules, ranker),
         "trust_rule": trust_rule(rules, ranker),
         "comparison_setup": comparison_setup(roles),
+        "comparison_findings": comparison_findings(),
+        "deadline": {"iso": "2026-11-01T18:00:00Z",
+                     "text": "Hacking ends Sunday Nov 1 2026 at 1:00 PM in Cambridge, MA: EST (UTC-5; daylight time "
+                             "ends at 2 AM that day), so 18:00 UTC",
+                     "source": "CLAUDE.md section 2 (Deadline)"},
         "claims": "We simulate and rank; we don't claim new materials.",
         "repo": GITHUB,
     }

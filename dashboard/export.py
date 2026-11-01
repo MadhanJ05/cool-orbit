@@ -13,6 +13,15 @@ Writes, into ``--out``:
 Each result also carries the measured value it is compared with: the latest sourced ``reference_value`` on its
 board, else the sourced record in data/calibration/tier1.json (``origin`` says which; the trust rule itself only
 uses the board's). A board whose artifacts mention "SYNTHETIC" is marked synthetic, and the page shows a banner.
+
+Comparison scoring, two ways (coolorbit/eval/metrics.py): the pre-registered scorer, and the disclosed post-hoc
+``reference_rule=True`` added after cmp-1 repeat 1. Each run carries:
+  arms        every exported repeat, pre-registered scoring (as before; a running repeat is mixed in)
+  scoring     {"pre_registered": ..., "post_hoc": ...}: per arm, COMPLETE repeats only (every expected task finished)
+  repeats     one entry per (arm, repeat): tasks finished / running / not started, and both scorings over the
+              finished tasks only
+A per-task board counts as finished once its ``run_record.json`` exists (the arm runners write it last); a
+single-board repeat has no run records, so every task seeded on it counts as finished.
 """
 
 from __future__ import annotations
@@ -27,7 +36,7 @@ from typing import Optional
 
 from coolorbit.board import Board, derive_status, load_rules
 from coolorbit.board._scienceclaw import REPO_ROOT
-from coolorbit.eval.metrics import is_board, score_board, score_repeat, summarize_arm
+from coolorbit.eval.metrics import REFERENCE_RULE, BoardScore, is_board, score_board, score_repeat, summarize_arm
 from coolorbit.eval.tasks import DEFAULT_CALIBRATION_PATH, TaskSet, load_tasks, task_requests
 from dashboard.context import SCHEMA as CONTEXT_SCHEMA
 from dashboard.context import build_context, load_calibration
@@ -36,6 +45,10 @@ SCHEMA = "coolorbit.dashboard/1"
 DEFAULT_OUT = Path(__file__).resolve().parent / "data"
 ARM_RE = re.compile(r"^(?P<arm>[A-Z])-r(?P<repeat>\d+)$")
 SYNTHETIC_MARK = "SYNTHETIC"
+RECORD_FILE = "run_record.json"  # written last by the arm runners (coolorbit/eval/runner.py, scripts/run_arm_c.py)
+SCORE_KEYS = ("n_tasks", "trap_tasks", "trap_avoided", "trap_caught", "trap_missed", "trap_no_answer",
+              "trap_catch_rate", "control_tasks", "controls_no_answer", "false_alarms", "false_alarm_rate",
+              "silent_errors", "mean_abs_rel_error", "n_errors_measured", "reported_reference", "post_hoc_rules")
 
 
 def _is_synthetic(artifacts) -> bool:
@@ -173,9 +186,10 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
             "n_rankings": len(rankings),
         }
 
-    scorecard = None
+    scorecard = scorecard_post_hoc = None
     if task_set is not None and task_requests(snap):
         scorecard = score_board(board, task_set, rules).to_dict()
+        scorecard_post_hoc = score_board(board, task_set, rules, reference_rule=True).to_dict()
 
     # Arm and repeat come from the board's folder (<arm>-r<k>) or, for the runners' per-task boards, its parent.
     arm_dir = Path(repeat_dir) if repeat_dir is not None else board.root
@@ -191,6 +205,8 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
         "run": _board_name(arm_dir.parent) if m else None,
         "task_id": board.root.name if repeat_dir is not None else None,
         "repeat": int(m.group("repeat")) if m else None,
+        # Per-task boards only: has the arm runner finished this task (run_record.json written)? None otherwise.
+        "finished": (board.root / RECORD_FILE).is_file() if repeat_dir is not None else None,
         "agents": sorted({a.producer_agent for a in ordered}),
         "counts": {"artifacts": len(ordered), "by_type": dict(Counter(a.artifact_type for a in ordered)),
                    "by_status": dict(Counter(status_of.values())), "open_needs": len(needs)},
@@ -200,8 +216,51 @@ def export_board(board: Board, rules: dict, task_set: Optional[TaskSet] = None,
         "run_reports": runs,
         "ranking": ranking,
         "scorecard": scorecard,
+        "scorecard_post_hoc": scorecard_post_hoc,
         "lineage": lineage,
     }
+
+
+def _compact(score: Optional[BoardScore]) -> Optional[dict]:
+    """The headline numbers of one scored (arm, repeat), without the per-task outcomes."""
+    if score is None:
+        return None
+    out = {k: getattr(score, k) for k in SCORE_KEYS}
+    out["cost_recorded"] = bool(score.cost["recorded"])
+    return out
+
+
+def _restricted(task_set: TaskSet, task_ids: set[str]) -> Optional[TaskSet]:
+    """The same task set with only ``task_ids`` (pre-registration note kept); None if nothing is left."""
+    kept = [t for t in task_set.tasks if t.id in task_ids]
+    return task_set.model_copy(update={"tasks": kept}) if kept else None
+
+
+def _score_repeats(items: list[dict], task_set: TaskSet, rules: dict, expected: list[str]) -> tuple[dict, dict]:
+    """Per run: ({"pre_registered": {arm: summary}, "post_hoc": {...}} over complete repeats, [repeat details])."""
+    complete: dict[str, dict[str, dict[str, list]]] = defaultdict(lambda: {"pre": defaultdict(list),
+                                                                           "post": defaultdict(list)})
+    details: dict[str, list] = defaultdict(list)
+    for item in items:
+        seeded = list(dict.fromkeys(item["seeded"]))
+        finished = [t for t in dict.fromkeys(item["finished"]) if t in seeded]
+        done = _restricted(task_set, set(finished))
+        pre = score_repeat(item["path"], done, rules) if done else None
+        post = score_repeat(item["path"], done, rules, reference_rule=True) if done else None
+        is_complete = bool(expected) and set(expected) <= set(finished)
+        if is_complete:
+            complete[item["run"]]["pre"][item["arm"]].append(pre)
+            complete[item["run"]]["post"][item["arm"]].append(post)
+        details[item["run"]].append({
+            "arm": item["arm"], "repeat": item["repeat"], "boards": len(item["names"]),
+            "per_task_boards": item["per_task"], "tasks_expected": len(expected), "tasks_seeded": len(seeded),
+            "tasks_finished": len(finished), "in_progress": sorted(set(seeded) - set(finished)),
+            "not_started": [t for t in expected if t not in seeded], "complete": is_complete,
+            "pre": _compact(pre), "post": _compact(post)})
+    scoring = {run: {"pre_registered": {arm: summarize_arm(s) for arm, s in sorted(c["pre"].items())},
+                     "post_hoc": {arm: summarize_arm(s) for arm, s in sorted(c["post"].items())}}
+               for run, c in complete.items()}
+    return scoring, details
 
 
 def _context(rules: dict, calibration_path: Path) -> dict:
@@ -234,6 +293,7 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
     synthetic_runs: set[str] = set()
     excluded: list[str] = []
     repeats: dict[Path, dict] = {}  # per-task repeat folders: scored once, as a whole
+    scored_items: list[dict] = []   # every (arm, repeat) in the comparison, for the per-repeat scoring
     found = [hit for path in board_paths for hit in discover(path)]
     if not found:
         raise FileNotFoundError(f"no boards under {[str(p) for p in board_paths]}")
@@ -246,12 +306,18 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
         (out / f"{data['name']}.json").write_text(json.dumps(data, indent=1), encoding="utf-8")
         entries.append({"name": data["name"], "file": f"{data['name']}.json", "synthetic": data["synthetic"],
                         "arm": data["arm"], "repeat": data["repeat"], "run": data["run"], "task_id": data["task_id"],
-                        "counts": data["counts"]})
+                        "finished": data["finished"], "counts": data["counts"]})
+        seeded_here = [o["task_id"] for o in (data["scorecard"] or {}).get("outcomes", []) if o["seeded"]]
         if repeat_dir is not None and data["arm"]:
-            rec = repeats.setdefault(Path(repeat_dir), {"run": data["run"], "arm": data["arm"], "synthetic": False,
-                                                         "names": []})
+            rec = repeats.setdefault(Path(repeat_dir), {"run": data["run"], "arm": data["arm"],
+                                                         "repeat": data["repeat"], "path": Path(repeat_dir),
+                                                         "per_task": True, "synthetic": False, "names": [],
+                                                         "seeded": [], "finished": []})
             rec["synthetic"] |= data["synthetic"]
             rec["names"].append(data["name"])
+            rec["seeded"] += seeded_here
+            if data["finished"]:
+                rec["finished"] += seeded_here
             continue
         if data["arm"] and data["scorecard"]:
             if data["synthetic"] and not include_synthetic_in_comparison:
@@ -261,6 +327,10 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
             by_run[run][data["arm"]].append(score_board(board, task_set, rules))
             if data["synthetic"]:
                 synthetic_runs.add(run)
+            # One board holds the whole repeat and has no run records: every task seeded on it counts as finished.
+            scored_items.append({"run": run, "arm": data["arm"], "repeat": data["repeat"], "path": Path(path),
+                                 "per_task": False, "names": [data["name"]], "seeded": seeded_here,
+                                 "finished": seeded_here})
 
     for repeat_dir, rec in sorted(repeats.items()):
         if rec["synthetic"] and not include_synthetic_in_comparison:
@@ -269,9 +339,20 @@ def export(board_paths: list[str | Path], out_dir: str | Path = DEFAULT_OUT, *, 
         by_run[rec["run"]][rec["arm"]].append(score_repeat(repeat_dir, task_set, rules))
         if rec["synthetic"]:
             synthetic_runs.add(rec["run"])
+        scored_items.append(rec)
 
+    expected = _scored_task_ids(task_set) or [t.id for t in task_set.tasks]
+    scoring, details = _score_repeats(scored_items, task_set, rules, expected)
     comparison = [{"run": run, "synthetic": run in synthetic_runs,
-                   "arms": {arm: summarize_arm(scores) for arm, scores in sorted(arms.items())}}
+                   "arms": {arm: summarize_arm(scores) for arm, scores in sorted(arms.items())},
+                   "expected_tasks": expected,
+                   "scoring": {"pre_registered": {arm: (scoring.get(run) or {}).get("pre_registered", {}).get(
+                                   arm, summarize_arm([])) for arm in sorted(arms)},
+                               "post_hoc": {arm: (scoring.get(run) or {}).get("post_hoc", {}).get(
+                                   arm, summarize_arm([])) for arm in sorted(arms)},
+                               "post_hoc_rules": [REFERENCE_RULE],
+                               "complete_repeats_only": True},
+                   "repeats": sorted(details.get(run, []), key=lambda d: (d["arm"], d["repeat"] or 0))}
                   for run, arms in sorted(by_run.items())] or None
     index = {"schema": SCHEMA, "exported_at": now.isoformat(), "boards": entries, "comparison": comparison,
              "excluded_from_comparison": excluded,
