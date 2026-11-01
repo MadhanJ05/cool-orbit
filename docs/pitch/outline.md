@@ -95,24 +95,50 @@ Pre-registered comparison, same tasks, same budget and tools (web access for all
 A = single agent + NVIDIA's recommended prompt; B = worker + checker pipeline; C = our collective.
 - Tasks: NVIDIA's benchmarks (Si EOS, O on Cu(111), liquid Li diffusion), their ill-posed LiF task, our Tier-1
   PCM tasks, well-posed controls, `[blind tasks from: NAME, if received]`.
-- Scorecard `[RESULT PENDING: from the dashboard export of boards/eval/<run>/, n repeats]`:
+- Scorecard, run `cmp-1`, **3 complete repeats** x 8 pre-registered tasks (mean, min-max over repeats) [S25]:
 
-| | A single | B pipeline | C collective |
+| | A single agent | B worker + checker | C our collective |
 |---|---|---|---|
-| Trap catch rate | [RESULT PENDING] | [RESULT PENDING] | [RESULT PENDING] |
-| False alarms on correct tasks | [RESULT PENDING] | [RESULT PENDING] | [RESULT PENDING] |
-| Silent errors shipped | [RESULT PENDING] | [RESULT PENDING] | [RESULT PENDING] |
-| Error vs reference | [RESULT PENDING] | [RESULT PENDING] | [RESULT PENDING] |
-| Cost (tokens, $) | [RESULT PENDING] | [RESULT PENDING] | [RESULT PENDING] |
+| Trap catch (post-hoc rule, see below) | 60% (60-60) | 60% (60-60) | **80%** (60-100) |
+| Trap catch (pre-registered scoring) | 60% | 67% (60-80) | **80%** (60-100) |
+| False alarms on correct tasks | 11% (0-33) | 22% (0-33) | **11%** (0-33) |
+| Silent errors shipped (confident + wrong) | 0 | 0 | 0 |
+| Mean \|relative error\| vs reference | 2% | 2% | 2% |
+| LLM cost per repeat | ~$4.57 | ~$3.50 | **~$2.40** |
 
-- Say: pre-registered in commit `[HASH]` before any run; "doing nothing" scores as a miss; single-agent
-  self-refusals count (fairness). Report where C loses, too.
+- Say: pre-registered in commit `2851934` before any run; "doing nothing" scores as a miss; single-agent
+  self-refusals count (fairness). Report where C loses, too:
+  - **Nobody shipped a confident wrong answer**: with NVIDIA's recommended prompt and web access, the single agent
+    already refuses the ill-posed tasks (LiF, Cu-crystal diffusion, eicosane with MACE).
+  - C's lead appears after a **disclosed post-hoc fix** (its Simulator now fits its run length to the time left):
+    repeat 1 60%, repeats 2-3 100% / 80%.
+  - The post-hoc scoring rule exists because **B's pipeline "settled" a disagreement by copying the measured value
+    from the answer file** ("No new simulation was run") after its checker rejected a simulation that was within
+    tolerance; the pre-registered scorer counted that as a perfect simulation. We report both scorecards.
+  - C is the **cheapest** arm (about half the single agent's LLM spend).
 
 ## Slide 8: Evidence 2: our simulations vs measurements
-- Calibration (Tier 1): simulated melting point and latent heat vs measured, for Cu, Al and the low-melting metals
-  `[RESULT PENDING: table + error bars from trusted results]`.
-- The signature trap, live on our data: single-phase heating overshoots the melting point (superheating);
-  two-phase coexistence lands near the measurement `[RESULT PENDING: both numbers for one metal]`.
+- **Calibration (Tier 1), MACE-MPA-0 with our two-phase coexistence protocol v2** [S26, S29; measured values from
+  `data/calibration/tier1.json`]:
+
+| Metal | MACE melting point | Measured | MACE latent heat (at MACE's Tm) | Measured | Board status |
+|---|---|---|---|---|---|
+| **Cu** | 1290-1330 K (~-3%; board bracket 1358 ± 68, refined below 1330) | 1357.77 K (ITS-90) | 190.2 kJ/kg (-8.0%) | 206.7 (JANAF) | **TRUSTED** (both) |
+| Al | 910 ± 10 K (-2.5%, refined; board 933 ± 47) | 933.45 K (JANAF) | 355.0 kJ/kg (-10.6%) | 397.0 (JANAF) | under review |
+| In | ~360-366 K (-15%; board 344.7 ± 21.3, refined 370 ± 10) | 429.748 K | 23.5 kJ/kg (-17.8%) | 28.66 (NIST CRM) | flagged |
+| Bi | ~390-463 K (15-28% low; board 408 ± 55, run on the GB10) | 544.556 K (NIST SRM 2235) | 35.5 kJ/kg (-33%) | 53.15 | flagged |
+| Sn | below 380 K (at least 25% low) | 505.078 K (ITS-90) | n/a (crystal not stable at 505 K) | 56.57 | stopped at the prep gate |
+
+  - **Reading:** MACE-MPA-0 is good for fcc Cu/Al (Tm within ~3%, latent within ~11%) and 15-28% low on the
+    low-melting post-transition metals (In, Bi, Sn), exactly the ones that matter for metallic thermal batteries.
+  - **Say:** Cu's board value 1358 K is the midpoint of a wide bracket; a refined run puts MACE's Cu Tm at 1290-1330 K.
+    Cu stays trusted (inside ±10%, and the EAM check agrees). Quote ~1310 K, not 1358 K.
+  - **Trusted = all three:** method audit passed, independent classical MD agrees (EAM, Mishin 2001: 1327 K and
+    188.7 kJ/kg) [S27], and it matches the measurement. **Al stays "under review" on purpose:** its only classical
+    potential misses Al's melting point by +11.6%, so the gate posts its check as inconclusive, even though MACE
+    matches the measurement.
+- The signature trap, live on our data (Cu, MACE-MPA-0, GB10): single-phase heating of a perfect crystal reports
+  **1600 ± 100 K** [S19]; two-phase coexistence gives **1290-1330 K** [S29]; measured **1357.77 K**.
 - **The independent checker has to pass the test first.** Our pre-registered rule counts a classical check only if
   that potential first recovers the measured value of the material. Of four published NIST MEAM potentials, only
   **bismuth's** passes: melting point 586.7 ± 17 K vs 544.6 K measured (+7.7%, within ±10%) and latent heat
@@ -129,14 +155,16 @@ A = single agent + NVIDIA's recommended prompt; B = worker + checker pipeline; C
   alpha-Ga (cell off by −8.4%/+6.6%; next shell collapses toward the pair) [S15]. Ga appears on slide 4 only with **measured** data; we don't claim to simulate it.
 
 ## Slide 9: The shortlist, labelled by trust level
-A "trusted only" ranking will be empty tonight: only Bi can become trusted (the only classical potential that
-passes its own test, slide 8 [S22]), and it melts above the operating window. So the slide is a table where **every row says how far it can be
-trusted** (final call: Madhan):
+A "trusted only" ranking **inside the operating window** is still empty: our two trusted results are copper's
+melting point and latent heat, a validation metal far above the window. So the slide is a table where **every row
+says how far it can be trusted** (final call: Madhan):
 
 | Material | Trust level | What backs it | Numbers |
 |---|---|---|---|
-| Bi | **calibration** (can become *trusted*) | MACE vs measured [tier1.json] + the one classical check that passed its own test (MEAM: 586.7 K, 59.9 kJ/kg) [S22]; that potential was built to reproduce Bi's melting point (slide 8) | `[RESULT PENDING: MACE Bi melting point and latent heat]`; melts above the window, so it calibrates the method, not the shortlist |
-| In, Sn | **calibration, no independent check** | MACE vs measured only; their classical potentials failed their own test [S22] | `[RESULT PENDING]` |
+| Cu (validation metal) | **TRUSTED** (Tm and latent heat) | MACE v2 + rule audit + EAM classical check + measured [S26, S27] | Tm 1290-1330 K vs 1357.77; L 190.2 vs 206.7 kJ/kg |
+| Al (validation metal) | **under review** | MACE matches the measurement, but the only classical potential fails its own test, so no independent check counts [S27] | Tm 910 ± 10 K vs 933.45; L 355.0 vs 397.0 kJ/kg |
+| Bi | **flagged** | MACE 25% low; the MEAM check (passes its gate) disagrees [S22, S26] | Tm ~390-463 K vs 544.6; L 35.5 vs 53.1 kJ/kg |
+| In, Sn | **flagged / stopped** | MACE 15% low (In); MACE's tin crystal is not stable at 505 K, so the run stops at the prep gate (Sn) [S26, S29] | In ~360-366 K vs 429.7; Sn below 380 K vs 505.1 |
 | Field's metal (Bi-In-Sn eutectic) | **method check against a measurement; flagged** | MACE alloy latent heat 25.3 ± 0.2 kJ/kg vs measured 27.1 [S21] and 25.4 (Manasijevic 2018) [S23]; the Fable adjudicator upheld the LLM referee's flag on the pure-metal-solid approximation [S24] | 25.3 kJ/kg (−6.6% / −0.3%) |
 | In-Bi alloy | **prediction** (no measured latent heat) | MACE only; labelled PREDICTION, ready for lab testing | `[RESULT PENDING]` |
 | Ga | **failed** (both methods) | see slide 8 | measured values only (slide 4) |
@@ -162,7 +190,17 @@ cycling, microgravity friendliness. `[open team decision: operating window]`
   for classical MD).
 - Gallium: MACE's latent heat is ~5x low and the classical potential distorts alpha-Ga, so we report Ga as a
   failure of both methods, not a result [S20, S15].
-- Nothing on the shortlist is "trusted" yet; every row is labelled by trust level (slide 9).
+- Two results are trusted (Cu melting point and latent heat), both on a validation metal outside the operating
+  window; no in-window candidate is trusted yet. Every row is labelled by trust level (slide 9).
+- **Our own pipeline was wrong, and the system's evidence exposed it:** the first coexistence analysis compared
+  against a reference block taken after fast boxes had already melted or frozen, prepared liquids too cold, and
+  looped its retries; tin's crystal never survived preparation. A diagnosis from the saved runs led to protocol v2
+  (opt-in, tested, every old verdict reproduced), which turned backwards verdicts into consistent brackets [S28].
+- **Our hook raises false flags on heavy two-phase boxes** (Bi/In/Sn: 11 of 12 that melted); on Cu it had 0 of 12.
+  The README now says so [S28].
+- MACE-MPA-0 is 15-28% low on In, Bi and Sn melting points and 18-33% low on their latent heats (slide 8).
+- Comparison: C's advantage appears after a disclosed post-hoc fix; one post-hoc scoring rule, both scorecards
+  reported (slide 7).
 - Alloy latent heats assume the solid is a mixture of the pure elements. Real eutectic solids contain
   intermetallic compounds that are more stable than the separate metals, so the true latent heat is likely
   somewhat **higher**: our alloy values are probably underestimates (Field's metal: 25.3 vs 25.4–27.1 measured).
@@ -170,16 +208,19 @@ cycling, microgravity friendliness. `[open team decision: operating window]`
   was fitted to bismuth's melting point); tin's (−17% or worse), indium's (+63% to +77%) and gallium's (crystal not
   held) were excluded by the pre-registered gate [S22].
 - Materials don't remove radiators; they buffer bursts.
-- `[RESULT PENDING: list every failed run / flagged result category from the board]`.
+- Failed and flagged on the boards (dashboard, Failures tab): Sn stopped at the prep gate; In and Bi flagged;
+  Field's metal and In-Bi latent heats flagged (pure-element solid approximation); Al checks inconclusive; the
+  science-1 runs on protocol v1 (superseded by v2) [S24, S26, S28].
 
 ## Slide 12: Demo (live duel, CLAUDE.md section 19)
 1. Same task to both: "Find the melting point of [known metal]."
 2. Single agent: heats a perfect crystal, reports a confident number that's too high.
 3. Collective: the rule-based method audit flags single-phase heating, the result is **flagged**, a simulator
-   reruns with two-phase coexistence, and the rerun lands close to the measured value. **Default ending: the
-   rerun is "under review" (awaiting an independent method), not "trusted"**: "trusted" needs an agreeing
-   independent method, and nothing produces one yet. Only if the MEAM/LAMMPS check runs for the demo metal
-   (PR #7 has In/Sn/Bi bundles; Ga failed its stability check; none for Cu) can the demo end at "trusted".
+   reruns with two-phase coexistence, and the rerun lands close to the measured value. **Ending: copper, which
+   now ends at "trusted"** on `boards/science-2`: show it with the dashboard's Agents tab "Step through it" replay
+   (Scout -> Simulator on ALCHEMI -> rule audit -> measured value -> EAM classical check agrees -> TRUSTED) [S26,
+   S27]. A live production coexistence run takes ~45-60 min, so the replay is of the real board record, not a
+   live run; say so.
 4. The hook: it doesn't run inside the single agent's own script, so don't claim it "fires" there. Show the
    positive control instead (3/3 superheated crystals caught, 0/4 false alarms) [S19].
 5. Scorecard; 6. shortlist; 7. the hook in another team's run (if confirmed).
@@ -227,5 +268,10 @@ Backup: a screen recording, in case the GB10 or network fails on stage.
 | S22 | Classical check: Bi MEAM 586.7 ± 17 K / 59.9 ± 0.2 kJ/kg vs 544.6 K / 53.1 kJ/kg; Sn melts between 300 and 420 K vs 505.1 K; In between 700 and 760 K vs 429.7 K; matched-preparation diagnostic; Bi potential fitted to Bi's melting point | `docs/results/classical-check.md` (all analysis files listed there, under `runs/classical/`); measured values from `data/calibration/tier1.json` (NIST SRM 2235; ITS-90; Assael 2012); fitting caveat from `data/nebius/README.md` citing Zhou et al., MSMSE 29, 065008 (2021) | GB10 CPU runs, 2026-10-31, analysed with `data/nebius/metals/analyze.py` |
 | S23 | Field's metal latent heat 25.4 ± 0.1 J/g (independent DSC, Bi 32.0 / In 51.2 / Sn 16.8 wt%) | Manasijevic et al., Materials Research 21(6), e20180501 (2018), doi:10.1590/1980-5373-MR-2018-0501, Table 4 | via calibration set (`alternates` of the BiInSn record) |
 | S24 | MACE Field's metal latent heat 25,334 ± 184 J/kg; rule audit pass, LLM referee fail, adjudicator (Claude Fable 5.1) upholds the fail | `boards/science-1` (result 7ed6f997; checks ada06981, 8af1ea18, 65e3e208), `runs/science-1.log`, `runs/science-1-llm-referee.log`, `runs/science-1-adjudicator.log` | read from the board and logs; committed in `bc8ba6d` (a snapshot: the science run keeps adding to the board) |
+| S25 | Comparison cmp-1, 3 complete repeats: trap catch, false alarms, silent errors, error, LLM cost per arm; the B "copied the measured value" case; the disclosed post-hoc scoring rule and arm C budget fit | `docs/results/comparison-cmp1.md`; `runs/cmp1_{A,B,C}_all3.json` and `_all3_posthoc.json`; boards `boards/eval/cmp-1/{A,B,C}-r{1,2,3}`; costs from each task's `costs.jsonl`; pre-registration commit `2851934` | scored with `coolorbit.eval.metrics` (with and without `--reference-rule`) |
+| S26 | MACE-MPA-0 (protocol v2) on `boards/science-2`: Cu Tm 1358 ± 68 K (94311022, TRUSTED), Cu latent 190,222 J/kg (065ef630, TRUSTED, recovered after an SSH timeout), Al Tm 933 ± 47 K and latent 355,031 J/kg (under review), In 344.7 ± 21.3 K (flagged), Bi 408.3 ± 54.7 K (flagged, GB10), Sn stopped at the prep gate (41ee63bb) | `boards/science-2`; `runs/overnight-actions.md`; measured values `data/calibration/tier1.json` | derived statuses from `coolorbit/board/status.py` |
+| S27 | Classical EAM checks: Cu (Mishin 2001) 1327.0 ± 10.0 K and 188,684 J/kg, passes the gate; Al (Mishin 1999) 1041.4 K (+11.6%), fails the Tm gate | `docs/results/classical-check-eam.md`; `runs/classical/eam-1`; potentials from the NIST IPR with SHA-256 in `data/nebius/metals/{Cu,Al}/potential/SOURCES.md` | GB10 CPU (LAMMPS), 2026-11-01 |
+| S28 | Coexistence analysis bug (protocol v1) and the opt-in fix (protocol v2); hook false flags on heavy two-phase boxes | `docs/results/coexistence-diagnosis.md`; commit `11938c6`; `coolorbit/hooks/README.md` | diagnosis from the saved runs; 41 new tests; re-analysis reproduces the expected verdicts |
+| S29 | Supplementary MACE runs (not on any board): refined brackets Al 910 ± 10 K, Cu all melting 1330-1390 K, In 370 ± 10 K, Bi inconsistent; latent at MACE's own Tm In 23,546 J/kg, Bi 35,501 J/kg; Sn all melting 380-470 K | `runs/remote/refine`, `runs/remote/supp` | Brev H100, 2026-11-01 |
 
 Judge context (not for slides): Nikita Fedik is thanked in the NVIDIA blog's acknowledgments [S14].
