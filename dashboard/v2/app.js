@@ -200,6 +200,7 @@ function showPage(animate = true) {
   }
   for (const a of document.querySelectorAll(".tabs a")) a.classList.toggle("active", a.dataset.page === page);
   document.title = `Cool Orbit · ${cap1(page)}`;
+  if (page === "agents") loadAgentsFrame();
   observeReveals();
 }
 
@@ -359,38 +360,126 @@ function copperResult() {
   }
   return null;
 }
+const ratioText = (v) => (has(v) && v > 0 ? `${v >= 10 ? Math.round(v) : v.toFixed(1)}×` : null);
+function burstPair() {
+  const b = CTX.burst;
+  const c = b && !b.error ? (b.comparisons || [])[0] : null;
+  return c ? { b, c } : null;
+}
+function h2hRow(re) { return (((CTX.head_to_head || {}).rows) || []).find((r) => re.test(r.aspect)) || null; }
+function pairText(row) {
+  if (!row || !row.gallium || !row.paraffin) return "";
+  const u = UNITS[row.units] || row.units || "";
+  return `${num(row.gallium.value)} vs ${num(row.paraffin.value)} ${u}`.trim();
+}
 function renderStats() {
   const box = document.getElementById("stats");
+  const bp = burstPair();
   const stats = [];
+  if (bp) {
+    const { c } = bp;
+    const metal = shortName(c.metal), wax = "wax";
+    if (c.conductivity) stats.push({ num: ratioText(c.conductivity.value), lbl: `${metal} conducts heat better than ${wax}`,
+      sub: `liquid: ${pairText(h2hRow(/conduction/i))}`, source: c.conductivity.source });
+    if (c.volume) stats.push({ num: ratioText(c.volume.value), lbl: "smaller container for one burst",
+      sub: pairText(h2hRow(/volume$/i)) || pairText(h2hRow(/container/i)), source: c.volume.source });
+    if (c.area) stats.push({ num: ratioText(c.area.value), lbl: "less heat-exchange area",
+      sub: pairText(h2hRow(/area/i)), source: c.area.source });
+    if (c.total_kg) stats.push({ num: ratioText(c.total_kg.value), lbl: "heavier: the trade-off",
+      sub: `device mass ${pairText(h2hRow(/mass/i))}`, source: c.total_kg.source });
+  }
+  const s = bp && bp.b.scenario;
+  fill(box, stats.map((x) => {
+    const n = el("div", { class: "num" });
+    countUp(n, x.num);
+    return el("div", { class: "stat" }, n, el("div", { class: "lbl" }, x.lbl), el("div", { class: "sub" }, x.sub, srcTag(x.source)));
+  }), s ? el("div", { class: "stats-note" },
+    `${bp.c.metal} vs ${bp.c.wax}, for one ${num(s.minutes)}-minute burst at ${num(s.power_W)} W.`, srcTag(s.source)) : null);
+  box.hidden = !stats.length;
+}
+function renderHeroAnswer() {
+  const box = document.getElementById("hero-answer");
+  const h = CTX.head_to_head;
+  if (!h || !h.verdict) { box.hidden = true; return; }
+  fill(box, el("span", { class: "albl" }, "Answer so far"), h.verdict, srcTag(h.source));
+  box.hidden = false;
+}
+function renderWhy() {
+  const box = document.getElementById("why");
+  const q = CTX.question;
+  const lines = (q && q.lines) || [];
+  if (!lines.length) { box.hidden = true; return; }
+  const LEADS = ["The problem", "No air in orbit", "Radiators are heavy", "The fix: a thermal battery"];
+  fill(box, el("p", { class: "eyebrow reveal" }, "Why it matters"),
+    el("div", { class: "why-points reveal" }, lines.map((l, i) => el("div", { class: "point" },
+      el("b", {}, LEADS[i] || ""), el("span", {}, l.text, srcTag(l.source))))));
+}
+function renderBurst() {
+  const card = document.getElementById("burst-card");
+  const b = CTX.burst;
+  const mats = (b && !b.error && b.materials) || [];
+  if (!mats.length) { card.hidden = true; return; }
+  const s = b.scenario || {};
+  const cls = (m) => (/gallium/i.test(m.label) ? "ga" : "pa");
+  const chart = (title, sub, key, units, withFins) => {
+    const max = Math.max(...mats.map((m) => m.result[key]));
+    return el("div", {}, el("h4", {}, title, el("span", { class: "muted" }, ` · ${sub}`)),
+      mats.map((m) => {
+        const r = m.result;
+        const w = (v) => `width:${(100 * v / max).toFixed(2)}%`;
+        return el("div", { class: "bar-row" }, el("span", { class: "bl", title: m.label }, m.label),
+          el("span", { class: "bar-track" },
+            withFins ? [el("span", { class: cls(m), style: w(r.pcm_kg) }), el("span", { class: "fin", style: w(r.fin_kg) })]
+                     : el("span", { class: cls(m), style: w(r[key]) })),
+          el("span", { class: "bv" }, `${num(r[key])} ${units}`));
+      }));
+  };
+  fill(card,
+    el("h3", {}, b.title || "One burst"),
+    el("p", { class: "muted small" }, `How much thermal battery absorbs ${num(s.power_W)} W for ${num(s.minutes)} minutes (${num(s.energy_kJ)} kJ)?`, srcTag(s.source)),
+    el("div", { class: "bar-key" },
+      mats.map((m) => el("span", {}, el("i", { class: `bar-track ${cls(m)}`, style: cls(m) === "ga" ? "background:var(--accent)" : "background:#C9C5CF" }), m.label)),
+      el("span", {}, el("i", { style: "background:#8E8899" }), "aluminium fins")),
+    el("div", { class: "bars" },
+      chart("Total mass", "shorter is lighter", "total_kg", "kg", true),
+      chart("Container volume", "shorter is smaller", "pcm_volume_L", "L", false),
+      chart("Heat-exchange area", "shorter is simpler", "area_m2", "m²", false)),
+    b.takeaway ? el("p", { class: "takeaway" }, b.takeaway, srcTag(b.source)) : null,
+    ((b.assumptions || []).length || (b.caveats || []).length) ? el("details", { class: "more" }, el("summary", {}, "Assumptions and caveats"),
+      (b.assumptions || []).map((x) => el("p", {}, x.text, srcTag(x.source))),
+      (b.caveats || []).map((x) => el("p", {}, x.text, srcTag(x.source)))) : null);
+  card.hidden = false;
+}
+function renderTrustSummary() {
+  const card = document.getElementById("trust-summary");
   const run = mainComparison();
+  const rows = [];
   if (run) {
     const A = run.arms.A, C = run.arms.C;
-    if (C.trap_catch_rate && A.trap_catch_rate) {
-      stats.push({ num: pct(C.trap_catch_rate.mean), lbl: "traps caught",
-        sub: `vs ${pct(A.trap_catch_rate.mean)} single agent · ${C.repeats} repeats` });
-    }
+    if (C.trap_catch_rate && A.trap_catch_rate) rows.push({ big: pct(C.trap_catch_rate.mean), t: "simulation traps caught",
+      s: `by our collective, vs ${pct(A.trap_catch_rate.mean)} for a single agent · ${C.repeats} repeats` });
+    if (C.silent_errors && has(C.silent_errors.max)) rows.push({ big: num(C.silent_errors.max), t: "confident wrong answers",
+      s: `our collective, worst of ${C.silent_errors.n} repeats` });
     if (has(C.total_usd) && has(A.total_usd) && C.repeats && A.repeats) {
       const missing = C.tasks_without_cost_log || 0;
-      stats.push({ num: `~$${(C.total_usd / C.repeats).toFixed(2)}`, lbl: "LLM cost per run",
-        sub: `vs ~$${(A.total_usd / A.repeats).toFixed(2)} single agent` + (missing ? ` · ${missing} refused task runs had no cost log` : "") });
-    }
-    if (C.silent_errors && has(C.silent_errors.max)) {
-      stats.push({ num: num(C.silent_errors.max), lbl: "confident wrong answers", sub: `our collective, worst of ${C.silent_errors.n} repeats` });
+      rows.push({ big: `~$${(C.total_usd / C.repeats).toFixed(2)}`, t: "LLM cost per run",
+        s: `vs ~$${(A.total_usd / A.repeats).toFixed(2)} single agent${missing ? ` · ${missing} refused task runs had no cost log` : ""}` });
     }
   }
   const cu = copperResult();
   if (cu && cu.result.status) {
     const diff = cu.ref ? (cu.result.value - cu.ref.value) / cu.ref.value : null;
-    stats.push({ num: `Cu: ${STATUS_WORD[cu.result.status] || cu.result.status}`, lbl: "copper melting point",
-      sub: [fmtValue(cu.result.value, cu.result.units), cu.ref ? `vs ${fmtValue(cu.ref.value, cu.ref.units)} measured` : null,
-            diff !== null ? `(${signedPct(diff)})` : null, `· ${cu.board.name}`].filter(Boolean).join(" ") });
+    rows.push({ big: "Cu", t: `copper melting point: ${(STATUS_WORD[cu.result.status] || cu.result.status).toLowerCase()}`,
+      s: [`our method check: ${fmtValue(cu.result.value, cu.result.units, cu.result.uncertainty)}`,
+          cu.ref ? `vs ${fmtValue(cu.ref.value, cu.ref.units)} measured` : null, diff !== null ? `(${signedPct(diff)})` : null].filter(Boolean).join(" ") });
   }
-  fill(box, stats.map((s) => {
-    const n = el("div", { class: "num" });
-    countUp(n, s.num);
-    return el("div", { class: "stat" }, n, el("div", { class: "lbl" }, s.lbl), el("div", { class: "sub" }, s.sub));
-  }), run ? el("div", { class: "stats-note" }, `Comparison ${run.run.replace(/^eval__/, "")}: all runs, not just the one selected.`) : null);
-  box.hidden = !stats.length;
+  if (!rows.length) { card.hidden = true; return; }
+  fill(card, el("h3", {}, "Why you can trust it"),
+    el("p", { class: "muted small" }, run ? `Comparison ${run.run.replace(/^eval__/, "")}, all runs; copper is the known metal we use to prove the method.` : ""),
+    el("div", { class: "tsum" }, rows.map((r) => el("div", { class: "row" },
+      el("span", { class: "big" }, r.big), el("div", {}, el("div", { class: "t" }, r.t), el("div", { class: "s" }, r.s))))),
+    el("p", { class: "card-cta small" }, el("a", { href: "#/trust" }, "How a result earns trust →")));
+  card.hidden = false;
 }
 
 // ---------------------------------------------------------------- overview: materials so far
@@ -464,16 +553,14 @@ function copperTimeline() {
 }
 function renderTimeline() {
   const card = document.getElementById("timeline-card");
-  const btn = document.getElementById("replay");
   const steps = copperTimeline();
-  if (steps.length < 2) { card.hidden = true; btn.hidden = true; return; }
+  if (steps.length < 2) { card.hidden = true; return; }
+  const btn = el("button", { class: "btn-ghost", type: "button" }, "▷ Replay");
   card.hidden = false;
   const tl = el("div", { class: "tl" }, steps.map((s) => el("div", { class: `tl-step ${s.tone}` },
     el("span", { class: "mark" }), el("div", { class: "val" }, s.val), el("div", { class: "cap" }, s.cap, srcTag(s.source)))));
-  fill(card, el("h3", {}, "Copper, start to finish"),
-    el("p", { class: "muted small" }, "The trap, the catch and the checks, read from the results board."), tl);
-  btn.hidden = false;
-  btn.disabled = false;
+  fill(card, el("div", { class: "card-head" }, el("h3", {}, "Copper: how we proved the method"), btn),
+    el("p", { class: "muted small" }, "Before trusting any gallium number, the agents had to get a known metal right. The trap, the catch and the checks, read from the results board."), tl);
   btn.onclick = () => {
     const items = [...tl.children];
     card.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "center" });
@@ -683,52 +770,20 @@ function renderCatches() {
 function postsBy(n, b) {
   return Object.values((b && b.lineage) || {}).filter((a) => (n.agents || []).includes(a.agent) && a.type !== "need_claim");
 }
-function captionFor(row, nodes) {
-  const agents = nodes.flatMap((n) => n.agents || []);
-  switch (row.id) {
-    case "steers": return "People and the chemistry lead set the rules before any run";
-    case "proposes": return agents.length ? `${agents.length} scouts, one per material family` : "Scouts pick candidates";
-    case "gates": return "Asks whether the property is measurable at all";
-    case "simulates": return "Runs ALCHEMI on the GB10 GPU";
-    case "checks": return `${nodes.length} independent checkers`;
-    case "keeps": return "Only evidence sets a status";
-    default: return "";
-  }
-}
-function renderFlow() {
-  const box = document.getElementById("flow");
+// the Agents page frames the original dashboard's loop diagram (/classic/?embed=agents), loaded on first view
+function setupAgentsFrame() {
+  const frame = document.getElementById("agents-frame");
   const intro = document.getElementById("agents-intro");
-  const G = CTX.agent_graph || {};
-  const nodes = G.nodes || [];
-  intro.textContent = (G.idea || {}).headline || "No boss: each agent owns one job and works only through the shared results board.";
-  const stages = (G.rows || []).map((r) => ({ ...r, nodes: nodes.filter((n) => n.row === r.id) })).filter((r) => r.nodes.length);
-  if (!stages.length) { box.hidden = true; return; }
-  const b = sel();
-  const tip = document.getElementById("tooltip");
-  const showTip = (n, e) => {
-    const posts = postsBy(n, b).length;
-    tip.textContent = `${n.does || n.line || ""}${(n.agents || []).length ? ` · ${posts} post${posts === 1 ? "" : "s"} on ${b ? b.name : "this run"}` : ""}`;
-    tip.hidden = false;
-    const r = e.currentTarget.getBoundingClientRect();
-    const left = Math.min(window.innerWidth - tip.offsetWidth - 8, Math.max(8, r.left));
-    const top = r.bottom + 8 + tip.offsetHeight > window.innerHeight ? r.top - tip.offsetHeight - 8 : r.bottom + 8;
-    tip.style.cssText = `left:${left}px;top:${top}px`;
-  };
-  const hideTip = () => { tip.hidden = true; };
-  fill(box,
-    (G.idea && (G.idea.points || []).length) ? el("div", { class: "points reveal" }, G.idea.points.map((pt) =>
-      el("div", { class: "point" }, el("b", {}, pt.lead), el("span", {}, pt.text, srcTag(pt.source))))) : null,
-    el("div", { class: "flow reveal" }, stages.map((st, i) => el("div", { class: `col${st.id === "checks" ? " hero-col" : ""}` },
-      el("div", { class: "node" }, String(i + 1)),
-      el("div", { class: "ch" }, st.label),
-      el("div", { class: "cap" }, captionFor(st, st.nodes)),
-      st.nodes.map((n) => el("div", { class: "chip", tabindex: "0",
-          onmouseenter: (e) => showTip(n, e), onmouseleave: hideTip, onfocus: (e) => showTip(n, e), onblur: hideTip },
-        el("span", {}, (n.name || "").replace(/\s*\(.*\)$/, "").replace(/^NVIDIA ALCHEMI Toolkit/, "ALCHEMI")),
-        n.tag && !(n.name || "").includes(n.tag) ? el("span", { class: "tag" }, n.tag) : null))))),
-    el("p", { class: "small muted reveal" }, "Hover a chip for its job. ",
-      el("a", { href: "#/trust" }, "See where the loop caught ALCHEMI assumptions →")));
-  box.hidden = false;
+  intro.textContent = ((CTX.agent_graph || {}).idea || {}).headline || "No boss: each agent owns one job and works only through the shared results board.";
+  window.addEventListener("message", (e) => {
+    if (e.origin !== location.origin || e.source !== frame.contentWindow) return;
+    const h = e.data && e.data.coolorbitEmbedHeight;
+    if (typeof h === "number" && h > 0) frame.style.height = `${h}px`;
+  });
+}
+function loadAgentsFrame() {
+  const frame = document.getElementById("agents-frame");
+  if (frame && !frame.getAttribute("src")) frame.setAttribute("src", frame.dataset.src);
 }
 function renderAgentCounts() {
   const box = document.getElementById("agent-counts");
@@ -746,6 +801,7 @@ function renderAgentCounts() {
   }).sort((x, y) => y.count - x.count);
   fill(box,
     el("h3", { class: "sect reveal" }, "Posts per agent"),
+    el("p", { class: "small muted reveal" }, el("a", { href: "#/trust" }, "See where the loop caught ALCHEMI assumptions →")),
     el("p", { class: "intro reveal" }, b ? `On ${b.name}${has(activeMin) ? `; green = posted in the last ${activeMin} minutes before the export` : ""}.` : ""),
     el("div", { class: "counts reveal" }, rows.map(({ n, count, active }) => el("div", { class: "agent" },
       el("span", { class: `adot ${active ? "active" : count ? "idle" : ""}` }),
@@ -785,23 +841,15 @@ function renderRaw() {
 
 // ---------------------------------------------------------------- footer
 function renderFooter() {
-  const f = document.getElementById("footer");
   const repo = CTX.repo;
-  fill(f,
-    CTX.claims ? el("p", {}, CTX.claims) : null,
-    el("p", {}, "Sources: every number carries its source (hover the [source] tags)",
-      repo ? ["; the full list is the ", el("a", { href: `${repo}/blob/main/docs/pitch/outline.md` }, "claims register"), "."] : "."),
-    repo ? el("p", {}, el("a", { href: repo }, repo.replace(/^https?:\/\//, ""))) : null,
-    IDX.rules_frozen === false ? el("p", {}, "Provisional: tolerances not frozen.") : null,
-    IDX.exported_at ? el("p", {}, `Board export ${IDX.exported_at.replace("T", " ").slice(0, 16)} UTC.`) : null,
-    el("p", {}, el("a", { href: "/classic/" }, "Classic dashboard (all tables and replays)")));
+  fill(document.getElementById("footer"), repo ? el("p", {}, el("a", { href: repo }, repo.replace(/^https?:\/\//, ""))) : null);
 }
 
 // ---------------------------------------------------------------- start
 function renderRunViews() {
-  renderStats(); renderMaterialsSoFar(); renderTimeline();
+  renderMaterialsSoFar(); renderTimeline(); renderTrustSummary();
   renderTrustCards();
-  renderFlow(); renderAgentCounts(); renderRaw();
+  renderAgentCounts(); renderRaw();
   observeReveals();
 }
 function start() {
@@ -814,7 +862,8 @@ function start() {
   setupHero(); renderLive();
   selected = boardFromParam(new URLSearchParams(location.search).get("run")) || defaultRun();
   renderPicker(); if (selected) updatePickerButton();
-  renderBeats(); renderMeasured(); renderGa3d(); renderCatches(); renderFooter();
+  renderHeroAnswer(); renderStats(); renderWhy(); renderBurst();
+  renderBeats(); renderMeasured(); renderGa3d(); renderCatches(); renderFooter(); setupAgentsFrame();
   renderRunViews();
   showPage(false);
   window.addEventListener("hashchange", () => { showPage(true); window.scrollTo(0, 0); });

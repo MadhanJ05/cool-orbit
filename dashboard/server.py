@@ -53,7 +53,7 @@ DATA_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,200}\.(json|js)$")
 METADATA_TOKEN = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
 SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-                               "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+                               "connect-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
 }

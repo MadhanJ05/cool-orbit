@@ -46,8 +46,9 @@
           <h1>Finding the right materials to keep AI <em>cool in orbit</em></h1>
           <p class="lede">A multi-agent system on NVIDIA ALCHEMI + Dell Pro Max GB10 that simulates, cross-checks and
             ranks thermal-battery materials for space.</p>
+          <div class="hero-answer" id="hero-answer" hidden></div>
           <div class="cta">
-            <button id="replay" class="btn-dark" type="button" hidden>&#9655; Replay copper run</button>
+            <a class="btn-dark" href="#/materials">See gallium vs paraffin &rarr;</a>
             <a class="link" href="#/trust">See the evidence &rarr;</a>
           </div>
         </div>
@@ -67,6 +68,11 @@
         </div>
       </div>
       <div class="wrap"><div id="stats" class="stats reveal"></div></div>
+      <div class="wrap" id="why"></div>
+      <div class="wrap grid-12 runs-row">
+        <div class="col-7 card reveal" id="burst-card"></div>
+        <div class="col-5 card reveal" id="trust-summary"></div>
+      </div>
       <div class="wrap grid-12 runs-row">
         <div class="col-5 card reveal" id="materials-so-far"></div>
         <div class="col-7 card reveal" id="timeline-card"></div>
@@ -107,14 +113,16 @@
         <h2>How our agents work, in a loop</h2>
         <p class="intro" id="agents-intro"></p>
       </div>
-      <div class="wrap" id="flow"></div>
+      <div class="wrap"><div class="card agents-frame-card reveal" id="agents-frame-card">
+        <iframe id="agents-frame" class="agents-frame" title="The loop of agents around NVIDIA ALCHEMI (interactive diagram)"
+                data-src="/classic/?embed=agents"></iframe>
+      </div></div>
       <div class="wrap" id="agent-counts"></div>
       <div class="wrap" id="raw"></div>
     </section>
   </main>
 
   <footer class="wrap footer" id="footer"></footer>
-  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <noscript><p class="wrap">This page needs JavaScript to read the board export.</p></noscript>
   <script src="/data/data.js"></script>
