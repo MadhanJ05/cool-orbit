@@ -17,6 +17,12 @@ subprocess so a crash or OOM never takes the agent down), and posts:
 
     python -m coolorbit.sim.simulator_agent --board boards/<id> [--agent simulator_gb10]
                                             [--once] [--dry-run] [--poll 30]
+
+Coexistence protocol 2 (opt-in; docs/results/coexistence-diagnosis.md) is used for a melting-point need that
+carries ``"protocol_version": 2``, or for every coexistence job when this process runs with
+``COOLORBIT_COEX_PROTOCOL=2``. The job then runs ``melting.py --protocol 2 --seed <2026 + attempt>`` (plus
+``--t-ref`` from the need's ``t_ref_K``/``t_guess_K`` and ``--t-melt`` from ``t_melt_K``), and a failure is retried
+only when a retry can help (see ``retry_decision_v2``). Without either, behaviour is unchanged (protocol 1).
 """
 
 from __future__ import annotations
@@ -24,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import re
 import shlex
 import subprocess
@@ -50,6 +57,28 @@ ORGANIC_ELEMENTS = {"C", "H", "O", "N"}
 # flagged "system_too_small" and rerun. A test keeps these equal to the audit rules.
 MIN_ATOMS = {"coexistence": 500, "latent": 200}
 DEFAULT_REPS = {"coexistence": [4, 4, 8], "latent": [4, 4, 4]}
+
+# Coexistence protocol 2 (opt-in). Keep in step with coolorbit/sim/melting.py (not imported here: it pulls in torch).
+PROTOCOL_V2 = 2
+COEX_PROTOCOL_ENV = "COOLORBIT_COEX_PROTOCOL"
+V2_BASE_SEED = 2026         # protocol 2 runs attempt k with seed 2026 + k, so repeats are independent
+V2_VC_RELAX_STEPS = 300     # melting.py's protocol-2 default 0 K relaxation (counted in the time estimate)
+# Failures and flags that come from the set-up or the analysis, not from where the bracket sits: a shifted or
+# longer run would repeat them, so protocol 2 never retries them.
+V2_NO_RETRY_FAILURES = frozenset({"crystal_lost_in_prep", "liquid_not_prepared", "no_two_phase_box", "inconsistent"})
+V2_NO_RETRY_FLAGS = frozenset({"crystal_lost_in_prep", "liquid_not_prepared", "no_two_phase_box",
+                               "liquid_half_incompletely_melted"})
+V2_DETAIL_KEYS = ("protocol_version", "t_melt_K", "t_ref_K", "seed", "lower_bound_K", "upper_bound_K",
+                  "stopped_after", "bracket_K")
+
+
+def coex_protocol(need: dict) -> int:
+    """2 if the need asks for it ("protocol_version": 2) or this process has COOLORBIT_COEX_PROTOCOL=2, else 1."""
+    if str(need.get("protocol_version", "")).strip() == str(PROTOCOL_V2):
+        return PROTOCOL_V2
+    if os.environ.get(COEX_PROTOCOL_ENV, "").strip() == str(PROTOCOL_V2):
+        return PROTOCOL_V2
+    return 1
 
 
 def default_reps(atoms_per_cell: int, mode: str) -> list[int]:
@@ -89,6 +118,13 @@ class Job:
     n_atoms: int
     elements: set[str] = field(default_factory=set)
     supersedes: Optional[str] = None  # the flawed result this run replaces (rerun requested on a check)
+    protocol: int = 1                 # coexistence protocol; 2 = the opt-in fix (see the module docstring)
+    t_ref: Optional[float] = None     # protocol 2: the material's reference temperature (melt at >= 2x it)
+    t_melt: Optional[float] = None    # protocol 2: melt temperature, carried unchanged through retries
+
+    @property
+    def v2(self) -> bool:
+        return self.protocol == PROTOCOL_V2 and self.mode == "coexistence"
 
     @property
     def name(self) -> str:
@@ -113,6 +149,8 @@ class Job:
             atom_steps = n * (s["equil"] + s["melt"] + s["quench"]) + m * n * s["prod"]
         else:
             atom_steps = n * s["melt"] + 2 * n * s["prod"]
+        if self.v2:
+            atom_steps += n * V2_VC_RELAX_STEPS
         return atom_steps / GB10_ATOM_STEPS_PER_S / 60
 
     def cli_args(self, out_dir: Path) -> list[str]:
@@ -126,6 +164,12 @@ class Job:
             args.append("--quick")
         if self.prod_steps:
             args += ["--prod-steps", str(self.prod_steps)]
+        if self.v2:
+            args += ["--protocol", str(PROTOCOL_V2), "--seed", str(V2_BASE_SEED + self.attempt)]
+            if self.t_ref:
+                args += ["--t-ref", f"{self.t_ref:g}"]
+            if self.t_melt:
+                args += ["--t-melt", f"{self.t_melt:g}"]
         return args
 
 
@@ -271,6 +315,7 @@ def build_job(snap: BoardSnapshot, on: OpenNeed) -> Optional[Job]:
     preset = need.get("preset", "production")
     if preset not in PRESET_STEPS:
         raise JobError(f"unknown preset {preset!r}; use quick or production")
+    v2 = mode == "coexistence" and coex_protocol(need) == PROTOCOL_V2
     return Job(
         target=on.artifact, need_index=on.index, need=need, candidate=cand, property=prop, mode=mode,
         temps=[float(t) for t in temps], reps=[int(r) for r in reps],
@@ -278,11 +323,23 @@ def build_job(snap: BoardSnapshot, on: OpenNeed) -> Optional[Job]:
         prod_steps=need.get("prod_steps"), attempt=int(need.get("attempt", 1)), structure_args=structure_args,
         n_atoms=len(unit) * math.prod(int(r) for r in reps), elements=elements,
         supersedes=find_rerun_target(snap, on.artifact, prop),
+        **({"protocol": PROTOCOL_V2, "t_ref": _positive(need.get("t_ref_K") or need.get("t_guess_K")),
+            "t_melt": _positive(need.get("t_melt_K"))} if v2 else {}),
     )
+
+
+def _positive(value) -> Optional[float]:
+    try:
+        x = float(value)
+    except (TypeError, ValueError):
+        return None
+    return x if x > 0 and math.isfinite(x) else None
 
 
 def retry_need(job: Job, result: dict) -> Optional[dict]:
     """A follow-up request that could fix a coexistence failure, or None."""
+    if getattr(job, "protocol", 1) == PROTOCOL_V2:
+        return retry_decision_v2(job, result)[0]
     if job.attempt >= MAX_ATTEMPTS or job.mode != "coexistence":
         return None
     temps = sorted(job.temps)
@@ -314,6 +371,70 @@ def retry_need(job: Job, result: dict) -> Optional[dict]:
     need.update(attempt=job.attempt + 1, query=f"{job.property} of {job.name} (retry {job.attempt + 1}: {what})",
                 rationale=f"attempt {job.attempt} failed: {result.get('reason', failure)}")
     return need
+
+
+def retry_decision_v2(job: Job, result: dict) -> tuple[Optional[dict], str]:
+    """Protocol 2: (retry need or None, why), per docs/results/coexistence-diagnosis.md, minimal fix 5.
+
+    * No retry for set-up or analysis artefacts (V2_NO_RETRY_FAILURES / V2_NO_RETRY_FLAGS): a shifted or longer
+      run would repeat them (In a2 was retried despite liquid_half_incompletely_melted).
+    * The need keeps a ``bracket_history`` (attempt, temperatures, failure, bounds, seed). No retry when the bounds
+      contradict across attempts (froze at or above a temperature that melted), when the direction reverses
+      (below then above, or the reverse), or when the shifted bracket repeats an earlier one (In a1 -> a2 -> a3 = a1).
+    * The retry stays on protocol 2 and carries the material's T_ref and this attempt's melt temperature unchanged;
+      the seed is 2026 + attempt (set in Job.cli_args), so repeats are independent.
+    """
+    failure = result.get("failure")
+    if job.mode != "coexistence":
+        return None, "no retry: not a coexistence run"
+    artefacts = sorted(set(result.get("flags") or []) & V2_NO_RETRY_FLAGS)
+    if failure in V2_NO_RETRY_FAILURES or artefacts:
+        what = failure if failure in V2_NO_RETRY_FAILURES else ", ".join(artefacts)
+        return None, f"no retry: {what} is a set-up or analysis artefact; a shifted or longer run would repeat it"
+    if job.attempt >= MAX_ATTEMPTS:
+        return None, f"no retry: attempt {job.attempt} of {MAX_ATTEMPTS}"
+    temps = sorted(job.temps)
+    n = len(temps)
+    spacing = (temps[-1] - temps[0]) / (n - 1)
+    history = [dict(h) for h in job.need.get("bracket_history") or []]
+    history.append({"attempt": job.attempt, "temps_K": temps, "failure": failure, "seed": V2_BASE_SEED + job.attempt,
+                    **{k: result[k] for k in ("lower_bound_K", "upper_bound_K") if result.get(k) is not None}})
+    lows = [h["lower_bound_K"] for h in history if h.get("lower_bound_K") is not None]
+    highs = [h["upper_bound_K"] for h in history if h.get("upper_bound_K") is not None]
+    if lows and highs and max(lows) >= min(highs):
+        return None, (f"no retry: contradictory brackets: froze at {max(lows):g} K but melted at {min(highs):g} K "
+                      f"across attempts {[h['attempt'] for h in history]}")
+    if {"above_bracket", "below_bracket"} <= {h.get("failure") for h in history}:
+        return None, "no retry: contradictory brackets: the bracket direction reversed across attempts"
+    per_t = result.get("per_temperature") or []
+    melting = sorted(p["T_target_K"] for p in per_t if p["verdict"] == "melting")
+    freezing = sorted(p["T_target_K"] for p in per_t if p["verdict"] == "freezing")
+    need = {k: v for k, v in job.need.items() if k not in ("t_guess_K", "bracket_history")}
+    if failure == "above_bracket":
+        anchor = max(freezing) if freezing else temps[-1]
+        need["temps_K"] = [anchor + k * spacing for k in range(n)]
+        what = "bracket shifted up"
+    elif failure == "below_bracket":
+        anchor = min(melting) if melting else temps[0]
+        need["temps_K"] = [anchor - k * spacing for k in reversed(range(n))]
+        what = "bracket shifted down"
+        if min(need["temps_K"]) <= 0:
+            return None, "no retry: the shifted bracket would reach 0 K"
+    elif failure == "undecided":  # near Tm the interface moves slowly: same temperatures, longer
+        need["temps_K"] = temps
+        need["prod_steps"] = 2 * job.steps()["prod"]
+        what = "production run doubled"
+    else:
+        return None, f"no retry for failure {failure!r}"
+    if what.startswith("bracket") and any(
+            [round(t, 1) for t in need["temps_K"]] == [round(t, 1) for t in h["temps_K"]] for h in history):
+        return None, "no retry: the shifted bracket repeats an earlier attempt's bracket"
+    t_melt = _positive(result.get("t_melt_K")) or job.t_melt
+    need.update(attempt=job.attempt + 1, query=f"{job.property} of {job.name} (retry {job.attempt + 1}: {what})",
+                rationale=f"attempt {job.attempt} failed: {result.get('reason', failure)}",
+                protocol_version=PROTOCOL_V2, bracket_history=history,
+                **({"t_ref_K": job.t_ref} if job.t_ref else {}), **({"t_melt_K": t_melt} if t_melt else {}))
+    return need, f"retry {job.attempt + 1}: {what}"
 
 
 def check_needs(job: Job) -> list[dict]:
@@ -478,6 +599,10 @@ class SimulatorAgent:
         if result.get("status") == "ok":
             payload = build_property_payload(job.candidate.payload, result, settings["settings"],
                                              settings["n_atoms"], str(run_dir))
+            if settings["settings"].get("protocol_version") == PROTOCOL_V2:
+                payload["method"]["protocol_version"] = PROTOCOL_V2  # "protocol" stays as audits match on it
+                if settings["settings"].get("git_commit"):
+                    payload["method"]["git_commit"] = settings["settings"]["git_commit"]
             parents = [job.candidate.artifact_id] + ([job.supersedes] if job.supersedes else [])
             art = self.board.post(self.name, "property_result", payload, parents=parents,
                                   needs=check_needs(job), fulfills=(job.target.artifact_id, job.need_index),
@@ -485,11 +610,16 @@ class SimulatorAgent:
             print(f"[{self.name}] RESULT {art.artifact_id[:8]}: {payload['property']} = {payload['value']} "
                   f"+/- {payload['uncertainty']} {payload['units']} flags={payload['flags']}", flush=True)
             return
-        retry = retry_need(job, result)
+        details = {k: result[k] for k in ("failure", "per_temperature", "flags") if k in result}
+        if getattr(job, "protocol", 1) == PROTOCOL_V2:
+            retry, why = retry_decision_v2(job, result)
+            details.update({k: result[k] for k in V2_DETAIL_KEYS if k in result}, retry=why)
+        else:
+            retry = retry_need(job, result)
         self._report(status="failed", task=job.task, reason=result.get("reason", "unknown failure"),
                      target_id=job.target.artifact_id, need_index=job.need_index, candidate=job.candidate,
                      attempt=job.attempt, run_dir=str(run_dir),
-                     details={k: result[k] for k in ("failure", "per_temperature", "flags") if k in result},
+                     details=details,
                      needs=[retry] if retry else (), supersedes=job.supersedes)
 
 

@@ -27,6 +27,15 @@ exec > >(tee -a runs/remote_setup.log) 2>&1
 uv pip install --torch-backend "$BACKEND" --index-strategy unsafe-best-match \
   "nvalchemi-toolkit[${EXTRA},mace,ase]==0.2.0" 'plotext<6' numpy scipy
 
+# The default warp-lang wheel on PyPI is built with CUDA 13 and finds no GPU on a CUDA 12 driver ("Insufficient CUDA
+# driver version"; seen on a Lambda H100, driver 570 / CUDA 12.8, 2026-11-01). Swap in Warp's own +cu12 wheel there.
+if [ "$EXTRA" = cu12 ]; then
+  WARP_VER=$(.venv/bin/python -c "import importlib.metadata as m; print(m.version('warp-lang').split('+')[0])")
+  case "$(uname -m)" in x86_64) WARP_PLAT=manylinux_2_28_x86_64;; *) WARP_PLAT=manylinux_2_34_aarch64;; esac
+  uv pip install --reinstall \
+    "warp-lang @ https://github.com/NVIDIA/warp/releases/download/v${WARP_VER}/warp_lang-${WARP_VER}+cu12-py3-none-${WARP_PLAT}.whl"
+fi
+
 .venv/bin/python - <<'EOF'
 import torch, nvalchemi
 x = torch.randn(1024, 1024, device="cuda")
