@@ -1,0 +1,4 @@
+2026-11-01T03:35:59+00:00 start: watching boards/science-1 for a MACE Bi melting point; classical run meam-bi-refine; until 2026-11-01T08:00:00+00:00; dry_run=True
+2026-11-01T03:35:59+00:00 stop: reached 2026-11-01T08:00:00+00:00 (posted=False)
+2026-11-01T03:36:13+00:00 start: watching boards/science-1 for a MACE Bi melting point; classical run meam-bi-refine; until 2026-11-01T08:00:00+00:00; dry_run=False
+2026-11-01T03:42:13+00:00 run report 6473c3f0: failed: melting_point of Bi via two-phase coexistence (ALCHEMI): no temperature froze and the coldest run melted: the melting point is below the bracket

@@ -1,0 +1,11 @@
+Attempting to create 1 instance(s) with 1 parallel attempts
+Instance types to try: gpu_1x_h100_pcie
+
+Trying gpu_1x_h100_pcie for 1 instance(s)...
+[Worker 1] Trying gpu_1x_h100_pcie for instance 'coolorbit-h100'...
+[Worker 1] gpu_1x_h100_pcie Success! Created instance 'coolorbit-h100'
+
+Waiting for instance(s) to be ready...
+You can safely ctrl+c to exit
+  coolorbit-h100: Timeout waiting for ready state
+coolorbit-h100

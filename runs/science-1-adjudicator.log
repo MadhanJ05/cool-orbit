@@ -1,3 +1,5 @@
 [adjudicator] start: board=boards/science-1, once=False
 [adjudicator] post: artifact_type=check, id=65e3e208, summary=method_audit: fail, parents=['7ed6f997'], fulfills=None
 [adjudicator] decision: result=7ed6f997, candidate=BiInSn, property=latent_heat, verdict=fail, settles=referee_rules pass (ada06981), referee_llm fail (8af1ea18), rerun=None, usage={'role': 'adjudicator', 'model': 'claude-fable-5-1', 'cost_usd': 0.03954, 'input_tokens': 1749, 'output_tokens': 441}
+[adjudicator] post: artifact_type=check, id=c9f4d6de, summary=method_audit: fail, parents=['b3d4ad1b'], fulfills=None
+[adjudicator] decision: result=b3d4ad1b, candidate=InBi, property=latent_heat, verdict=fail, settles=referee_rules pass (23fc631f), referee_llm fail (d5a93b0e), rerun=None, usage={'role': 'adjudicator', 'model': 'claude-fable-5-1', 'cost_usd': 0.04677, 'input_tokens': 1742, 'output_tokens': 587}

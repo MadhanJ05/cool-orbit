@@ -1,0 +1,14 @@
+ + numpy==2.5.4
+ - warp-lang==1.18.0
+ + warp-lang==1.18.0+cu12 (from https://github.com/NVIDIA/warp/releases/download/v1.18.0/warp_lang-1.18.0+cu12-py3-none-manylinux_2_28_x86_64.whl)
+     "cuda:0"   : "NVIDIA H100 PCIe" (79 GiB, sm_90, mempool enabled)
+   Kernel cache:
+     /home/ubuntu/.cache/warp/1.18.0
+warp devices: 1
+=== Summary ===
+run                         steps/s  atom-steps/s   ns/day  drift eV/at/step  T_end K  mem GB
+cueq 1x864 atoms               12.5        10,797     1.08          2.74e-08    151.3    1.50
+cueq 1x2048 atoms              12.4        25,457     1.07          2.55e-08    152.4    3.41
+
+Sanity: a crystal started on perfect lattice sites at 300 K should settle near 150 K (equipartition). ns/day assumes dt=1.0 fs; H-rich organics will need ~0.5 fs.
+Saved runs/smoke_remote/throughput_2026-11-01T041056+0000.json
