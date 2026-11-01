@@ -248,7 +248,9 @@ const exportedMs = () => parseIso(DATA.index.exported_at);
 const runLabel = (run) => String(run || "").replace(/^eval__/, "");
 
 // ------------------------------------------------------------------ top bar: tabs, data age, pills, countdown
-const TABS = ["overview", "agents", "results", "comparison", "failures"];
+// The tabs are whichever of these sections index.html holds (Comparison and Failures are commented out there for now).
+const TABS = ["overview", "agents", "results", "comparison", "failures"].filter((t) => document.getElementById(t));
+const hasTab = (t) => TABS.includes(t);
 const TAB_TITLE = { overview: "Overview", agents: "Agents", results: "Results", comparison: "Comparison", failures: "Failures" };
 let currentTab = null;
 
@@ -354,8 +356,8 @@ function renderPills(results) {
   if (!host) return;
   const live = document.getElementById("live-pill");
   const pills = [live];
-  // Counts live in the tabs, with their sources; the pill only says where the comparison stands.
-  for (const run of DATA.index.comparison || []) {
+  // Counts live in the tabs, with their sources; the pill only says where the comparison stands (and links to it).
+  for (const run of hasTab("comparison") ? DATA.index.comparison || [] : []) {
     if (run.synthetic) continue;
     const open = [...new Set((run.repeats || []).filter((d) => !d.complete).map((d) => d.repeat))].sort((a, b) => a - b);
     pills.push(el("a", { class: `pill cmp ${open.length ? "claim" : "ok"}`, href: "#comparison",
@@ -407,13 +409,17 @@ function trustSentence(c, n) {
 function renderHero(results, boards) {
   const q = CTX && CTX.question;
   if (q) document.getElementById("question").textContent = q.title;
+  const sub = document.getElementById("question-sub");
+  if (sub && q && q.subtitle) sub.textContent = q.subtitle;
   const c = countGroups(results);
   const n = results.length;
   const src = boardSource(boards);
   const burst = CTX && CTX.burst && !CTX.burst.error ? CTX.burst : null;
+  const hh = CTX && CTX.head_to_head;
   mount("hero-answer", el("p", { class: "answer" },
     el("span", { class: "answer-label" }, "Answer so far"),
-    burst && burst.headline ? [burst.headline, cite(burst.source), " "] : null,
+    hh && hh.verdict ? [hh.verdict, cite(hh.source), " "]
+      : burst && burst.headline ? [burst.headline, cite(burst.source), " "] : null,
     trustSentence(c, n), cite(src)));
   mount("hero-why", q ? [
     el("ul", { class: "why" }, q.lines.map((l) => el("li", {}, l.text, cite(l.source, l.url)))),
@@ -437,8 +443,8 @@ function renderHero(results, boards) {
     el("p", { class: "fine stat-foot" },
       `From the results board${refused ? `, plus ${plural(refused, "run")} refused before running` : ""}.`, cite(src),
       " A status is derived from the evidence; no agent can set one. ",
-      el("a", { href: "#agents" }, "How the agents work"), " · ", el("a", { href: "#results" }, "every result"), " · ",
-      el("a", { href: "#failures" }, "what failed")));
+      el("a", { href: "#agents" }, "How the agents work"), " · ", el("a", { href: "#results" }, "every result"),
+      hasTab("failures") ? [" · ", el("a", { href: "#failures" }, "what failed")] : null));
 }
 
 const SERIES = ["s1", "s2", "s3", "s4"];
@@ -604,6 +610,11 @@ function buildActivity() {
       if (a.type === "check") s.verdicts[p.verdict] = (s.verdicts[p.verdict] || 0) + 1;
       if (a.type === "run_report") s.runs[p.status] = (s.runs[p.status] || 0) + 1;
       if (a.type === "reference_value") s.refs[p.value === null || p.value === undefined ? "none" : "sourced"] += 1;
+      if (a.type === "property_result") { // where its results ran: a remote host is recorded in method.remote
+        const remote = p.method && p.method.remote && p.method.remote.host;
+        if (remote) s.remote = String(remote);
+        else s.local = true;
+      }
       if (!s.last || a.timestamp > s.last.timestamp) s.last = { ...a, board: b.name };
     }
     for (const n of b.open_needs || []) {
@@ -651,21 +662,39 @@ function agentState(names) {
            sentence: `Idle: last post ${fmtShort(last.timestamp)}, ${fmtSpan(ageMin * 60)} before the export.` };
 }
 
-// ------------------------------------------------------------------ agents: the diagram
-// [line within its row, first column, column span] on a 12-column grid. The connectors in EDGE_ROUTES assume these
-// positions (columns kept free for vertical drops and gaps wide enough for labels).
-const NODE_LAYOUT = {
-  humans: [1, 4, 6], scouts: [1, 1, 12], premise: [1, 9, 4],
-  simulator: [1, 1, 3], alchemi: [1, 5, 5], worker: [1, 10, 3],
-  rules: [1, 1, 3], llm: [1, 4, 3], classical: [1, 7, 3], librarian: [1, 10, 3], adjudicator: [2, 3, 3],
-  board: [1, 1, 3], trust: [1, 5, 4], ranker: [1, 10, 3],
+// ------------------------------------------------------------------ agents: the diagram, an orbit around ALCHEMI
+// Desktop: the steering band, then a three-column stage (style.css places each box by its node id) with ALCHEMI at
+// the centre and the agents on a closed loop around it. The loop, the inner arcs (the loop-backs, G.loops) and the
+// chemistry lead's rules lines are SVG drawn from the boxes' rendered positions (drawEdges); particles ride them with
+// CSS offset-path. Below STACKED the boxes stack in one column and the drawing is hidden.
+const STEER_IDS = ["humans", "chemlead"];
+const STAGE_IDS = ["alchemi", "scouts", "premise", "simulator", "rules", "llm", "classical", "librarian", "adjudicator",
+  "trust", "ranker", "worker", "board"];
+const NODE_HUE = {
+  humans: "steer", chemlead: "fable", scouts: "propose", premise: "gate", simulator: "sim", alchemi: "core",
+  worker: "opus", rules: "check", llm: "opus", classical: "check", librarian: "check", adjudicator: "fable",
+  trust: "keep", board: "keep", ranker: "keep",
 };
-const FIXED_BADGE = { humans: "people", alchemi: "engine", board: "store", trust: "derived" };
+const FIXED_BADGE = { humans: "people", chemlead: "ended", alchemi: "engine", board: "store", trust: "derived" };
+const FIXED_NOTE = {
+  humans: "no board posts: steers through frozen config files",
+  chemlead: "no board posts: one literature review (memo of 2026-10-31); its rules live in the files it set",
+  alchemi: "not an agent: it computes, it never decides",
+  board: "agents talk only through it",
+  trust: "no agent can set a status",
+};
+const KICKER = { premise: "parallel check", worker: "arm C only", board: "keeps", trust: "keeps" };
 const NODE_EL = new Map();
 const NODE_BY_ID = new Map();
-const ROW_HUE = {};
 let HOT = null;
 const VERDICT_ORDER = ["pass", "agree", "fail", "disagree", "reject", "inconclusive"];
+
+/** The board names a box stands for: its own, plus every exported agent with its prefix (the Brev H100 Simulators). */
+function nodeAgents(n) {
+  const names = new Set(n.agents);
+  if (n.agent_prefix && ACT) for (const a of ACT.agents.keys()) if (a.startsWith(`${n.agent_prefix}_`)) names.add(a);
+  return [...names];
+}
 
 const nchip = (label, n, cls, title) => el("li", { class: `nchip${cls ? ` ${cls}` : ""}`, title: title || null },
   label, n === undefined || n === null ? null : el("span", { class: "n" }, String(n)));
@@ -680,11 +709,30 @@ function verdictChips(names) {
   return keys.length ? el("ul", { class: "chipset" }, keys.map((k) => nchip(k, tally[k]))) : null;
 }
 
+/** One chip per Simulator on the boards (GB10 or the remote H100, read from where its results ran), then totals. */
+function simulatorChips(n) {
+  const sims = nodeAgents(n).map((a) => [a, ACT.agents.get(a)]).filter(([, s]) => s);
+  if (!sims.length) return null;
+  const sum = (f) => sims.reduce((t, [, s]) => t + f(s), 0);
+  const where = (s) => (s.remote ? "H100 · SSH" : s.local ? "GB10" : "no results");
+  return [
+    el("ul", { class: "chipset" }, sims.map(([a, s]) => nchip(`${a.replace(/^simulator_/, "")} · ${where(s)}`, s.total,
+      s.remote ? "remote" : "", `${a}: ${plural(s.total, "post")}` + (s.remote
+        ? `; its results ran on ${s.remote} over SSH (the Brev H100: scripts/run_remote_simulator.py)`
+        : s.local ? "; its results ran on the GB10" : "; no results yet")))),
+    el("ul", { class: "chipset" }, nchip("results", sum((s) => s.byType.property_result || 0)),
+      nchip("failed", sum((s) => s.runs.failed || 0)), nchip("refused", sum((s) => s.runs.refused || 0))),
+  ];
+}
+
 function nodeBody(n, results) {
   const act = (a) => ACT.agents.get(a) || null;
   switch (n.id) {
     case "humans":
       return el("ul", { class: "chipset" }, n.chips.map((c) => el("li", { class: "nchip" }, c.text, cite(c.source))));
+    case "chemlead":
+      return el("ul", { class: "chipset" }, (n.decisions || []).map((d) =>
+        el("li", { class: "nchip rule", title: d.text }, d.short, cite(d.source))));
     case "scouts":
       return el("ul", { class: "chipset" }, (n.scouts || []).map((s) => {
         const a = act(s.agent);
@@ -694,6 +742,7 @@ function nodeBody(n, results) {
         return nchip(s.enabled ? label : `${label} · off`, s.enabled ? (a ? a.total : 0) : null, s.enabled ? "" : "off", title);
       }));
     case "simulator":
+      return simulatorChips(n);
     case "worker": {
       const a = act(n.agents[0]);
       if (!a) return null;
@@ -704,8 +753,10 @@ function nodeBody(n, results) {
     case "alchemi": {
       const t = n.throughput;
       return [
-        el("p", { class: "chipset-h" }, "ALCHEMI provides"),
-        el("ul", { class: "chipset" }, (n.imports || []).map((i) => nchip(i.name, null, "", `${i.what} (${i.module})`))),
+        (n.hosts || []).length ? el("ul", { class: "chipset hosts" },
+          n.hosts.map((h) => el("li", { class: "nchip host" }, h.text, cite(h.source)))) : null,
+        el("p", { class: "chipset-h" }, "ALCHEMI provides: what our code imports"),
+        el("ul", { class: "chipset" }, (n.imports || []).map((i) => nchip(i.name, null, "api", `${i.what} (${i.module})`))),
         el("p", { class: "chipset-h" }, "The agents' protocol on it"),
         el("ul", { class: "chipset" }, (n.protocol || []).map((p) => nchip(p.text, null, "ours", p.source))),
         t ? el("p", { class: "rate" }, `${fmtExact(t.value)} ${t.units}`, cite(t.source),
@@ -717,7 +768,7 @@ function nodeBody(n, results) {
       return a ? el("ul", { class: "chipset" }, nchip("sourced values", a.refs.sourced), nchip("not found", a.refs.none)) : null;
     }
     case "premise": case "rules": case "llm": case "classical": case "adjudicator":
-      return verdictChips(n.agents);
+      return verdictChips(nodeAgents(n));
     case "board":
       return el("ul", { class: "chipset" }, nchip("artifacts", ACT.artifacts),
         nchip("boards", ACT.scopes.science.length + ACT.scopes.armC.length), nchip("open needs", ACT.openNeeds));
@@ -735,150 +786,294 @@ function nodeBody(n, results) {
 }
 
 function nodeFoot(n, st) {
-  if (!st) {
-    return {
-      humans: "no board posts: steers through frozen config files",
-      alchemi: "not an agent: it computes, it never decides",
-      board: "agents talk only through it",
-      trust: "no agent can set a status",
-    }[n.id] || "";
-  }
+  if (!st) return FIXED_NOTE[n.id] || "";
   if (!st.total) return "no posts on the exported boards";
   const where = [st.science ? `science ${st.science}` : null, st.armC ? `arm C ${st.armC}` : null].filter(Boolean).join(" · ");
   const claim = st.claims.length ? ` · claim: ${clip(st.claims[0].query, 44)}` : "";
   return `${st.total} posts (${where}) · last ${fmtShort(st.last.timestamp)}${claim}`;
 }
 
-function renderNode(n, hue, results) {
-  const [line, col, span] = NODE_LAYOUT[n.id] || [1, 1, 12];
-  const st = n.agents.length ? agentState(n.agents) : null;
+function renderNode(n, results) {
+  const hue = NODE_HUE[n.id] || "keep";
+  const agents = nodeAgents(n);
+  const st = agents.length ? agentState(agents) : null;
+  const fixed = FIXED_BADGE[n.id] || "";
   const badgeEl = st ? el("span", { class: `nbadge ${st.key}`, title: st.sentence }, st.text)
-    : el("span", { class: "nbadge" }, FIXED_BADGE[n.id] || "");
+    : el("span", { class: `nbadge fixed ${fixed}`, title: FIXED_NOTE[n.id] || null }, fixed);
   const open = el("button", { type: "button", class: "node-title node-open", "aria-pressed": "false",
-    "aria-label": `${n.name}: ${n.tag} · ${n.role}. ${st ? st.sentence : FIXED_BADGE[n.id] || ""} Show details.`,
+    "aria-label": `${n.name}: ${n.tag} · ${n.role}. ${st ? st.sentence : FIXED_NOTE[n.id] || ""} Show details.`,
     onclick: () => openDetail(n.id) }, `${n.tag} · ${n.role}`);
-  const box = el("div", { class: `node r-${hue}${n.id === "alchemi" ? " engine" : ""}`, id: `node-${n.id}`,
-    onclick: (e) => { if (!e.target.closest("a, button")) openDetail(n.id); } },
+  const box = el("div", { class: `node h-${hue} n-${n.id}${n.id === "alchemi" ? " core" : ""}${st ? ` st-${st.key}` : ""}`,
+    id: `node-${n.id}`, onclick: (e) => { if (!e.target.closest("a, button")) openDetail(n.id); } },
+  n.id === "alchemi" ? el("span", { class: "core-glow", "aria-hidden": "true" }) : null,
+  KICKER[n.id] ? el("p", { class: "kicker" }, KICKER[n.id]) : null,
   el("div", { class: "node-head" }, open, badgeEl),
   el("p", { class: "node-mono" }, n.line),
   nodeBody(n, results),
   el("p", { class: "node-foot" }, nodeFoot(n, st)));
-  box.style.gridColumn = `${col} / span ${span}`;
-  box.style.gridRow = String(line);
   NODE_EL.set(n.id, box);
   return box;
 }
 
-// connectors: computed from the boxes' rendered positions; redrawn on resize. Below STACKED (same breakpoint as
-// style.css) the rows stack into one column and the connectors are hidden.
+// The drawing: computed from the boxes' rendered positions, redrawn on resize. Below STACKED (same breakpoint as
+// style.css) the boxes stack in one column and the drawing is hidden.
 const STACKED = "(max-width: 899px)";
 const P = (v) => Math.round(v * 10) / 10;
+const pt = (x, y) => ({ x, y });
+const MOTION = !!(window.CSS && CSS.supports && CSS.supports("offset-path", "path('M0 0L1 1')"));
+let ROUTES = []; // [{id, kind, ds:[path d], from, to, dots, label, labels, badge}] as drawn, for highlighting and particles
+// The main cycle, clockwise: [anchor (a node id, or a waypoint that keeps the loop off a box), the route that starts
+// there, its label]. The premise checker sits above the loop, not on it: on the science boards it is not a gate.
+const RING = [
+  ["scouts", "r_propose", "propose"], ["@top", null, null], ["simulator", "r_results", "results"],
+  ["rules", "r_ch1", "challenge"], ["llm", "r_ch2", null], ["classical", "r_ch3", null],
+  ["librarian", "r_evidence", "evidence"], ["trust", "r_status", "trusted only"], ["@bl", null, null],
+  ["ranker", "r_read", "shortlist · board"], // the Scouts read the board, not the ranking: loop-back 5 is the real path
+];
+const RING_ENDS = { r_propose: ["scouts", "simulator"], r_results: ["simulator", "rules"], r_ch1: ["rules", "llm"],
+  r_ch2: ["llm", "classical"], r_ch3: ["classical", "librarian"], r_evidence: ["librarian", "trust"],
+  r_status: ["trust", "ranker"], r_read: ["ranker", "scouts"] };
+
 function vpath(x1, y1, x2, y2) {
   if (Math.abs(x1 - x2) < 1.5) return `M${P(x1)} ${P(y1)}V${P(y2)}`;
   const ym = (y1 + y2) / 2;
   return `M${P(x1)} ${P(y1)}C${P(x1)} ${P(ym)} ${P(x2)} ${P(ym)} ${P(x2)} ${P(y2)}`;
 }
-const hpath = (x1, x2, y) => `M${P(x1)} ${P(y)}H${P(x2)}`;
-const atX = (n, f) => n.x + n.w * f;
-function down(x1, y1, x2, y2, label, side = "right") {
-  const lab = side === "left" ? { x: Math.min(x1, x2) - 8, y: (y1 + y2) / 2, text: label, anchor: "end" }
-    : { x: Math.max(x1, x2) + 8, y: (y1 + y2) / 2, text: label };
-  return { paths: [vpath(x1, y1, x2, y2)], dots: [[x2, y2]], labels: label ? [lab] : [] };
+const cub = (q) => `C${P(q.c1.x)} ${P(q.c1.y)} ${P(q.c2.x)} ${P(q.c2.y)} ${P(q.to.x)} ${P(q.to.y)}`;
+const curve = (a, c1, c2, b) => `M${P(a.x)} ${P(a.y)}${cub({ c1, c2, to: b })}`;
+const arcOut = (a, b, o) => curve(a, pt(a.x + o, a.y), pt(b.x + o, b.y), b); // o < 0 bulges left
+function bez(q, t) {
+  const u = 1 - t;
+  const f = (a, b, c, d) => u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d;
+  return pt(f(q.from.x, q.c1.x, q.c2.x, q.to.x), f(q.from.y, q.c1.y, q.c2.y, q.to.y));
 }
-function across(a, b, label) {
-  if (!a || !b) return null;
-  const y = Math.max(a.y, b.y) + 26;
-  return { paths: [hpath(a.r, b.x, y)], dots: [[b.x, y]], labels: [{ x: (a.r + b.x) / 2, y: y - 11, text: label, anchor: "middle" }] };
+/** A closed Catmull-Rom spline through the anchors, as one cubic piece per pair of neighbours. */
+function catmull(A) {
+  const n = A.length;
+  return A.map((p1, i) => {
+    const p0 = A[(i - 1 + n) % n];
+    const p2 = A[(i + 1) % n];
+    const p3 = A[(i + 2) % n];
+    return { from: p1, to: p2, c1: pt(p1.x + (p2.x - p0.x) / 6, p1.y + (p2.y - p0.y) / 6),
+             c2: pt(p2.x - (p3.x - p1.x) / 6, p2.y - (p3.y - p1.y) / 6) };
+  });
 }
-function resultsBusY(R) {
-  const tops = ["rules", "llm", "classical", "librarian"].map((k) => R[k]).filter(Boolean).map((n) => n.y);
-  return tops.length ? Math.min(...tops) - 20 : null;
+
+/** Every line of the diagram, from the boxes' rectangles R (diagram coordinates), its size and the stage gutter. */
+function geometry(R, W, H, gut) {
+  const routes = [];
+  const add = (id, kind, ds, extra = {}) => {
+    const list = ds.filter(Boolean);
+    if (list.length) routes.push({ id, kind, ds: list, ...extra });
+  };
+  const inside = (p) => Object.values(R).some((r) => p.x > r.x - 6 && p.x < r.r + 6 && p.y > r.y - 6 && p.y < r.b + 6);
+  const core = R.alchemi;
+  const sim = R.simulator;
+  const way = {
+    "@top": R.premise && core ? pt(R.premise.cx, (R.premise.b + core.y) / 2) : null,
+    "@bl": R.worker && R.adjudicator ? pt((R.worker.r + R.adjudicator.x) / 2, R.worker.cy) : null,
+  };
+  // the main cycle
+  const anchors = RING.map(([k, id, label]) => ({ p: k.startsWith("@") ? way[k] : R[k] ? pt(R[k].cx, R[k].cy) : null, id, label }))
+    .filter((a) => a.p);
+  let full = null;
+  if (anchors.length >= 3) {
+    const pieces = catmull(anchors.map((a) => a.p));
+    full = `M${P(anchors[0].p.x)} ${P(anchors[0].p.y)}${pieces.map(cub).join("")}Z`;
+    const byId = new Map();
+    let cur = null;
+    pieces.forEach((q, i) => {
+      if (anchors[i].id) cur = anchors[i];
+      if (!cur) return;
+      if (!byId.has(cur.id)) byId.set(cur.id, { label: cur.label, pieces: [] });
+      byId.get(cur.id).pieces.push(q);
+    });
+    for (const [id, r] of byId) {
+      let lab = id === "r_propose" ? way["@top"] : null;
+      if (r.label) {
+        for (const q of r.pieces) {
+          for (const t of [0.5, 0.42, 0.58, 0.34, 0.66]) {
+            const p = bez(q, t);
+            if (!lab && !inside(p)) lab = p;
+          }
+        }
+      }
+      const [from, to] = RING_ENDS[id] || [];
+      add(id, "ring", [`M${P(r.pieces[0].from.x)} ${P(r.pieces[0].from.y)}${r.pieces.map(cub).join("")}`],
+        { from, to, label: lab && r.label ? { x: lab.x, y: lab.y, text: r.label } : null });
+    }
+  }
+  // the spokes: jobs into ALCHEMI, its output back to the Simulator
+  let back = null;
+  if (sim && core) {
+    const a = pt(sim.x + sim.w * 0.3, sim.b);
+    const b = pt(core.r - core.w * 0.24, core.y);
+    const dy = (b.y - a.y) * 0.6;
+    const q = { from: a, c1: pt(a.x, a.y + dy), c2: pt(b.x, b.y - dy), to: b };
+    const lp = bez(q, 0.3);
+    add("s_jobs", "spoke", [curve(a, q.c1, q.c2, b)], { from: "simulator", to: "alchemi", dots: [[b.x, b.y]],
+      label: { x: lp.x, y: lp.y, text: "simulate" } });
+    const gx = (core.r + sim.x) / 2;
+    const a2 = pt(core.r, core.y + Math.min(34, core.h * 0.16));
+    const b2 = pt(sim.x, sim.b - Math.min(14, sim.h * 0.1));
+    back = { from: a2, c1: pt(gx + (sim.x - core.r) * 0.3, a2.y), c2: pt(gx - (sim.x - core.r) * 0.3, b2.y), to: b2 };
+    add("s_back", "spoke", [curve(a2, back.c1, back.c2, b2)], { from: "alchemi", to: "simulator", dots: [[b2.x, b2.y]] });
+  }
+  // the loop-backs (G.loops), each a numbered arc
+  const o = Math.max(26, gut * 0.6);
+  const loop = (id, ds, at, extra = {}) => {
+    const lp = (G.loops || []).find((x) => x.id === id);
+    if (lp) add(`l_${id}`, "loop", ds, { from: lp.from, to: lp.to, badge: at ? { ...at, n: lp.n, text: lp.label } : null, ...extra });
+  };
+  if (sim) {
+    const a = pt(sim.r, sim.y + sim.h * 0.18);
+    const b = pt(sim.r, sim.y + sim.h * 0.46);
+    loop("retry", [arcOut(a, b, o)], pt(a.x + o * 0.75, (a.y + b.y) / 2));
+  }
+  if (sim && R.rules) {
+    const a = pt(R.rules.r, R.rules.cy);
+    const b = pt(sim.r, sim.y + sim.h * 0.8);
+    loop("rerun", [arcOut(a, b, o)], pt(a.x + o * 0.75, (a.y + b.y) / 2), { dots: [[b.x, b.y]] });
+  }
+  if (R.adjudicator) {
+    const adj = R.adjudicator;
+    const ds = [];
+    let at = null;
+    if (R.llm) {
+      const a = pt(R.llm.x, R.llm.cy);
+      const b = pt(adj.r, adj.y + adj.h * 0.62);
+      const k = (a.x - b.x) * 0.5;
+      ds.push(curve(a, pt(a.x - k, a.y), pt(b.x + k, b.y), b));
+      at = pt((a.x + b.x) / 2, (a.y + b.y) / 2);
+    }
+    if (R.rules) {
+      const a = pt(R.rules.x, R.rules.y + R.rules.h * 0.78);
+      const b = pt(adj.r, adj.y + adj.h * 0.3);
+      const k = (a.x - b.x) * 0.5;
+      ds.push(curve(a, pt(a.x - k, a.y), pt(b.x + k, b.y), b));
+    }
+    if (R.trust) ds.push(`M${P(adj.cx)} ${P(adj.b)}V${P(R.trust.y)}`);
+    loop("ruling", ds, at, { dots: R.trust ? [[adj.cx, R.trust.y]] : [] });
+  }
+  if (R.librarian && R.classical) {
+    const a = pt(R.librarian.r, R.librarian.y + R.librarian.h * 0.4);
+    const b = pt(R.classical.r, R.classical.y + R.classical.h * 0.72);
+    loop("calibrate", [arcOut(a, b, o)], pt(a.x + o * 0.75, (a.y + b.y) / 2), { dots: [[b.x, b.y]] });
+  }
+  if (R.board && R.scouts) {
+    const a = pt(R.board.x, R.board.cy);
+    const b = pt(R.scouts.x, R.scouts.y + R.scouts.h * 0.62);
+    loop("followup", [arcOut(a, b, -o)], pt(Math.min(a.x, b.x) - o * 0.75, (a.y + b.y) / 2), { dots: [[b.x, b.y]] });
+  }
+  if (back) loop("gate", [curve(back.from, back.c1, back.c2, back.to)], bez(back, 0.2));
+  // people and the chemistry lead: dotted lines from files they edit
+  const hu = R.humans;
+  const ch = R.chemlead;
+  if (hu && R.scouts) {
+    add("e_seed", "config", [vpath(hu.cx, hu.b, R.scouts.cx, R.scouts.y)], { from: "humans", to: "scouts",
+      dots: [[R.scouts.cx, R.scouts.y]], label: { x: Math.max(hu.cx, R.scouts.cx) + 8, y: (hu.b + R.scouts.y) / 2, text: "seeds · budgets", anchor: "start" } });
+  }
+  if (hu && ch) {
+    const y = (Math.max(hu.y, ch.y) + Math.min(hu.b, ch.b)) / 2;
+    add("e_designate", "config", [`M${P(hu.r)} ${P(y)}H${P(ch.x)}`], { from: "humans", to: "chemlead", dots: [[ch.x, y]],
+      label: { x: (hu.r + ch.x) / 2, y: y - 11, text: "designates" } });
+  }
+  if (ch) {
+    const rx = W - 12;
+    const lx = 12;
+    const yb = H - 16;
+    const head = `M${P(ch.r)} ${P(ch.cy)}H${P(rx)}`;
+    if (R.classical) {
+      const y = R.classical.y + R.classical.h * 0.24;
+      add("e_rules_gate", "rules", [`${head}V${P(y)}H${P(R.classical.r)}`], { from: "chemlead", to: "classical",
+        dots: [[R.classical.r, y]], label: { x: rx - 6, y: y - 10, text: "gate", anchor: "end" },
+        labels: [{ x: rx - 6, y: ch.cy - 10, text: "rules", anchor: "end" }] });
+    }
+    if (R.trust) {
+      add("e_rules_trust", "rules", [`${head}V${P(yb)}H${P(R.trust.cx)}V${P(R.trust.b)}`], { from: "chemlead", to: "trust",
+        dots: [[R.trust.cx, R.trust.b]], label: { x: R.trust.cx + 8, y: yb - 10, text: "tolerances", anchor: "start" } });
+    }
+    if (R.ranker) {
+      add("e_rules_window", "rules", [`${head}V${P(yb)}H${P(lx)}V${P(R.ranker.cy)}H${P(R.ranker.x)}`], { from: "chemlead",
+        to: "ranker", dots: [[R.ranker.x, R.ranker.cy]], label: { x: lx + 6, y: R.ranker.cy - 10, text: "window", anchor: "start" } });
+    }
+  }
+  if (R.premise && way["@top"]) {
+    add("premise_tick", "advise", [`M${P(R.premise.cx)} ${P(R.premise.b)}V${P(way["@top"].y - 8)}`], { from: "premise", to: "scouts" });
+  }
+  if (R.board && R.trust) {
+    const y = R.board.cy;
+    add("b_snapshot", "flow", [`M${P(R.board.r)} ${P(y)}H${P(R.trust.x)}`], { from: "board", to: "trust", dots: [[R.trust.x, y]],
+      label: { x: (R.board.r + R.trust.x) / 2, y: y - 11, text: "snapshot" } });
+  }
+  return { routes, full };
 }
-// Each route gets the boxes' rectangles, the layout context and the edge (its label comes from the context).
-const EDGE_ROUTES = {
-  e_seed: (R, c, e) => R.humans && R.scouts && down(R.humans.cx, R.humans.b, R.humans.cx, R.scouts.y, e.label),
-  e_req_sim: (R, c, e) => R.scouts && R.simulator && down(R.simulator.cx, R.scouts.b, R.simulator.cx, R.simulator.y, e.label),
-  e_req_prem: (R, c, e) => R.scouts && R.premise && down(R.premise.cx, R.scouts.b, R.premise.cx, R.premise.y, e.label),
-  e_go: (R, c, e) => R.premise && R.worker && down(R.premise.cx, R.premise.b, R.worker.cx, R.worker.y, e.label),
-  e_jobs: (R, c, e) => across(R.simulator, R.alchemi, e.label),
-  e_res: (R, c, e) => {
-    const s = R.simulator;
-    const y = resultsBusY(R);
-    if (!s || y === null) return null;
-    const checks = ["rules", "llm", "classical", "librarian"].map((k) => R[k]).filter(Boolean);
-    const xs = [s.cx, ...checks.map((k) => k.cx), ...(R.worker ? [R.worker.cx] : [])];
-    return { paths: [vpath(s.cx, s.b, s.cx, y), hpath(Math.min(...xs), Math.max(...xs), y),
-      ...checks.map((k) => vpath(k.cx, y, k.cx, k.y))],
-    dots: checks.map((k) => [k.cx, k.y]), labels: [{ x: s.cx + 8, y: (s.b + y) / 2, text: e.label }] };
-  },
-  e_res_w: (R, c, e) => {
-    const w = R.worker;
-    const y = resultsBusY(R);
-    return w && y !== null ? { paths: [vpath(w.cx, w.b, w.cx, y)], dots: [],
-      labels: [{ x: w.cx + 8, y: (w.b + y) / 2, text: e.label }] } : null;
-  },
-  e_dispute: (R, c, e) => R.llm && R.adjudicator &&
-    down(atX(R.llm, 0.25), R.llm.b, atX(R.adjudicator, 0.8), R.adjudicator.y, e.label, "left"),
-  e_dispute_r: (R, c, e) => R.rules && R.adjudicator &&
-    down(atX(R.rules, 0.8), R.rules.b, atX(R.adjudicator, 0.2), R.adjudicator.y, e.label),
-  e_checks: (R) => {
-    const board = R.board;
-    if (!board) return null;
-    const top = Math.min(...["board", "trust", "ranker"].map((k) => R[k]).filter(Boolean).map((n) => n.y));
-    const y = top - 20;
-    const drops = [];
-    if (R.rules) drops.push([atX(R.rules, 0.2), R.rules.b, "audits"]);
-    if (R.llm) drops.push([atX(R.llm, 0.8), R.llm.b, "audits"]);
-    if (R.adjudicator) drops.push([R.adjudicator.cx, R.adjudicator.b, "rulings"]);
-    if (R.classical) drops.push([R.classical.cx, R.classical.b, "checks"]);
-    if (R.librarian) drops.push([R.librarian.cx, R.librarian.b, "measured"]);
-    const xs = [...drops.map((d) => d[0]), board.cx];
-    return { paths: [...drops.map(([x, y0]) => vpath(x, y0, x, y)), hpath(Math.min(...xs), Math.max(...xs), y),
-      vpath(board.cx, y, board.cx, board.y)],
-    dots: [[board.cx, board.y]], labels: drops.map(([x, y0, t]) => ({ x: x + 8, y: (y0 + y) / 2, text: t })) };
-  },
-  e_evidence: (R, c, e) => across(R.board, R.trust, e.label),
-  e_status: (R, c, e) => across(R.trust, R.ranker, e.label),
-  e_prereg: (R, ctx, e) => {
-    const h = R.humans;
-    const t = R.trust;
-    if (!h || !t) return null;
-    const yb = ctx.height - 16;
-    return { paths: [`M${P(h.x)} ${P(h.cy)}H${P(ctx.railX)}V${P(yb)}H${P(t.cx)}V${P(t.b)}`], dots: [[t.cx, t.b]],
-             labels: [{ x: ctx.railX - 9, y: (h.cy + yb) / 2, text: e.label, anchor: "middle", rotate: true }] };
-  },
-};
+
+// Slow, calm motion (Madhan, 2026-11-01: "the loop is running very fast"): every particle takes MOTION_SLOW times
+// longer, delays scale with it so the spacing between dots is kept. Keep in step with the CSS durations in style.css.
+const MOTION_SLOW = 3;
+
+function particle(d, cls, seconds, delay) {
+  const p = el("span", { class: `pt ${cls}` });
+  p.style.offsetPath = `path("${d}")`; // CSSOM: allowed under the server's CSP
+  p.style.animationDuration = `${seconds * MOTION_SLOW}s`;
+  p.style.animationDelay = `${delay * MOTION_SLOW}s`;
+  return p;
+}
 
 function drawEdges() {
   const host = document.getElementById("diagram");
   const layer = host && host.querySelector(".dsvg");
+  const plx = host && host.querySelector(".plx");
   if (!layer || !G) return;
   layer.replaceChildren();
+  if (plx) plx.replaceChildren();
+  ROUTES = [];
   if (!host.getClientRects().length || window.matchMedia(STACKED).matches) return;
   const base = host.getBoundingClientRect();
   if (!base.width) return;
   const R = {};
   for (const [id, node] of NODE_EL) {
     const r = node.getBoundingClientRect();
+    if (!r.width) continue;
     const x = r.left - base.left;
     const y = r.top - base.top;
     R[id] = { x, y, w: r.width, h: r.height, r: x + r.width, b: y + r.height, cx: x + r.width / 2, cy: y + r.height / 2 };
   }
-  const cells = host.querySelector(".dcells");
-  const ctx = { railX: (cells ? cells.getBoundingClientRect().left - base.left : 120) - 20, height: base.height };
-  layer.setAttribute("viewBox", `0 0 ${P(base.width)} ${P(base.height)}`);
-  for (const e of G.edges) {
-    const route = EDGE_ROUTES[e.id];
-    const spec = route ? route(R, ctx, e) : null;
-    if (!spec) continue;
-    const g = svg("g", { class: `edge ${e.kind}`, "data-edge": e.id });
-    for (const d of spec.paths) g.append(svg("path", { d }));
-    for (const [cx, cy] of spec.dots || []) g.append(svg("circle", { cx: P(cx), cy: P(cy), r: 2.6 }));
-    for (const lab of spec.labels || []) {
-      const lg = svg("g", { class: "elabel", transform: lab.rotate ? `rotate(-90 ${P(lab.x)} ${P(lab.y)})` : null });
-      lg.append(svg("text", { x: P(lab.x), y: P(lab.y), "text-anchor": lab.anchor || "start", "dominant-baseline": "middle" },
+  const stage = host.querySelector(".stage");
+  const gut = (stage && parseFloat(window.getComputedStyle(stage).paddingLeft)) || 64;
+  const W = base.width;
+  const H = base.height;
+  layer.setAttribute("viewBox", `0 0 ${P(W)} ${P(H)}`);
+  const geo = geometry(R, W, H, gut);
+  ROUTES = geo.routes;
+  const k = R.alchemi;
+  if (k) { // orbit art around the engine
+    for (const [dx, dy, cls] of [[26, 22, "o1"], [54, 46, "o2"]]) {
+      layer.append(svg("ellipse", { class: `orbit-art ${cls}`, cx: P(k.cx), cy: P(k.cy), rx: P(k.w / 2 + dx), ry: P(k.h / 2 + dy) }));
+    }
+  }
+  if (geo.full) layer.append(svg("path", { class: "ring-glow", d: geo.full }));
+  for (const r of ROUTES) {
+    const g = svg("g", { class: `route ${r.kind}`, "data-route": r.id });
+    for (const d of r.ds) g.append(svg("path", { d }));
+    for (const [x, y] of r.dots || []) g.append(svg("circle", { class: "end", cx: P(x), cy: P(y), r: 2.6 }));
+    for (const lab of [r.label, ...(r.labels || [])].filter(Boolean)) {
+      const lg = svg("g", { class: "elabel" });
+      lg.append(svg("text", { x: P(lab.x), y: P(lab.y), "text-anchor": lab.anchor || "middle", "dominant-baseline": "middle" },
         String(lab.text).toUpperCase()));
       g.append(lg);
+    }
+    if (r.badge) {
+      const bg = svg("g", { class: "rbadge" });
+      bg.append(svg("circle", { cx: P(r.badge.x), cy: P(r.badge.y), r: 9 }));
+      bg.append(svg("text", { x: P(r.badge.x), y: P(r.badge.y + 0.5), "text-anchor": "middle", "dominant-baseline": "middle" },
+        String(r.badge.n)));
+      const lg = svg("g", { class: "elabel blabel" });
+      lg.append(svg("text", { x: P(r.badge.x), y: P(r.badge.y + 19), "text-anchor": "middle", "dominant-baseline": "middle" },
+        String(r.badge.text).toUpperCase()));
+      bg.append(lg);
+      g.append(bg);
     }
     layer.append(g);
   }
@@ -887,6 +1082,15 @@ function drawEdges() {
     try { bb = t.getBBox(); } catch (err) { bb = null; } // not rendered (e.g. hidden mid-draw): label without a plate
     if (bb && bb.width) {
       t.parentNode.insertBefore(svg("rect", { x: P(bb.x - 4), y: P(bb.y - 2), width: P(bb.width + 8), height: P(bb.height + 4), rx: 3 }), t);
+    }
+  }
+  if (plx && MOTION) { // particles: CSS offset-path + keyframes, off under prefers-reduced-motion (style.css)
+    if (geo.full) for (let i = 0; i < 4; i += 1) plx.append(particle(geo.full, "ring", 18, -i * 4.5));
+    for (const r of ROUTES) if (r.kind === "spoke") plx.append(particle(r.ds[0], "spoke", 3.2, r.id === "s_back" ? -1.6 : 0));
+    if (k) {
+      const rx = k.w / 2 + 54;
+      const ry = k.h / 2 + 46;
+      plx.append(particle(`M${P(k.cx - rx)} ${P(k.cy)}a${P(rx)} ${P(ry)} 0 1 0 ${P(2 * rx)} 0a${P(rx)} ${P(ry)} 0 1 0 ${P(-2 * rx)} 0`, "sat", 12, 0));
     }
   }
   applyHighlight(HOT);
@@ -898,12 +1102,22 @@ function applyHighlight(step) {
   if (!host) return;
   host.classList.toggle("stepping", !!HOT);
   for (const [id, node] of NODE_EL) node.classList.toggle("hot", !!HOT && HOT.nodes.includes(id));
-  for (const g of host.querySelectorAll(".edge")) g.classList.toggle("hot", !!HOT && HOT.edges.includes(g.dataset.edge));
+  for (const g of host.querySelectorAll(".route")) g.classList.toggle("hot", !!HOT && HOT.edges.includes(g.dataset.route));
+  for (const li of document.querySelectorAll(".loop-item")) li.classList.toggle("hot", !!HOT && HOT.edges.includes(`l_${li.dataset.loop}`));
+  const plx = host.querySelector(".plx");
+  if (!plx) return;
+  for (const p of plx.querySelectorAll(".pt.hotp")) p.remove();
+  if (!HOT || !MOTION) return;
+  for (const r of ROUTES) {
+    if (HOT.edges.includes(r.id)) for (const delay of [0, -1.1]) plx.append(particle(r.ds[0], "hotp", 2.2, delay));
+  }
 }
 
 // ------------------------------------------------------------------ agents: the replay (a real case from the board)
-let CASE = null;
-let MODE = "idea";
+let CASES = []; // [{spec, board, result, steps} | {spec, missing: true}]
+let CASE = null; // the selected replay
+let PROOF = null;
+let MODE = "idea"; // idea | step | detail (a box) | loop (a loop-back)
 let STEP = 0;
 let PLAYING = null;
 let SELECTED = null;
@@ -918,10 +1132,21 @@ function nodeOfAgent(agent) {
   return null;
 }
 
-function buildCase() {
-  if (!G || !G.case) return null;
-  for (const b of scienceBoards()) {
-    const hit = (b.results || []).find((r) => normName(r.candidate) === normName(G.case.candidate) && r.property === G.case.property);
+/** The replay cases (G.cases), each built from the exported lineage or marked missing (hidden, with a note). */
+function buildCases() {
+  const specs = (G && (G.cases || (G.case ? [G.case] : []))) || [];
+  return specs.map((spec) => {
+    const found = findCase(spec);
+    return found ? { spec, ...found } : { spec, missing: true };
+  });
+}
+
+function findCase(spec) {
+  const all = scienceBoards();
+  const named = all.filter((b) => b.name === spec.board);
+  for (const b of [...named, ...all.filter((x) => !named.includes(x))]) {
+    const hit = (b.results || []).find((r) => normName(r.candidate) === normName(spec.candidate) &&
+      r.property === spec.property && (!spec.status || r.status === spec.status));
     if (hit && b.lineage && b.lineage[hit.id]) {
       const steps = caseSteps(b, hit);
       return steps.length ? { board: b, result: hit, steps } : null;
@@ -930,81 +1155,116 @@ function buildCase() {
   return null;
 }
 
+const RING_INTO = { rules: "r_results", llm: "r_ch1", classical: "r_ch2", librarian: "r_ch3" };
+
 function caseSteps(b, res) {
   const L = b.lineage;
   const R = L[res.id];
-  const kids = (a) => (a ? a.children || [] : []).map((id) => L[id]).filter(Boolean)
-    .sort((x, y) => (x.timestamp < y.timestamp ? -1 : x.timestamp > y.timestamp ? 1 : 0));
+  const byTime = (x, y) => (x.timestamp < y.timestamp ? -1 : x.timestamp > y.timestamp ? 1 : 0);
+  const kids = (a) => (a ? a.children || [] : []).map((id) => L[id]).filter(Boolean).sort(byTime);
   const ref = (a) => `results board ${b.name}: ${a.type} ${a.id.slice(0, 8)} by ${a.agent}, ${fmtTime(a.timestamp)}`;
   const steps = [];
   const cand = (R.parents || []).map((id) => L[id]).find((a) => a && a.type === "candidate");
   if (cand) {
     const need = (cand.needs || []).find((x) => x.property === res.property) || (cand.needs || [])[0];
-    steps.push({ title: "A Scout proposes", nodes: ["scouts"], edges: ["e_req_sim", "e_req_prem"],
+    steps.push({ title: "A Scout proposes", nodes: ["scouts"], edges: ["r_propose"],
       text: `${cand.agent} posts the candidate ${cand.payload.name} (${familyLabel(cand.payload.family)}, ${cand.payload.tier} tier)` +
         `${need ? ` with a request: "${need.query}".` : "."}`,
-      meta: fmtShort(cand.timestamp), cite: ref(cand) });
+      quote: need && need.rationale ? need.rationale : null, meta: fmtShort(cand.timestamp), cite: ref(cand) });
   }
-  const claim = kids(cand).find((a) => a.type === "need_claim" && a.agent === R.agent);
-  const premise = [...kids(cand), ...kids(R)].filter((a) => a.type === "check" && a.payload.check_type === "premise_check");
+  // the producer's latest claim on one of the result's parents, before the result
+  const claim = Object.values(L).filter((a) => a.type === "need_claim" && a.agent === R.agent &&
+    (R.parents || []).includes((a.payload || {}).target_artifact_id) && a.timestamp <= R.timestamp).sort(byTime).pop() || null;
+  const premise = [...kids(cand), ...kids(R)].filter((a) => a.type === "check" && (a.payload || {}).check_type === "premise_check");
+  const noGate = "On the science boards the premise checker advises; it does not gate the Simulator, which can claim a request before any premise check (in arm C it does gate the generalist worker).";
+  const gateSrc = "coolorbit/sim/simulator_agent.py (SimulatorAgent.pending); scripts/run_arm_c.py (WorkerDispatcher)";
   if (premise.length) {
-    for (const c of premise) {
-      steps.push({ title: "Premise check", nodes: ["premise"], edges: ["e_req_prem"],
-        text: `${c.agent}: premise ${c.payload.verdict}.`, quote: c.payload.note, meta: fmtShort(c.timestamp), cite: ref(c) });
-    }
+    const c = premise[0];
+    const after = claim && c.timestamp > claim.timestamp ? fmtGap(parseIso(c.timestamp) - parseIso(claim.timestamp)) : null;
+    steps.push({ title: "Premise check, in parallel", nodes: ["premise"], edges: ["premise_tick"],
+      text: `${c.agent}: premise ${c.payload.verdict}` +
+        `${premise.length > 1 ? ` (carried onto ${plural(premise.length - 1, "later artifact")})` : ""}.` +
+        `${after ? ` It was posted ${after} after the Simulator had claimed the request.` : ""} ${noGate}`,
+      quote: c.payload.note, meta: fmtShort(c.timestamp), cite: `${ref(c)}; ${gateSrc}` });
   } else {
     const gap = claim && cand ? fmtGap(parseIso(claim.timestamp) - parseIso(cand.timestamp)) : null;
-    steps.push({ title: "Premise check", nodes: ["premise"], edges: ["e_req_prem"],
+    steps.push({ title: "Premise check, in parallel", nodes: ["premise"], edges: ["premise_tick"],
       text: "No premise check was posted on this request in the export." +
-        `${gap ? ` The Simulator claimed it ${gap} after the Scout posted it.` : ""}` +
-        " The premise checker advises and never claims requests, so it did not block this run.",
-      cite: `${claim ? `${ref(claim)}; ` : ""}coolorbit/agents/premise.py (PremiseChecker); coolorbit/sim/simulator_agent.py (SimulatorAgent.pending)` });
+        `${gap ? ` The Simulator claimed it ${gap} after the Scout posted it.` : ""} ${noGate}`,
+      cite: `${claim ? `${ref(claim)}; ` : ""}coolorbit/agents/premise.py (PremiseChecker); ${gateSrc}` });
   }
   const m = R.payload.method || {};
+  const remote = m.remote && m.remote.host ? m.remote : null;
+  steps.push({ title: "A Simulator claims it", nodes: ["simulator"], edges: ["r_propose"],
+    text: `${R.agent} claims the request${claim ? ` at ${fmtShort(claim.timestamp)}` : ""}` + (remote
+      ? `. Its GPU is remote: ${remote.host} over ${remote.transport || "SSH"}, the Brev H100 overflow` +
+        `${remote.commit ? `, checked out at commit ${String(remote.commit).slice(0, 7)}` : ""}.`
+      : ", and runs the job on the GB10's GPU.") +
+      " No one assigned it: the claim on the board is the only coordination.",
+    meta: claim ? fmtShort(claim.timestamp) : null,
+    cite: `${claim ? ref(claim) : ref(R)}${remote ? "; scripts/run_remote_simulator.py and coolorbit/sim/ssh_runner.py (the remote Simulator)" : ""}` });
   const temps = Array.isArray(m.temperatures_K) && m.temperatures_K.length
-    ? `at ${m.temperatures_K.map((t) => `${fmtExact(t)} K`).join(", ")}` : null;
-  const how = [m.ensemble, finite(m.n_atoms) ? `${fmtExact(m.n_atoms)} atoms` : null,
+    ? `${m.temperatures_K.length > 1 ? `${m.temperatures_K.length} temperatures` : "one temperature"} (${m.temperatures_K.map((t) => `${fmtExact(t)} K`).join(", ")})` : null;
+  const how = [m.ensemble, finite(m.n_atoms) ? `${fmtExact(m.n_atoms)} atoms` : null, temps,
     finite(m.sim_length_ps) ? `${fmtExact(m.sim_length_ps)} ps` : null,
-    finite(m.timestep_fs) ? `${fmtExact(m.timestep_fs)} fs steps` : null, temps].filter(Boolean).join(", ");
-  steps.push({ title: "The Simulator runs it on ALCHEMI", nodes: ["simulator", "alchemi"], edges: ["e_req_sim", "e_jobs"],
-    text: `${R.agent}${claim ? ` claims the request (${fmtShort(claim.timestamp)}) and` : ""} runs one GPU job: ` +
-      `${m.engine || "?"} with ${m.model || "?"}, ${m.protocol || "protocol not recorded"}${how ? `; ${how}` : ""}.`,
-    meta: claim ? fmtShort(claim.timestamp) : null, cite: claim ? ref(claim) : ref(R) });
+    finite(m.timestep_fs) ? `${fmtExact(m.timestep_fs)} fs steps` : null].filter(Boolean).join(", ");
+  steps.push({ title: "NVIDIA ALCHEMI runs the physics", nodes: ["alchemi", "simulator"], edges: ["s_jobs"],
+    text: `One GPU job on ${m.engine || "?"} with ${m.model || "?"}${/mpa-0/i.test(String(m.model)) ? " (MACE-MPA-0)" : ""}: ` +
+      `${m.protocol || "protocol not recorded"}${m.protocol_version ? `, protocol v${m.protocol_version}` : ""}${how ? `; ${how}` : ""}.`,
+    cite: ref(R) });
   const kj = res.units === "J/kg" ? ` (${fmt(res.value / 1000)} kJ/kg)` : "";
   const flags = (R.payload.flags || []).length ? ` It carries its own flag: ${R.payload.flags.join(", ")}.` : "";
-  steps.push({ title: "A result is posted", nodes: ["simulator"], edges: ["e_res"],
+  steps.push({ title: "A result comes back", nodes: ["simulator", "alchemi"], edges: ["s_back"],
     text: `Result ${res.id.slice(0, 8)}: ${propLabel(res.property).toLowerCase()} = ${fmtExact(res.value)}` +
-      `${finite(res.uncertainty) ? ` ± ${fmtExact(res.uncertainty)}` : ""} ${unit(res.units)}${kj}.${flags}`,
+      `${finite(res.uncertainty) ? ` ± ${fmtExact(res.uncertainty)}` : ""} ${unit(res.units)}${kj}, posted with its full method.${flags}`,
     meta: fmtShort(R.timestamp), cite: ref(R) });
   for (const c of kids(R)) {
     const node = nodeOfAgent(c.agent);
+    const p = c.payload || {};
     if (c.type === "reference_value") {
-      const v = c.payload.value;
-      steps.push({ title: "The Librarian brings a measurement", nodes: [node || "librarian"], edges: ["e_res"],
+      const v = p.value;
+      steps.push({ title: "The Librarian brings a measurement", nodes: [node || "librarian"], edges: ["r_ch3"],
         text: v === null || v === undefined ? `${c.agent} finds no sourced measurement and posts a null reference.`
-          : `${c.agent} posts the measured value: ${fmtExact(v)} ${unit(c.payload.units)}${c.payload.units === "J/kg" ? ` (${fmt(v / 1000)} kJ/kg)` : ""}.`,
-        quote: c.payload.source ? `Source: ${c.payload.source}` : null, meta: fmtShort(c.timestamp), cite: ref(c) });
-    } else if (c.type === "check" && c.payload.check_type !== "premise_check") {
+          : `${c.agent} posts the measured value: ${fmtExact(v)} ${unit(p.units)}${p.units === "J/kg" ? ` (${fmt(v / 1000)} kJ/kg)` : ""}.`,
+        quote: p.source ? `Source: ${p.source}` : null, meta: fmtShort(c.timestamp), cite: ref(c) });
+    } else if (c.type === "check" && p.check_type !== "premise_check") {
       const who = (NODE_BY_ID.get(node) || {}).name || c.agent;
-      const fl = (c.payload.flags || []).length ? ` [${c.payload.flags.join(", ")}]` : "";
+      const fl = (p.flags || []).length ? ` [${p.flags.join(", ")}]` : "";
       const isAdj = node === "adjudicator";
-      steps.push({ title: isAdj ? "The adjudicator rules" : `${who} checks it`, nodes: isAdj ? ["adjudicator", "rules", "llm"] : [node || "rules"],
-        edges: isAdj ? ["e_dispute", "e_dispute_r"] : ["e_res"],
-        text: `${who} (${c.agent}): ${String(c.payload.check_type).replaceAll("_", " ")} ${c.payload.verdict}${fl}.`,
-        quote: c.payload.note, meta: fmtShort(c.timestamp), cite: ref(c) });
-    } else if (c.type === "property_result" && c.payload.property === res.property) {
-      steps.push({ title: "A rerun", nodes: [node || "simulator"], edges: ["e_res"],
-        text: `${c.agent} posts a rerun that supersedes it: ${fmtExact(c.payload.value)} ${unit(c.payload.units)}.`,
+      const isCls = p.check_type === "classical_md";
+      const gated = isCls && (p.flags || []).includes("independent_method_unreliable");
+      const calibrated = isCls && /within the tier1 tolerance/.test(String(p.note || ""));
+      const mm = p.method || {};
+      steps.push({ title: isAdj ? "The adjudicator rules" : `${who} tries to prove it wrong`,
+        nodes: isAdj ? ["adjudicator", "rules", "llm"] : [node || "rules"],
+        edges: isAdj ? ["l_ruling"] : isCls ? ["r_ch2", "l_calibrate"] : [RING_INTO[node] || "r_results"],
+        text: `${who} (${c.agent}): ${String(p.check_type).replaceAll("_", " ")} ${p.verdict}${fl}` +
+          `${finite(p.value) ? `, ${fmtExact(p.value)}${finite(p.uncertainty) ? ` ± ${fmtExact(p.uncertainty)}` : ""} ${unit(p.units)}` : ""}` +
+          `${mm.engine ? ` with ${mm.engine}${mm.model ? ` / ${mm.model}` : ""}` : ""}.` +
+          `${calibrated ? " Its potential first recovered the measured value within the tier1 tolerance, so it may count." : ""}` +
+          `${gated ? " Its potential missed the measured value, so the gate posted it inconclusive: it can neither confirm nor flag." : ""}`,
+        quote: p.note, meta: fmtShort(c.timestamp), cite: `${ref(c)}${isCls ? "; scripts/post_classical_checks.py (reliability gate)" : ""}` });
+    } else if (c.type === "request" && /^scout_/.test(c.agent)) {
+      const need = (c.needs || [])[0] || {};
+      steps.push({ title: "Loop-back: the Scout follows up", nodes: ["scouts", "board"], edges: ["l_followup"],
+        text: `${c.agent} reads the result on the board and asks for the next property: ${propLabel(need.property || "").toLowerCase() || "a follow-up"}` +
+          `${finite(need.temperature_K) ? ` at ${fmtExact(need.temperature_K)} K, the simulated melting point` : ""}.`,
+        quote: need.rationale || p.note, meta: fmtShort(c.timestamp), cite: `${ref(c)}; coolorbit/agents/scout.py (module docstring)` });
+    } else if (c.type === "property_result" && p.property === res.property) {
+      steps.push({ title: "Loop-back: a rerun", nodes: [node || "simulator"], edges: ["l_rerun"],
+        text: `${c.agent} posts a rerun that supersedes it: ${fmtExact(p.value)} ${unit(p.units)}.`,
         meta: fmtShort(c.timestamp), cite: ref(c) });
     }
   }
   const g = groupOf(res.status);
-  steps.push({ title: "The trust rule decides", nodes: ["trust", "board"], edges: ["e_checks", "e_evidence"],
-    text: `Status: ${String(STATUS_TEXT[res.status] || res.status).toUpperCase()}. No agent set it: the trust rule derived it from the checks above.` +
+  steps.push({ title: "The trust rule decides", nodes: ["trust", "board", "chemlead"], edges: ["r_evidence", "b_snapshot", "e_rules_trust"],
+    text: `Status: ${String(STATUS_TEXT[res.status] || res.status).toUpperCase()}. No agent set it: the trust rule derived it from the evidence above, ` +
+      "with the tolerances the chemistry lead set and the team froze before any comparison run." +
       `${g.key === "flagged" ? " A flagged result needs a rerun and is never ranked." : ""}`,
-    list: (res.reasons || []).slice(0, 5), cite: `coolorbit/board/status.py; ${boardSource([b])}` });
+    list: (res.reasons || []).slice(0, 6), cite: `coolorbit/board/status.py; ${RULES_SOURCE()}; ${boardSource([b])}` });
   return steps;
 }
+const RULES_SOURCE = () => (CTX && CTX.trust_rule && CTX.trust_rule.tolerances[0] ? CTX.trust_rule.tolerances[0].source : "configs/trust_rules.json");
 
 function stopPlay() {
   if (PLAYING) clearInterval(PLAYING);
@@ -1052,22 +1312,43 @@ function openDetail(id) {
   stopPlay();
   SELECTED = id;
   MODE = "detail";
-  applyHighlight({ nodes: [id], edges: (G.edges || []).filter((e) => e.from === id || e.to === id).map((e) => e.id) });
+  applyHighlight({ nodes: [id], edges: ROUTES.filter((r) => r.from === id || r.to === id).map((r) => r.id) });
   setPressed(id);
   renderPanel("back");
   const panel = document.getElementById("idea");
   if (panel && window.matchMedia("(max-width: 1319px)").matches) panel.scrollIntoView({ block: "start" });
 }
+const loopById = (id) => (G.loops || []).find((x) => x.id === id) || null;
+const loopFocus = (lp) => ({ nodes: [...new Set([lp.from, lp.to, ...(lp.id === "ruling" ? ["rules"] : [])])], edges: [`l_${lp.id}`] });
+function openLoop(id) {
+  const lp = loopById(id);
+  if (!lp) return;
+  stopPlay();
+  SELECTED = id;
+  MODE = "loop";
+  setPressed(null);
+  applyHighlight(loopFocus(lp));
+  renderPanel("back");
+  const panel = document.getElementById("idea");
+  if (panel && window.matchMedia("(max-width: 1319px)").matches) panel.scrollIntoView({ block: "start" });
+}
+function peekLoop(id) { // hover or focus on a loop-back in the list: light its arc while nothing else is shown
+  if (MODE !== "idea") return;
+  const lp = id ? loopById(id) : null;
+  applyHighlight(lp ? loopFocus(lp) : null);
+}
 function closeDetail() {
   const back = SELECTED;
+  const wasLoop = MODE === "loop";
   SELECTED = null;
   MODE = "idea";
   applyHighlight(null);
   setPressed(null);
   renderPanel();
-  const node = back && NODE_EL.get(back);
-  const opener = node && node.querySelector(".node-open");
-  if (opener) opener.focus({ preventScroll: window.matchMedia("(min-width: 1320px)").matches });
+  const preventScroll = window.matchMedia("(min-width: 1320px)").matches;
+  const opener = wasLoop ? document.querySelector(`.loop-item[data-loop="${back}"] .loop-btn`)
+    : (NODE_EL.get(back) || { querySelector: () => null }).querySelector(".node-open");
+  if (opener) opener.focus({ preventScroll });
 }
 
 const btn = (label, key, onclick, cls = "", disabled = false) =>
@@ -1077,9 +1358,11 @@ function renderPanel(focusKey) {
   const host = document.getElementById("idea-content");
   if (!host || !G) return;
   const had = host.contains(document.activeElement) ? document.activeElement.getAttribute("data-key") : null;
-  if (MODE === "detail" && SELECTED) host.replaceChildren(...detailView(SELECTED));
-  else if (MODE === "step" && CASE) host.replaceChildren(...stepView());
-  else host.replaceChildren(...ideaView());
+  const view = MODE === "detail" && SELECTED ? detailView(SELECTED) : MODE === "loop" && SELECTED ? loopView(SELECTED)
+    : MODE === "step" && CASE ? stepView() : ideaView();
+  host.replaceChildren();
+  addKids(host, view); // flattens nested lists and skips empty parts
+  host.classList.toggle("detail", MODE === "detail" || MODE === "loop");
   const key = focusKey || had; // keep keyboard focus in the panel when its buttons are rebuilt (e.g. while playing)
   if (key) {
     const target = host.querySelector(`[data-key="${key}"]:not([disabled])`) || host.querySelector("button:not([disabled])");
@@ -1090,16 +1373,31 @@ function renderPanel(focusKey) {
 
 function ideaView() {
   const idea = G.idea;
+  const avail = CASES.filter((c) => !c.missing);
+  const missing = CASES.filter((c) => c.missing);
+  const pick = (c) => {
+    stopPlay();
+    CASE = c;
+    renderPanel(`case-${c.spec.id}`);
+  };
   return [
     el("p", { class: "eyebrow" }, "The idea"),
     el("h2", { id: "idea-h" }, idea.headline),
     el("div", { class: "idea-points" }, idea.points.map((p) => el("p", {}, el("strong", {}, p.lead), " ", p.text, cite(p.source)))),
-    CASE ? el("div", { class: "actions" },
-      btn("Step through it", "step", () => nextStep("step"), "primary"),
-      btn("Play", "play", togglePlay))
-      : el("p", { class: "fine" }, `The replay case (${G.case ? G.case.label : "none"}) is not in this export, so there is nothing to step through.`),
-    el("p", { class: "hint" }, CASE ? `replays ${G.case.label} from board ${CASE.board.name} · or click any box for its details`
-      : "click any box for its details"),
+    avail.length ? [
+      el("p", { class: "pick-h" }, "Replay a real case from the board"),
+      el("div", { class: "picks", role: "group", "aria-label": "Replay case" }, avail.map((c) =>
+        el("button", { type: "button", class: "pick", "data-key": `case-${c.spec.id}`, "aria-pressed": CASE === c ? "true" : "false",
+          onclick: () => pick(c) },
+        el("span", { class: "pick-l" }, c.spec.label), statusBadge(c.result.status),
+        el("span", { class: "pick-b" }, `${c.board.name} · ${c.result.agent}`)))),
+      el("div", { class: "actions" },
+        btn("Step through it", "step", () => nextStep("step"), "primary"),
+        btn("Play", "play", togglePlay)),
+    ] : el("p", { class: "fine" }, "No replay case is in this export, so there is nothing to step through."),
+    missing.length ? el("p", { class: "fine" }, `Hidden because the export does not hold it: ${missing.map((c) => c.spec.label).join("; ")}.`) : null,
+    el("p", { class: "hint" }, CASE ? `replays ${CASE.spec.label} from board ${CASE.board.name} · or click any box or loop-back for its details`
+      : "click any box or loop-back for its details"),
   ];
 }
 
@@ -1109,7 +1407,7 @@ function stepView() {
   const last = STEP >= n - 1;
   return [
     el("p", { class: "eyebrow" }, "Replay · a real case from the board"),
-    el("h2", {}, G.case.label, cite(G.case.source)),
+    el("h2", {}, CASE.spec.label, " ", statusBadge(CASE.result.status), cite(CASE.spec.source)),
     el("p", { class: "fine" }, `Built at load time from board ${CASE.board.name} (result ${CASE.result.id.slice(0, 8)}), in board order.`),
     el("div", { class: "case" },
       el("p", { class: "case-step" }, `Step ${STEP + 1} of ${n} · ${s.title}`),
@@ -1128,15 +1426,16 @@ function stepView() {
 
 function detailView(id) {
   const n = NODE_BY_ID.get(id);
-  const hue = ROW_HUE[n.row] || "keep";
+  const hue = NODE_HUE[n.id] || "keep";
   const row = (G.rows || []).find((r) => r.id === n.row);
-  const st = n.agents.length ? agentState(n.agents) : null;
+  const agents = nodeAgents(n);
+  const st = agents.length ? agentState(agents) : null;
   const dd = (label, ...kids) => [el("dt", {}, label), el("dd", {}, ...kids)];
   const list = (items) => (items.length ? el("ul", {}, items.map((x) => el("li", {}, x))) : "none");
   const counts = () => {
     if (!st || !st.total) return st ? "none" : null;
     const types = {};
-    for (const a of n.agents) {
+    for (const a of agents) {
       const s = ACT.agents.get(a);
       if (s) for (const [t, k] of Object.entries(s.byType)) types[t] = (types[t] || 0) + k;
     }
@@ -1144,6 +1443,21 @@ function detailView(id) {
       ` (science boards ${st.science}, arm C ${st.armC})`, cite(activitySource())];
   };
   const extra = [];
+  if (n.id === "chemlead") {
+    extra.push(...dd("What it decided, as the code uses it", el("ul", {}, (n.decisions || []).map((d) =>
+      el("li", {}, d.text, el("span", { class: "muted" }, ` → ${d.where}`), cite(d.source))))));
+  }
+  if (n.gates) extra.push(...dd("Does it gate?", n.gates.text, cite(n.gates.source)));
+  if (n.id === "simulator") {
+    extra.push(...dd("The Simulators on the boards", agents.length ? el("ul", {}, agents.map((a) => {
+      const s = ACT.agents.get(a);
+      return el("li", {}, el("code", {}, a), s ? `: ${plural(s.total, "post")}` + (s.remote ? `; results ran on ${s.remote} (remote)`
+        : s.local ? "; results ran on the GB10" : "; no results") : ": no posts", cite(activitySource()));
+    })) : "none", n.remote ? el("p", { class: "fine" }, n.remote.text, cite(n.remote.source)) : null));
+  }
+  if (n.id === "alchemi" && (n.hosts || []).length) {
+    extra.push(...dd("Where it runs", el("ul", {}, n.hosts.map((h) => el("li", {}, h.text, cite(h.source))))));
+  }
   if (n.id === "alchemi") {
     extra.push(...dd("What our code imports from nvalchemi", el("ul", {}, (n.imports || []).map((i) =>
       el("li", {}, el("code", {}, i.name), `: ${i.what} `, el("span", { class: "muted" }, i.module), cite(i.source))))));
@@ -1171,16 +1485,16 @@ function detailView(id) {
   const latest = st && st.last;
   return [
     btn("← The idea", "back", closeDetail, "small back"),
-    el("p", { class: `tagline r-${hue}` }, `${row ? `${row.label} · ` : ""}${n.tag} · ${n.role}`),
+    el("p", { class: `tagline h-${hue}` }, `${row ? `${row.label} · ` : ""}${n.tag} · ${n.role}`),
     el("h3", {}, n.name),
     st ? el("p", {}, el("span", { class: `nbadge ${st.key}` }, st.text), " ", st.sentence, cite(activitySource()))
-      : el("p", {}, el("span", { class: "nbadge" }, FIXED_BADGE[n.id] || ""), " ", nodeFoot(n, null), "."),
+      : el("p", {}, el("span", { class: `nbadge fixed ${FIXED_BADGE[n.id] || ""}` }, FIXED_BADGE[n.id] || ""), " ", nodeFoot(n, null), "."),
     el("p", {}, n.does, cite(n.source)),
     n.note ? el("p", { class: "note" }, n.note) : null,
     el("dl", {},
-      ...dd(n.model ? "Model" : "Runs on", n.model ? [`${n.model.full_name} (role ${n.model.role}, effort ${n.model.effort})`, cite(n.model.source)]
-        : n.engine || "code"),
-      ...(n.agents.length ? dd("Posts on the board as", n.agents.map((a, i) => [i ? ", " : "", el("code", {}, a)])) : []),
+      ...dd(n.model ? "Model" : "Runs on", n.model ? [`${n.model.full_name} (${n.model.role.includes(" ") ? n.model.role : `role ${n.model.role}`}` +
+        `${n.model.effort ? `, effort ${n.model.effort}` : ""})`, cite(n.model.source)] : n.engine || "code"),
+      ...(agents.length ? dd("Posts on the board as", agents.map((a, i) => [i ? ", " : "", el("code", {}, a)])) : []),
       ...dd("Reads", list(n.inputs)),
       ...dd("Produces", list(n.outputs)),
       ...dd("Code", el("ul", {}, n.code.map((p) => el("li", {}, codeLink(p))))),
@@ -1188,6 +1502,27 @@ function detailView(id) {
       ...(latest ? dd("Latest post", `${latest.summary || latest.type}`, el("span", { class: "muted" }, ` · ${latest.type} ${latest.id.slice(0, 8)} on ${latest.board}, ${fmtShort(latest.timestamp)}`)) : []),
       ...extra),
   ];
+}
+
+// Where a clean-looking run hid a wrong assumption, and who in the loop caught it (context.py catches()).
+const CATCH_BADGE = { ok: "✓", warn: "!", bad: "✕", pend: "○" };
+function catchesSection() {
+  const C = CTX && CTX.catches;
+  if (!C || !(C.cases || []).length) return null;
+  const part = (label, ...kids) => [el("dt", {}, label), el("dd", {}, ...kids)];
+  return el("section", { class: "card catches", "aria-labelledby": "catch-h" },
+    el("header", { class: "catch-head" },
+      el("p", { class: "eyebrow" }, C.eyebrow),
+      el("h3", { id: "catch-h" }, C.title),
+      el("p", { class: "lede" }, C.lede, C.nvidia ? [" ", C.nvidia.text, cite(C.nvidia.source, C.nvidia.url)] : null)),
+    el("ol", { class: "catch-list" }, C.cases.map((c, i) => el("li", { class: `catch t-${c.outcome.tone}` },
+      el("p", { class: "catch-n" }, `Catch ${i + 1}`),
+      el("h4", {}, c.title),
+      el("dl", {},
+        part("A single pass would ship", c.shipped.text, cite(c.shipped.source)),
+        part("Caught by", el("strong", {}, c.caught.who), " ", c.caught.text, cite(c.caught.source)),
+        part("Then", badge(c.outcome.tone, CATCH_BADGE[c.outcome.tone] || "○", c.outcome.label), " ", c.outcome.text,
+          cite(c.outcome.source)))))));
 }
 
 function vsTable() {
@@ -1227,29 +1562,30 @@ function renderAgents(results) {
     mount("agents-body", el("p", { class: "empty" }, "This export carries no agent graph. Re-run python -m dashboard.export."));
     return;
   }
-  for (const r of G.rows) ROW_HUE[r.id] = r.hue;
   for (const n of G.nodes) NODE_BY_ID.set(n.id, n);
-  CASE = buildCase();
-  const activeMin = G.status_rule ? G.status_rule.active_minutes : 60;
+  PROOF = buildProof();
+  CASES = buildCases();
+  CASE = CASES.find((c) => !c.missing) || null;
+  const nodesOf = (ids) => ids.map((id) => NODE_BY_ID.get(id)).filter(Boolean);
   const diagram = el("div", { class: "diagram", id: "diagram" },
     svg("svg", { class: "dsvg", "aria-hidden": "true", focusable: "false" }),
-    G.rows.map((row) => el("div", { class: "drow", role: "group", "aria-label": row.label },
-      el("div", { class: "dlabel" }, row.label),
-      el("div", { class: "dcells" }, G.nodes.filter((n) => n.row === row.id).map((n) => renderNode(n, row.hue, results))))));
-  const legend = el("p", { class: "diagram-legend" },
-    el("span", {}, el("span", { class: "nbadge active" }, "active"), `posted in the ${activeMin} min before the export`, cite(G.status_rule.source)),
-    el("span", {}, el("span", { class: "nbadge claimed" }, "claimed"), "held an unexpired claim on a request at export time"),
-    el("span", {}, el("span", { class: "nbadge idle" }, "idle"), "posted earlier"),
-    el("span", {}, el("span", { class: "nbadge none" }, "no posts"), "nothing on the exported boards"),
-    el("span", {}, "Counts: artifacts each agent posted", cite(activitySource()), ". Dotted lines: files people edit; dashed: board artifacts."));
+    el("div", { class: "plx", "aria-hidden": "true" }),
+    el("p", { class: "band-cap" }, el("span", {}, "Steers"), "people and the chemistry lead set the rules"),
+    el("div", { class: "steer", role: "group", "aria-label": "Steers" }, nodesOf(STEER_IDS).map((n) => renderNode(n, results))),
+    el("p", { class: "band-cap" }, el("span", {}, "The loop"), "agents around NVIDIA ALCHEMI; the bottom row keeps the record"),
+    el("div", { class: "stage", role: "group", "aria-label": "The loop of agents around NVIDIA ALCHEMI" },
+      nodesOf(STAGE_IDS).map((n) => renderNode(n, results))));
+  // The badge legend and the coordination note were cut (Madhan, 2026-11-01: "too much info"); each agent's badge
+  // still explains itself on hover (its title).
   const protocols = (CTX.methods || []).filter((m) => m.id !== "classical" && m.id !== "alchemi");
   mount("agents-body",
+    proofStrip(),
     el("div", { class: "agents-grid" },
-      el("div", { class: "card diagram-card" }, diagram, legend,
-        el("p", { class: "coord" }, G.coordination.text, cite(G.coordination.source))),
+      el("div", { class: "card diagram-card" }, diagram, loopsList()),
       el("aside", { class: "card idea", id: "idea", "aria-label": "The idea, the replay and box details" },
         el("div", { id: "idea-content" }),
         el("p", { class: "sr-only", id: "case-live", "aria-live": "polite" }))),
+    catchesSection(),
     vsTable(),
     protocols.length ? [el("h3", { class: "sub-h" }, "The protocols the agents chose, and the hook they built"),
       el("div", { class: "methods" }, protocols.map(methodCard))] : null);
@@ -1265,9 +1601,174 @@ function renderAgents(results) {
   window.addEventListener("resize", redraw);
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape" || currentTab !== "agents") return;
-    if (MODE === "detail") closeDetail();
+    if (MODE === "detail" || MODE === "loop") closeDetail();
     else if (MODE === "step") exitStep();
   });
+}
+
+// ------------------------------------------------------------------ agents: "not a wrapper", counted from the boards
+const HARNESS = /harness/i; // the eval harness seeds comparison tasks; it is not one of our agents
+
+/** Counts over our collective's boards (the science boards and arm C's comparison boards; arms A and B are left out),
+ *  from each artifact's type, producer, needs and payload. Nothing here is typed in by hand. */
+function buildProof() {
+  const P = { agents: new Set(), checks: 0, checkTypes: {}, rulings: 0, classical: 0, gateInconclusive: 0, retries: 0,
+    rerunRequests: 0, rerunsPosted: 0, followups: 0, runGate: 0, recovered: 0, results: [], runs: new Set() };
+  const adjudicators = new Set((NODE_BY_ID.get("adjudicator") || { agents: ["adjudicator"] }).agents);
+  const GATE_STOPS = ["crystal_lost_in_prep", "liquid_not_prepared"];
+  for (const e of DATA.index.boards) {
+    const scope = !e.arm && !e.task_id ? "science" : e.arm === "C" ? "armC" : null;
+    const b = scope ? DATA.boards[e.name] : null;
+    if (!b) continue;
+    if (scope === "armC" && e.run) P.runs.add(runLabel(e.run));
+    P.results.push(...(b.results || []));
+    const L = b.lineage || {};
+    for (const a of Object.values(L)) {
+      const p = a.payload || {};
+      if (a.agent && !HARNESS.test(a.agent)) P.agents.add(a.agent);
+      if (a.type === "check") {
+        P.checks += 1;
+        const t = p.check_type || "check";
+        P.checkTypes[t] = (P.checkTypes[t] || 0) + 1;
+        if (adjudicators.has(a.agent)) P.rulings += 1;
+        if (t === "classical_md") {
+          P.classical += 1;
+          if (p.verdict === "inconclusive" && (p.flags || []).includes("independent_method_unreliable")) P.gateInconclusive += 1;
+        }
+        P.rerunRequests += (a.needs || []).filter((n) => n.artifact_type === "property_result").length;
+      } else if (a.type === "run_report") {
+        P.retries += (a.needs || []).filter((n) => n.artifact_type === "property_result" && Number(n.attempt) > 1).length;
+        const d = p.details || {};
+        if (GATE_STOPS.includes(d.failure) || (d.flags || []).some((f) => GATE_STOPS.includes(f))) P.runGate += 1;
+      } else if (a.type === "property_result") {
+        const prev = (a.parents || []).map((id) => L[id]);
+        if (prev.some((x) => x && x.type === "property_result" && (x.payload || {}).property === p.property)) P.rerunsPosted += 1;
+        if (/^Recovered result/.test(String(p.note || ""))) P.recovered += 1;
+      } else if (a.type === "request" && /^scout_/.test(a.agent || "")
+        && (a.parents || []).some((id) => L[id] && L[id].type === "property_result")) {
+        P.followups += 1;
+      }
+    }
+  }
+  P.loopBacks = P.retries + P.rerunRequests + P.rulings + P.followups;
+  return P;
+}
+
+function proofSource() {
+  const sc = ACT.scopes;
+  const runs = PROOF && PROOF.runs.size ? ` (run ${[...PROOF.runs].join(", ")})` : "";
+  return `Results board export of ${fmtTime(DATA.index.exported_at)}: ${plural(sc.science.length, "science board")}` +
+    ` (${sc.science.join(", ") || "none"}) and ${plural(sc.armC.length, "arm C comparison board")}${runs}; counted in` +
+    " dashboard/app.js (buildProof) from each artifact's type, producer, needs and payload";
+}
+
+/** What each loop-back's live count is, for the list under the diagram and its detail view. */
+function loopCount(lp) {
+  const P = PROOF;
+  if (!P || !lp) return null;
+  switch (lp.count) {
+    case "retries": return { n: P.retries, short: plural(P.retries, "retry request"), text: `${plural(P.retries, "retry request")} posted on failed run reports (attempt 2 or later).` };
+    case "reruns": return { n: P.rerunRequests, short: `${plural(P.rerunRequests, "request")} · ${P.rerunsPosted} posted`,
+      text: `${plural(P.rerunRequests, "rerun request")} carried by failing checks; ${plural(P.rerunsPosted, "rerun")} posted that supersede an earlier result.` };
+    case "rulings": return { n: P.rulings, short: plural(P.rulings, "ruling"), text: `${plural(P.rulings, "adjudicator ruling")} posted.` };
+    case "gate": return { n: P.gateInconclusive, short: `${P.gateInconclusive} of ${P.classical} gated`,
+      text: `${plural(P.classical, "classical-MD check")} posted; the calibration gate made ${P.gateInconclusive} of them inconclusive.` };
+    case "followups": return { n: P.followups, short: plural(P.followups, "follow-up"), text: `${plural(P.followups, "follow-up request")} posted by Scouts on a result.` };
+    case "run_gate": return { n: P.runGate, short: `${P.runGate} stopped`, text: `${plural(P.runGate, "run")} stopped by the run gate before production.` };
+    default: return null;
+  }
+}
+
+function proofStrip() {
+  const P = PROOF;
+  const src = proofSource();
+  const c = countGroups(P.results);
+  const groups = new Map();
+  for (const a of P.agents) {
+    const id = nodeOfAgent(a);
+    const label = id ? (NODE_BY_ID.get(id).role || id).toLowerCase() : "other";
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push(a);
+  }
+  const chips = (items) => el("ul", { class: "chipset" }, items.filter(Boolean).map(([label, n, title]) => nchip(label, n, "", title)));
+  const tile = (v, label, sub, tone) => el("div", { class: `ptile${tone ? ` ${tone}` : ""}` },
+    el("div", { class: "pv" }, String(v), cite(src)), el("div", { class: "pl" }, label), sub);
+  // One footnote at the end of the line: a footnote after each number read as part of it when copied ("19" + "54").
+  const strong = (v) => el("strong", {}, String(v));
+  const kinds = Object.entries(P.checkTypes).sort((x, y) => y[1] - x[1]).map(([t]) => t.replaceAll("_", " "));
+  const trustedNames = [...new Set(P.results.filter((r) => groupOf(r.status).key === "trusted")
+    .map((r) => `${r.candidate} ${propLabel(r.property).toLowerCase()}`))];
+  const explain = (n, word, text) => el("li", {}, el("span", { class: "ex-n" }, String(n)), el("span", { class: "ex-w" }, word),
+    el("span", { class: "ex-t" }, text));
+  return el("section", { class: "card proof", "aria-labelledby": "proof-h" },
+    el("div", { class: "proof-head" },
+      el("p", { class: "eyebrow", id: "proof-h" }, "Not a wrapper"),
+      el("p", { class: "contrast" },
+        el("span", { class: "ours-line" }, "Cool Orbit: ", strong(P.agents.size), " agents, ", strong(P.checks), " checks, ",
+          strong(P.loopBacks), " loop-backs → ", strong(c.trusted), ` trusted result${c.trusted === 1 ? "" : "s"}.`, cite(src)))),
+    el("div", { class: "proof-explain" },
+      el("p", { class: "ex-h" }, "What these numbers mean"),
+      el("ul", {},
+        explain(P.agents.size, P.agents.size === 1 ? "agent" : "agents",
+          "separate programs, each with one job: propose a material, run the simulation, check it, or look up the measured value. "
+          + "There is no boss; they coordinate only through a shared results board."),
+        explain(P.checks, P.checks === 1 ? "check" : "checks",
+          `times an agent tried to prove a result wrong${kinds.length ? ` (${listJoin(kinds.slice(0, 5))}${kinds.length > 5 ? ", and more" : ""})` : ""}.`),
+        explain(P.loopBacks, P.loopBacks === 1 ? "loop-back" : "loop-backs",
+          "times the work went round again instead of being shipped: a retry, a rerun request, a ruling on a dispute between referees, or a follow-up request."),
+        explain(c.trusted, "trusted", `result${c.trusted === 1 ? "" : "s"} that survived every check${trustedNames.length ? `: ${listJoin(trustedNames)}` : ""}. `
+          + "Everything else stays on the page as pending, flagged or rejected, on purpose."))),
+    el("div", { class: "ptiles" },
+      tile(P.agents.size, "agents posted on the boards",
+        chips([...groups].sort((x, y) => y[1].length - x[1].length).map(([label, names]) => [label, names.length, names.join(", ")]))),
+      tile(P.checks, "checks posted",
+        chips(Object.entries(P.checkTypes).sort((x, y) => y[1] - x[1]).map(([t, n]) => [t.replaceAll("_", " "), n]))),
+      tile(P.loopBacks, "loop-backs", chips([["retries", P.retries], ["rerun requests", P.rerunRequests],
+        ["adjudicator rulings", P.rulings], ["follow-ups", P.followups], ["reruns posted", P.rerunsPosted, "results that supersede an earlier one (not added to the loop-backs)"]])),
+      tile(P.runGate + P.gateInconclusive, "times a gate said no", chips([["run gate stopped a box", P.runGate],
+        ["classical checks gated inconclusive", P.gateInconclusive]]), "warn"),
+      tile(c.trusted, "trusted results", chips([["pending review", c.pending], ["flagged", c.flagged], ["rejected", c.rejected]]), "ok"),
+      tile(P.recovered, "recovered results",
+        el("p", { class: "ps" }, "the remote run finished after the runner gave up; posted from the same run folder"))),
+    el("p", { class: "fine proof-foot" }, "Counted at load time from the board export", cite(src),
+      ": our collective's boards only (science boards and arm C; arms A and B are left out), each artifact counted once by its type, producer, needs and payload. "
+      + "Loop-backs = retry requests + rerun requests + adjudicator rulings + follow-up requests. The eval harness that seeds comparison tasks is not counted as an agent."));
+}
+
+function loopsList() {
+  const loops = G.loops || [];
+  if (!loops.length) return null;
+  return el("section", { class: "loops", "aria-labelledby": "loops-h" },
+    el("h3", { id: "loops-h", class: "loops-h" }, "Loop-backs: where the work goes round again, each one in our code"),
+    el("ol", { class: "loop-list" }, loops.map((lp) => {
+      const c = loopCount(lp);
+      return el("li", { class: "loop-item", "data-loop": lp.id },
+        el("button", { type: "button", class: "loop-btn", "aria-label": `Loop-back ${lp.n}: ${lp.title}. ${c ? c.text : ""} Show details.`,
+          onclick: () => openLoop(lp.id), onpointerenter: () => peekLoop(lp.id), onpointerleave: () => peekLoop(null),
+          onfocus: () => peekLoop(lp.id), onblur: () => peekLoop(null) },
+        el("span", { class: "lnum", "aria-hidden": "true" }, String(lp.n)),
+        el("span", { class: "lt" }, lp.title),
+        c ? el("span", { class: "lc" }, c.short) : null),
+        c ? cite(proofSource()) : null);
+    })));
+}
+
+function loopView(id) {
+  const lp = loopById(id);
+  if (!lp) return [btn("← The idea", "back", closeDetail, "small back")];
+  const c = loopCount(lp);
+  const name = (nid) => (NODE_BY_ID.get(nid) || { name: nid }).name;
+  const dd = (label, ...kids) => [el("dt", {}, label), el("dd", {}, ...kids)];
+  return [
+    btn("← The idea", "back", closeDetail, "small back"),
+    el("p", { class: "tagline h-loop" }, `Loop-back ${lp.n} · ${lp.label}`),
+    el("h3", {}, lp.title),
+    el("p", {}, lp.text, cite(lp.source)),
+    el("dl", {},
+      ...dd("From → to", `${name(lp.from)} → ${name(lp.to)}`),
+      ...dd("On the exported boards", c ? [c.text, cite(proofSource())] : "not counted"),
+      ...dd("Code", el("ul", {}, [...new Set(lp.evidence.map((e) => e.path))].map((p) => el("li", {}, codeLink(p)))))),
+  ];
 }
 
 // ------------------------------------------------------------------ results by trust level
@@ -1291,9 +1792,11 @@ function resultRow(r, tol, multi) {
   return el("article", { class: "res", id: `res-${r.id}` },
     el("div", { class: "r-name" },
       el("div", { class: "cand" }, r.candidate,
+        // the property next to the name: one material can have several results (Cu: melting point AND latent heat)
+        el("span", { class: "cand-prop" }, propLabel(r.property)),
         prediction ? badge("pred", "◇", "PREDICTION") : null,
         r.synthetic ? badge("bad", "!", "SYNTHETIC") : null),
-      el("p", { class: "fine" }, `${propLabel(r.property)} · ${familyLabel(r.family)}`,
+      el("p", { class: "fine" }, familyLabel(r.family),
         prediction ? " · nobody has measured it" : " · known material")),
     el("div", { "data-label": "Simulated" },
       el("span", { class: "big" }, `${fmt(sv.value, 4)}${su !== null ? ` ± ${fmt(su, 2)}` : ""} ${sv.units}`, cite(resultSrc)),
@@ -1394,6 +1897,43 @@ function trustCard(t) {
       cite(t.window.source)) : null);
 }
 
+// The Results tab's answer to "what could replace paraffin?" (Madhan, 2026-11-01). Gallium leads on MEASURED, sourced
+// data (the Overview's head-to-head and the burst inputs). It is not one of our simulations, so it never enters the
+// trust groups below: only the trust rule fills those, from evidence on the board.
+function replacementCard() {
+  const hh = CTX && CTX.head_to_head;
+  const mats = (CTX && CTX.burst && CTX.burst.materials) || [];
+  const ga = mats.find((m) => /gallium/i.test(`${m.name || ""} ${m.label || ""}`));
+  if (!hh || !Array.isArray(hh.rows) || !ga) return null;
+  const wins = hh.rows.filter((r) => r.winner === "gallium");
+  const losses = hh.rows.filter((r) => r.winner === "paraffin");
+  const fact = (label, x, f) => (x && finite(x.value)
+    ? el("div", { class: "rp-fact" }, el("span", { class: "rp-v" }, f(x), cite(x.source)), el("span", { class: "rp-l" }, label)) : null);
+  const derived = ga.derived || {};
+  return el("section", { class: "card replace", "aria-labelledby": "rp-h" },
+    el("p", { class: "eyebrow" }, "The probable replacement for paraffin"),
+    el("h3", { id: "rp-h" }, "Gallium", el("span", { class: "rp-lead" }, "leading candidate"),
+      badge("ok", "✓", "measured data · sourced")),
+    el("p", { class: "rp-score" }, el("strong", {}, String(wins.length)), ` of ${hh.rows.length} head-to-head comparisons won against paraffin`,
+      cite(hh.source), losses.length ? ` (paraffin wins ${losses.length}).` : "."),
+    el("div", { class: "rp-facts" },
+      fact("melts at", (ga.inputs || {}).melting_point_K, (x) => `${fmtExact(x.value)} K`),
+      fact("heat stored per kilogram", derived.latent_heat_kJ_per_kg, (x) => `${fmt(x.value)} kJ/kg`),
+      fact("heat stored per litre", derived.latent_heat_kJ_per_L, (x) => `${fmt(x.value)} kJ/L`),
+      fact("liquid thermal conductivity", (ga.inputs || {}).conductivity_liquid_W_mK, (x) => `${fmtExact(x.value)} W/m·K`)),
+    wins.length ? el("ul", { class: "rp-wins", "aria-label": "Where gallium beats paraffin" }, wins.map((r) => el("li", {},
+      r.aspect, r.ratio && finite(r.ratio.value) ? el("span", { class: "rp-x" }, fmtRatio(r.ratio.value)) : null, cite(r.gallium.source)))) : null,
+    losses.length ? el("p", { class: "rp-trade" }, el("strong", {}, "The trade-offs: "),
+      `paraffin still wins on ${listJoin(losses.map((r) => r.aspect.toLowerCase()))}.`, cite(hh.source)) : null,
+    el("p", { class: "rp-trust" }, el("strong", {}, "Why gallium is not in the Trusted list below: "),
+      "that list holds our own simulations, and a simulation is trusted only after a method audit, an agreeing independent "
+      + "method and a match with the measured value. Gallium's numbers above are measurements (NIST, JANAF and the published "
+      + "literature), so they need no simulation to be believed. Our force fields do not reproduce gallium yet; training one "
+      + "that does (the ALCHEMI Toolkit supports fine-tuning) is the next step.",
+      cite("data/calibration/tier1.json (gallium's measured values and their sources); data/nebius/metals/Ga/stability/RESULT.md; "
+        + "docs/pitch/outline.md slide 8; nvalchemi-toolkit FineTuningStrategy")));
+}
+
 function renderResults(results, boards) {
   const multi = boards.length > 1;
   const tol = CTX ? Object.fromEntries(CTX.trust_rule.tolerances.map((t) => [t.property, t])) : {};
@@ -1412,6 +1952,8 @@ function renderResults(results, boards) {
   });
   const classical = CTX ? (CTX.methods || []).find((m) => m.id === "classical") : null;
   mount("results-body",
+    replacementCard(),
+    el("h3", { class: "sub-h res-sims-h" }, "Our simulations, by trust level"),
     el("p", { class: "fine" }, `${plural(results.length, "simulated result")} from the results board`, cite(boardSource(boards)),
       ". Error = (simulated − measured) / measured; the tolerances are the pre-registered ones."),
     shortlistBlock(boards), groups, waitingBlock(boards),
@@ -1737,9 +2279,207 @@ function watchForUpdates() {
   }, 120000);
 }
 
+// ------------------------------------------------------------------ gallium vs paraffin (Overview)
+const H2H_WINNER = { paraffin: "Paraffin", gallium: "Gallium", neither: "Neither", both: "Both", tie: "Tie" };
+
+function renderHeadToHead() {
+  if (!document.getElementById("h2h-body")) return;
+  const hh = CTX && CTX.head_to_head;
+  if (!hh || !Array.isArray(hh.rows) || !hh.rows.length) {
+    mount("h2h-body", el("p", { class: "empty" }, "No head-to-head in this export (it needs sourced paraffin and gallium inputs)."));
+    return;
+  }
+  const wins = { paraffin: 0, gallium: 0 };
+  for (const r of hh.rows) if (r.winner in wins) wins[r.winner] += 1;
+  const value = (side, r) => {
+    const s = r[side] || {};
+    const text = s.text ? s.text : `${fmt(s.value, 3)} ${UNIT[r.units] || r.units || ""}`.trim();
+    return el("td", { class: `h2h-v${r.winner === side ? " win" : ""}` }, text, cite(s.source));
+  };
+  const badge = (r) => {
+    const solo = r.winner === "paraffin" || r.winner === "gallium";
+    const ratio = solo && r.ratio && finite(r.ratio.value) ? ` · ${fmtRatio(r.ratio.value)}` : "";
+    return el("span", { class: `win-badge w-${r.winner}` }, (H2H_WINNER[r.winner] || r.winner) + ratio);
+  };
+  mount("h2h-body",
+    el("div", { class: "h2h-top" },
+      el("p", { class: "h2h-verdict" }, hh.verdict, cite(hh.source)),
+      el("div", { class: "h2h-score", role: "group", "aria-label": "Aspects won" },
+        el("span", { class: "sc w-paraffin" }, el("strong", {}, String(wins.paraffin)), " won by paraffin"),
+        el("span", { class: "sc w-gallium" }, el("strong", {}, String(wins.gallium)), " won by gallium"))),
+    el("div", { class: "table-wrap" }, el("table", { class: "h2h" },
+      el("thead", {}, el("tr", {},
+        el("th", { scope: "col" }, "What matters"),
+        el("th", { scope: "col" }, (hh.materials && hh.materials.paraffin) || "Paraffin"),
+        el("th", { scope: "col" }, "Gallium"),
+        el("th", { scope: "col" }, "Winner"))),
+      el("tbody", {}, hh.rows.map((r) => el("tr", {},
+        el("th", { scope: "row" }, r.aspect, r.why ? el("span", { class: "kind" }, r.why) : null),
+        value("paraffin", r), value("gallium", r), el("td", {}, badge(r))))))));
+}
+
+// ------------------------------------------------------------------ gallium in 3D (Overview)
+// A small canvas viewer (no libraries: the server's CSP allows only our own scripts). Orthographic projection,
+// spheres drawn back to front with a radial gradient, the close pairs as bonds, the block's box as a faint frame.
+// Slow auto-spin, drag to rotate; no auto-spin under prefers-reduced-motion; pauses when the Overview is hidden.
+function renderGallium() {
+  const g = CTX && CTX.gallium;
+  if (!document.getElementById("ga3d-body")) return;
+  if (!g || !Array.isArray(g.atoms) || !g.atoms.length) {
+    mount("ga3d-body", el("p", { class: "empty" }, "No gallium structure in this export."));
+    return;
+  }
+  const nBlock = finite(g.n_block) ? g.n_block : g.atoms.length;
+  const nGhost = g.atoms.length - nBlock;
+  const label = `Rotating 3D model of ${g.phase}: ${nBlock} atoms, each drawn with its close partner as a bond.`;
+  const canvas = el("div", { class: "ga3d-canvas ga3d-stage", id: "ga3d-stage", role: "img", "aria-label": label });
+  const pair = g.pair || {};
+  const shell = g.next_shell || {};
+  const cell = g.cell || {};
+  const facts = el("dl", { class: "ga3d-facts" },
+    el("dt", {}, "Crystal"), el("dd", {}, g.phase, " · a ", fmtExact(cell.a), ", b ", fmtExact(cell.b), ", c ",
+      fmtExact(cell.c), " Å", cite(cell.source)),
+    el("dt", {}, "Closest neighbour"), el("dd", {}, el("strong", {}, `${fmtExact(pair.value)} Å`),
+      ` · ${pair.count === 1 ? "one partner per atom (the pair, drawn as a bond)" : `${pair.count} per atom`}`,
+      cite(pair.source)),
+    el("dt", {}, "Next neighbours"), el("dd", {}, `${shell.count} more at ${fmtExact(shell.min)}–${fmtExact(shell.max)} Å`,
+      cite(shell.source)),
+    (g.measured || []).length ? [el("dt", {}, "Measured"), el("dd", {}, (g.measured || []).map((m, k) => [k ? " · " : "",
+      `${m.label.toLowerCase()} ${fmtExact(m.value)} ${UNIT[m.units] || m.units || ""}`, cite(m.source)]))] : null);
+  const notes = el("div", { class: "ga3d-notes" },
+    (g.caveats || []).map((c) => el("p", { class: "fine" }, c.text, cite(c.source))));
+  mount("ga3d-body", el("div", { class: "ga3d-grid" },
+    el("figure", { class: "ga3d-view" }, canvas,
+      el("figcaption", { class: "fine" }, `${cell.reps ? [cell.reps.a, cell.reps.b, cell.reps.c].join(" × ") : ""} unit cells, ${nBlock} atoms`,
+        nGhost > 0 ? ` (plus ${nGhost} faded partners from the neighbouring cells)` : "", ". Drag to rotate.",
+        cite(g.atoms[0] && g.atoms[0].source), el("span", { class: "ga3d-key" }, el("span", { class: "sw atom" }), "gallium atom",
+          el("span", { class: "sw bond" }), `close pair (${fmtExact(pair.value)} Å)`))),
+    el("div", { class: "ga3d-text" }, facts, notes)));
+  // ga3d.js (a module: three.js, physically based) fills #ga3d-stage and sets data-ready. If it hasn't within a
+  // moment (no WebGL, the module failed or was blocked), fall back to the small canvas viewer below.
+  setTimeout(() => {
+    if (canvas.dataset.ready === "1") return;
+    const flat = el("canvas", { class: "ga3d-canvas", role: "img", "aria-label": label });
+    canvas.replaceWith(flat);
+    galliumViewer(flat, g);
+  }, 2500);
+}
+
+function galliumViewer(canvas, g) {
+  const ctx = canvas.getContext && canvas.getContext("2d");
+  if (!ctx) return;
+  const pts = g.atoms.map((a) => [a.x, a.y, a.z]);
+  const isGhost = g.atoms.map((a) => Boolean(a.ghost));
+  const pairs = (g.bonds || []).map((b) => [b.a, b.b]);
+  const n = pts.length;
+  const mid = [0, 1, 2].map((k) => pts.reduce((s, p) => s + p[k], 0) / n);
+  const P = pts.map((p) => [p[0] - mid[0], p[1] - mid[1], p[2] - mid[2]]);
+  const reach = Math.max(...P.map((p) => Math.hypot(p[0], p[1], p[2]))) || 1;
+  const rp = (g.cell && g.cell.reps) || {};
+  const reps = [rp.a || 1, rp.b || 1, rp.c || 1];
+  const L = [g.cell.a * reps[0], g.cell.b * reps[1], g.cell.c * reps[2]];
+  const box = [];
+  for (const x of [0, 1]) for (const y of [0, 1]) for (const z of [0, 1]) box.push([x * L[0] - mid[0], y * L[1] - mid[1], z * L[2] - mid[2]]);
+  const boxEdges = [[0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3], [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7]];
+  const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let yaw = 0.7;
+  let pitch = -0.38;
+  let drag = null;
+  let last = 0;
+  let w = 0;
+  let h = 0;
+
+  function size() {
+    const dpr = window.devicePixelRatio || 1;
+    const cw = canvas.clientWidth || 480;
+    const ch = Math.round(cw * 0.78);
+    if (cw === w && ch === h) return;
+    w = cw;
+    h = ch;
+    canvas.width = Math.round(cw * dpr);
+    canvas.height = Math.round(ch * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function rot(p) {
+    const [x, y, z] = p;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const x1 = cy * x + sy * z, z1 = -sy * x + cy * z;
+    return [x1, cp * y - sp * z1, sp * y + cp * z1];
+  }
+  function draw() {
+    size();
+    if (!w) return;
+    const s = (Math.min(w, h) / 2 - 18) / reach;
+    const cx = w / 2, cy = h / 2;
+    const R = P.map(rot);
+    const proj = R.map((p) => [cx + p[0] * s, cy - p[1] * s, p[2]]);
+    ctx.clearRect(0, 0, w, h);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(124, 196, 255, 0.18)";
+    const B = box.map(rot).map((p) => [cx + p[0] * s, cy - p[1] * s]);
+    ctx.beginPath();
+    for (const [a, b] of boxEdges) { ctx.moveTo(B[a][0], B[a][1]); ctx.lineTo(B[b][0], B[b][1]); }
+    ctx.stroke();
+    const zr = reach || 1;
+    const order = [...proj.keys()].sort((a, b) => proj[a][2] - proj[b][2]); // back (smaller z) first
+    const bondsOf = new Map();
+    for (const [a, b] of pairs) {
+      bondsOf.set(a, [...(bondsOf.get(a) || []), b]);
+    }
+    const r0 = Math.max(4, 0.62 * s); // ~0.6 Å drawn radius: the pairs stay visible
+    for (const i of order) {
+      for (const j of bondsOf.get(i) || []) { // draw each bond once, with the farther atom of the pair
+        const depth = (proj[i][2] + proj[j][2]) / (2 * zr);
+        ctx.strokeStyle = `rgba(52, 211, 153, ${0.45 + 0.4 * (depth + 1) / 2})`;
+        ctx.lineWidth = Math.max(2, 0.28 * s);
+        ctx.beginPath();
+        ctx.moveTo(proj[i][0], proj[i][1]);
+        ctx.lineTo(proj[j][0], proj[j][1]);
+        ctx.stroke();
+      }
+      const [x, y, z] = proj[i];
+      const t = (z / zr + 1) / 2; // 0 back .. 1 front
+      const r = r0 * (0.8 + 0.3 * t) * (isGhost[i] ? 0.85 : 1);
+      const f = isGhost[i] ? 0.35 : 1; // partners from the neighbouring cells are drawn faded
+      const grad = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+      grad.addColorStop(0, `rgba(240, 247, 255, ${(0.55 + 0.45 * t) * f})`);
+      grad.addColorStop(0.55, `rgba(150, 182, 224, ${(0.5 + 0.45 * t) * f})`);
+      grad.addColorStop(1, `rgba(52, 74, 112, ${(0.6 + 0.4 * t) * f})`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  function frame(ts) {
+    const dt = last ? Math.min(0.05, (ts - last) / 1000) : 0;
+    last = ts;
+    const visible = canvas.offsetParent !== null && !document.hidden;
+    if (visible) {
+      if (!drag && !still) yaw += dt * 0.18; // about 35 s per turn: slow and calm
+      draw();
+    }
+    requestAnimationFrame(frame);
+  }
+  canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    yaw += (e.clientX - drag.x) * 0.01;
+    pitch = Math.max(-1.4, Math.min(1.4, pitch + (e.clientY - drag.y) * 0.01));
+    drag = { x: e.clientX, y: e.clientY };
+    if (still) draw();
+  });
+  const end = () => { drag = null; };
+  canvas.addEventListener("pointerup", end);
+  canvas.addEventListener("pointercancel", end);
+  window.addEventListener("resize", () => { w = 0; draw(); });
+  draw();
+  requestAnimationFrame(frame);
+}
+
 // ------------------------------------------------------------------ start
 function renderNoData() {
-  for (const id of ["burst-body", "agents-body", "results-body", "compare-body", "failures-body"]) {
+  for (const id of ["h2h-body", "burst-body", "ga3d-body", "agents-body", "results-body", "compare-body", "failures-body"]) {
     mount(id, el("p", { class: "empty" }, "Waiting for an export."));
   }
 }
@@ -1758,11 +2498,13 @@ function start() {
   ACT = buildActivity();
   renderBanners();
   renderHero(results, boards);
+  renderHeadToHead();
   renderBurst();
+  renderGallium();
   renderAgents(results);
   renderResults(results, boards);
-  renderCompare();
-  renderFailures(results, boards);
+  if (hasTab("comparison")) renderCompare();
+  if (hasTab("failures")) renderFailures(results, boards);
   renderSources(); // after every section, and before any tab is shown: lists every footnote cited above
   renderPills(results);
   updateDataAge();

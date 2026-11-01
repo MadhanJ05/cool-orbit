@@ -3,7 +3,8 @@
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PORT=8080
 WORKDIR /app
-COPY index.html app.js style.css server.py ./
+COPY index.html app.js style.css server.py ga3d.js ./
+COPY vendor/three ./vendor/three
 RUN useradd --uid 10001 --no-create-home web
 USER web
 EXPOSE 8080

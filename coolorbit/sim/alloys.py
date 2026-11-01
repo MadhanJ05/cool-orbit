@@ -17,7 +17,8 @@ What this module provides (no GPU, no MD):
 Honest limit, stated where results are reported: we do **not** predict new alloys' melting temperatures
 (that needs phase-diagram methods). Alloy latent heats are estimated as H(liquid alloy) - sum x_i H(solid
 element i) at the alloy's measured melting temperature, which assumes the solid is a mixture of the pure
-elements; intermetallic phases (e.g. BiIn2 in Field's metal) would lower the true value.
+elements; intermetallic phases (e.g. BiIn2 in Field's metal) are more stable than the separate metals, so the true
+latent heat is likely higher and this estimate an underestimate.
 
 Structure source (space groups and Wyckoff positions): J. Donohue, *The Structures of the Elements*
 (Wiley, 1974); alpha-Ga refinement: Sharma & Donohue, Z. Kristallogr. 117, 293 (1962).

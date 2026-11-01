@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0a0a0b">
   <meta name="description" content="Cool Orbit: AI agents on NVIDIA ALCHEMI find and cross-check thermal battery materials to cool orbital data centers.">
   <title>Cool Orbit console</title>
   <link rel="stylesheet" href="style.css">
@@ -30,16 +30,14 @@
         <a class="tab" role="tab" id="tab-overview" href="#overview" aria-controls="overview" aria-selected="true">Overview</a>
         <a class="tab" role="tab" id="tab-agents" href="#agents" aria-controls="agents" aria-selected="false" tabindex="-1">Agents</a>
         <a class="tab" role="tab" id="tab-results" href="#results" aria-controls="results" aria-selected="false" tabindex="-1">Results</a>
+        <!-- Comparison and Failures tabs hidden for now (Madhan, 2026-11-01). To bring them back, uncomment these two
+             links and the two sections further down; app.js builds its tab list from the sections that exist.
         <a class="tab" role="tab" id="tab-comparison" href="#comparison" aria-controls="comparison" aria-selected="false" tabindex="-1">Comparison</a>
         <a class="tab" role="tab" id="tab-failures" href="#failures" aria-controls="failures" aria-selected="false" tabindex="-1">Failures</a>
+        -->
       </nav>
 
       <div class="pills" id="pills"><span class="pill" id="live-pill"><span class="dot" aria-hidden="true"></span>No data</span></div>
-
-      <div class="clock">
-        <span class="t" id="countdown" role="timer" aria-label="Time to the 1 PM deadline">T-00:00:00</span>
-        <span class="lbl" id="countdown-label">to the 1 PM deadline</span>
-      </div>
     </div>
   </header>
 
@@ -51,36 +49,53 @@
         <div class="ov-grid">
           <article class="card ov-q">
             <p class="eyebrow">The question</p>
-            <h1 id="question">Which thermal battery best buffers bursty AI-chip heat in orbit, and can we trust the simulations?</h1>
+            <h1 id="question">Which thermal battery best buffers AI-chip heat in orbit, and can we trust the simulations?</h1>
+            <p class="q-sub" id="question-sub">A thermal battery (a phase-change material) melts to soak up a burst of chip heat and refreezes while the radiator catches up.</p>
             <div id="hero-answer">
               <p class="answer">Loading the latest export. If this message stays, run
                 <code>python -m dashboard.export --board boards/&lt;id&gt;</code> so that <code>dashboard/data/data.js</code> exists.</p>
             </div>
             <div id="hero-status"></div>
           </article>
-          <aside class="card ov-why" aria-labelledby="why-h">
-            <p class="eyebrow" id="why-h">Why it matters</p>
-            <div id="hero-why"></div>
-          </aside>
         </div>
 
-        <article class="card burst" aria-labelledby="burst-h">
+        <article class="card h2h-card" aria-labelledby="h2h-h">
           <header class="sec-head">
-            <p class="eyebrow">The trade-off</p>
-            <h2 id="burst-h">Wax vs metals for a 15-minute burst</h2>
-            <p class="lede" id="burst-lede">How much thermal battery does one compute burst need, and what does the whole device weigh?</p>
+            <p class="eyebrow">The trade-off, in one table</p>
+            <h2 id="h2h-h">Gallium vs paraffin: who wins what</h2>
           </header>
+          <div id="h2h-body"></div>
+        </article>
+
+        <details class="card burst fold">
+          <summary>
+            <span class="fold-text">
+              <span class="eyebrow">The calculation behind it</span>
+              <span class="fold-title" id="burst-h">Wax vs metals for a 15-minute burst: inputs, charts and assumptions</span>
+            </span>
+            <span class="fold-hint" aria-hidden="true">Show</span>
+          </summary>
+          <p class="lede" id="burst-lede">How much thermal battery does one compute burst need, and what does the whole device weigh?</p>
           <div id="burst-body"></div>
+        </details>
+
+        <article class="card ga3d" aria-labelledby="ga3d-h">
+          <header class="sec-head">
+            <p class="eyebrow">The closest metal alternative</p>
+            <h2 id="ga3d-h">Inside gallium: a metal built from pairs</h2>
+            <p class="lede">The alpha-gallium crystal exactly as our simulations build it. Each atom has one very close partner and six farther neighbours, an unusual bonding for a metal and part of why gallium is hard to simulate.</p>
+          </header>
+          <div id="ga3d-body"></div>
         </article>
       </div>
     </section>
 
     <section class="panel" id="agents" role="tabpanel" aria-labelledby="tab-agents" data-tab="agents" hidden>
       <div class="wrap">
-        <header class="tab-head">
+        <header class="tab-head center">
           <p class="eyebrow">The collective</p>
-          <h2>How the agents wrap around NVIDIA ALCHEMI</h2>
-          <p class="lede" id="agents-lede">ALCHEMI is the engine. The agents decide what is worth running, refuse what can't be measured, and try to prove every answer wrong before the trust rule lets it count.</p>
+          <h2>Not a wrapper: a loop of agents around NVIDIA ALCHEMI</h2>
+          <p class="lede" id="agents-lede">ALCHEMI is the engine at the centre. Around it the agents decide what is worth running, try to prove every answer wrong, and send work round again when it fails, until the trust rule lets a result count. People and the chemistry lead set the rules before any of it ran.</p>
         </header>
         <div id="agents-body"></div>
       </div>
@@ -97,6 +112,7 @@
       </div>
     </section>
 
+    <!-- Hidden for now (Madhan, 2026-11-01): the Comparison and Failures sections.
     <section class="panel" id="comparison" role="tabpanel" aria-labelledby="tab-comparison" data-tab="comparison" hidden>
       <div class="wrap">
         <header class="tab-head">
@@ -118,6 +134,7 @@
         <div id="failures-body"></div>
       </div>
     </section>
+    -->
   </main>
 
   <footer class="foot">
@@ -141,5 +158,6 @@
 
   <script src="data/data.js"></script>
   <script src="app.js"></script>
+  <script type="module" src="ga3d.js"></script>
 </body>
 </html>

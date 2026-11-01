@@ -13,6 +13,7 @@ GB10 push loop publishes it together with the boards:
   runs/classical/<run>/metals/<El>/analysis_{coexistence,latent}.json   classical MD (MEAM/LAMMPS) checks
   docs/pitch/outline.md (claims register)               wording and sources of the framing lines (S1, S2, ...)
   docs/results/comparison-cmp1.md                       the written findings of comparison run cmp-1, repeat 1
+  docs/chemistry-lead-memo-2026-10-31.md                the chemistry lead's model (author line) and decisions
 
 ``agent_graph`` describes the Agents tab: who does what around ALCHEMI, the model each role uses, the flows between
 them, and the real case the page replays from the exported board. Live counts and statuses are not here: the page
@@ -158,7 +159,9 @@ def short_model_name(model_id: Optional[str]) -> Optional[str]:
 
 def question() -> dict:
     return {
-        "title": "Which thermal battery best buffers bursty AI-chip heat in orbit, and can we trust the simulations?",
+        "title": "Which thermal battery best buffers AI-chip heat in orbit, and can we trust the simulations?",
+        "subtitle": "A thermal battery (a phase-change material) melts to soak up a burst of chip heat and refreezes "
+                    "while the radiator catches up.",
         "lines": [
             {"text": "Google's Project Suncatcher put its first prototype satellite in orbit on Oct 1, 2026: four TPUs "
                      "on about a kilowatt of continuous power. It runs one TPU at a time, in 15-minute bursts, \"to "
@@ -557,6 +560,130 @@ def scouts() -> list[dict]:
     return out
 
 
+def memo_author(path: Optional[Path] = None) -> Optional[str]:
+    """The chemistry lead's model as the memo's author line names it ('Claude Fable 5.1'), or None."""
+    path = Path(path) if path else REPO / MEMO
+    if not path.exists():
+        return None
+    m = re.search(r"\*\*Author:\*\*\s*(Claude [A-Z][a-z]+ \d+\.\d+)", path.read_text(encoding="utf-8"))
+    return m.group(1) if m else None
+
+
+def lead_decisions(rules: dict, ranker: dict) -> list[dict]:
+    """What the chemistry lead decided (docs/chemistry-lead-memo-2026-10-31.md), with the numbers read from the files
+    the decisions were applied to, so the page shows what the code actually uses."""
+    props = rules.get("properties") or {}
+
+    def rel(prop: str, kind: str) -> Optional[float]:
+        return ((props.get(prop) or {}).get(kind) or {}).get("rel")
+
+    rules_src = RULES_SRC + "; " + MEMO + " 'Decisions applied'"
+    out = []
+    for prop, short, label in (("melting_point", "Tm", "melting point"), ("latent_heat", "L", "latent heat")):
+        t1, ag = rel(prop, "tier1"), rel(prop, "agree")
+        if t1 is None:
+            continue
+        out.append({"id": f"tol_{prop}", "short": f"{short} ±{t1:.0%}",
+                    "text": f"{label} within ±{t1:.0%} of the measured value"
+                            + (f" and ±{ag:.0%} of an independent method" if ag is not None else ""),
+                    "value": t1, "applies_to": "trust", "where": "configs/trust_rules.json", "source": rules_src})
+    win = ranker.get("window_K") or {}
+    if win.get("min") is not None and win.get("max") is not None:
+        soft = " (soft)" if "soft" in str(ranker.get("_decision", "")).lower() else ""
+        out.append({"id": "window", "short": f"window {win['min']:g}–{win['max']:g} K",
+                    "text": f"operating window {win['min']:g}–{win['max']:g} K{soft}: below the accelerator's limit, "
+                            "above what a radiator can refreeze against",
+                    "min": win["min"], "max": win["max"], "applies_to": "ranker",
+                    "where": "coolorbit/agents/ranker_config.json",
+                    "source": "coolorbit/agents/ranker_config.json (_decision); " + MEMO + " 'Window'"})
+    out += [
+        {"id": "gate", "short": "calibrated checks only",
+         "text": "an independent check counts only if its own method first recovers the sourced measured value of "
+                 "that material within the tier1 tolerance",
+         "applies_to": "classical", "where": "scripts/post_classical_checks.py (reliability gate)",
+         "source": MEMO + " 'Decisions applied'; configs/trust_rules.json (_note)"},
+        {"id": "latent_at_tm", "short": "L at the method's own Tm",
+         "text": "latent heat at each method's own melting point (the Scouts request it at the simulated Tm)",
+         "applies_to": "scouts", "where": "the Scouts' latent-heat requests (scripts/run_science.py)",
+         "source": MEMO + " 'Decisions applied'"},
+        {"id": "solid_solid", "short": "solid-solid: NPG in",
+         "text": "solid-solid PCMs: include neopentyl glycol (classical MD only; not run that night), exclude "
+                 "pentaerythritol",
+         "applies_to": None, "where": "decision recorded in the memo", "source": MEMO + " 'Decisions applied'"},
+        {"id": "burst", "short": "burst constants",
+         "text": "burst constants: liquid n-octadecane conductivity, aluminium density and conductivity, the flown ISS "
+                 "heat sink's envelope; Field's metal and In-Bi density and conductivity reported as not found",
+         "applies_to": None, "where": "reported in the memo; the burst inputs carry their own sources",
+         "source": MEMO + " 'Burst constants'"},
+    ]
+    return out
+
+
+# The recursions drawn as inner arcs on the Agents tab. Each names the code that makes it; "evidence" is text that must
+# appear in that file (tests/test_dashboard_context.py checks it), so an arc can't outlive the code behind it. "count"
+# names the live counter the page computes from the exported boards (dashboard/app.js buildProof).
+GRAPH_LOOPS = [
+    {"id": "retry", "n": 1, "label": "retry", "title": "Bracket missed → shifted retry", "from": "simulator",
+     "to": "simulator", "count": "retries",
+     "text": "When nothing froze (or nothing melted) the melting point lies outside the bracket. The Simulator's failed "
+             "run report carries a retry request anchored at the nearest decisive temperature, shifted up or down, or a "
+             "doubled production run when the interface barely moved; at most three attempts. Protocol 2 refuses a "
+             "retry that would repeat a set-up artefact or contradict an earlier bracket.",
+     "evidence": [{"path": "coolorbit/sim/simulator_agent.py", "text": "def retry_need("},
+                  {"path": "coolorbit/sim/simulator_agent.py", "text": "def retry_decision_v2("},
+                  {"path": "coolorbit/sim/simulator_agent.py", "text": "MAX_ATTEMPTS = 3"}],
+     "source": "coolorbit/sim/simulator_agent.py (retry_need, retry_decision_v2, MAX_ATTEMPTS)"},
+    {"id": "rerun", "n": 2, "label": "rerun", "title": "Referee fail → rerun", "from": "rules", "to": "simulator",
+     "count": "reruns",
+     "text": "A failing method audit carries a rerun request when the flaw is fixable (two-phase coexistence instead of "
+             "single-phase heating, production instead of quick settings, classical MD for an out-of-domain model). "
+             "The Simulator links the rerun's result to the flawed one, which marks it superseded. In arm C the "
+             "worker reruns its own results when a referee fails them.",
+     "evidence": [{"path": "coolorbit/agents/referee_rules.py", "text": "A failing check also carries a **rerun need**"},
+                  {"path": "coolorbit/sim/simulator_agent.py", "text": "def find_rerun_target("},
+                  {"path": "scripts/run_arm_c.py", "text": "reruns of its own results"}],
+     "source": "coolorbit/agents/referee_rules.py (module docstring); coolorbit/sim/simulator_agent.py "
+               "(find_rerun_target); scripts/run_arm_c.py (module docstring)"},
+    {"id": "ruling", "n": 3, "label": "ruling", "title": "Dispute → adjudicator ruling", "from": "llm",
+     "to": "adjudicator", "count": "rulings",
+     "text": "When two referees' method audits of the same result disagree, the adjudicator reads the result and both "
+             "arguments and rules. The trust rule then counts the ruling instead of the audits it settles; if it "
+             "upholds a failure the rules missed, it attaches the rerun request.",
+     "evidence": [{"path": "coolorbit/agents/referee_llm.py", "text": "``Adjudicator`` (agent ``adjudicator``"},
+                  {"path": "coolorbit/board/status.py", "text": "def settled_audits("}],
+     "source": "coolorbit/agents/referee_llm.py (Adjudicator); coolorbit/board/status.py (settled_audits)"},
+    {"id": "calibrate", "n": 4, "label": "calibrate", "title": "The checker must pass its own calibration first",
+     "from": "librarian", "to": "classical", "count": "gate",
+     "text": "A classical potential counts as a second opinion only if it first recovers the sourced measured value of "
+             "that material within the tier1 tolerance (the Librarian's value on the board, else the same calibration "
+             "set). Otherwise its check is posted inconclusive, without a value, so it can neither confirm nor flag.",
+     "evidence": [{"path": "scripts/post_classical_checks.py", "text": "independent_method_unreliable"},
+                  {"path": "scripts/post_classical_checks.py", "text": "def gate_reference("}],
+     "source": "scripts/post_classical_checks.py (reliability gate, gate_reference)"},
+    {"id": "followup", "n": 5, "label": "follow-up", "title": "Melting point passed → latent heat at the simulated Tm",
+     "from": "board", "to": "scouts", "count": "followups",
+     "text": "Each Scout follows up on its own candidates from the board: once a referee has passed a melting point, it "
+             "requests the latent heat at that simulated melting point (the chemistry lead's rule: latent heat at each "
+             "method's own Tm).",
+     "evidence": [{"path": "coolorbit/agents/scout.py",
+                   "text": "follows up on its own candidates (latent heat once a melting point exists)"},
+                  {"path": "scripts/run_science.py",
+                   "text": "at the simulated melting point once a referee has passed it"}],
+     "source": "coolorbit/agents/scout.py (module docstring); scripts/run_science.py (module docstring)"},
+    {"id": "gate", "n": 6, "label": "run gate", "title": "Run gate: a bad box stops before production",
+     "from": "alchemi", "to": "simulator", "count": "run_gate",
+     "text": "Coexistence protocol 2 checks the two-phase box before spending production time. If the crystal half did "
+             "not survive the solid preparation (crystal_lost_in_prep) or the liquid half was not prepared "
+             "(liquid_not_prepared), the run stops early and says why, and the Simulator does not retry it: a shifted "
+             "or longer run would repeat the artefact.",
+     "evidence": [{"path": "coolorbit/sim/simulator_agent.py",
+                   "text": 'V2_NO_RETRY_FAILURES = frozenset({"crystal_lost_in_prep", "liquid_not_prepared"'},
+                  {"path": "coolorbit/sim/melting.py",
+                   "text": "Coexistence protocol 2 (opt-in; the fix in docs/results/coexistence-diagnosis.md)"}],
+     "source": "coolorbit/sim/melting.py (--protocol 2); coolorbit/sim/simulator_agent.py (V2_NO_RETRY_FAILURES)"},
+]
+
+
 def _role_model(roles: dict, role: str) -> Optional[dict]:
     cfg = (roles.get("roles") or {}).get(role) or {}
     if not cfg.get("model"):
@@ -589,6 +716,13 @@ GRAPH_EDGES = [  # (id, from, to, label, kind, what carries it). Agents never me
      "check and reference_value artifacts (one labelled drop per referee)"),
     ("e_evidence", "board", "trust", "evidence", "flow", "the board snapshot"),
     ("e_status", "trust", "ranker", "trusted", "flow", "the derived status of each result (trusted only)"),
+    ("e_designate", "humans", "chemlead", "designates", "config", MEMO + " (designated by Madhan; applied by the GB10 "
+                                                                         "Claude session)"),
+    ("e_rules_trust", "chemlead", "trust", "rules · tolerances", "config", "configs/trust_rules.json (" + MEMO + ")"),
+    ("e_rules_gate", "chemlead", "classical", "rules · gate", "config",
+     "scripts/post_classical_checks.py reliability gate (" + MEMO + ")"),
+    ("e_rules_window", "chemlead", "ranker", "rules · window", "config",
+     "coolorbit/agents/ranker_config.json (" + MEMO + ")"),
 ]
 
 
@@ -618,7 +752,32 @@ def agent_graph(roles: dict, rules: dict, ranker: dict) -> dict:
     llm_m = _role_model(roles, "referee_llm_audit")
     adj_m = _role_model(roles, "adjudicator")
     worker_m = _role_model(roles, "arm_baseline")
+    author = memo_author()
+    lead_m = ({"id": None, "name": author.removeprefix("Claude "), "full_name": author,
+               "role": "chemistry lead, one literature review with web search", "effort": None,
+               "source": MEMO + " (Author line)"} if author else None)
+    remote_src = "scripts/run_remote_simulator.py; coolorbit/sim/ssh_runner.py"
     nodes = [
+        node("chemlead", "steers", tag(lead_m, "LLM"), "CHEMISTRY LEAD",
+             f"Chemistry lead ({author or 'model not named in the memo'})", [],
+             "literature review → pre-registered rules",
+             "Acting as the team's computational-chemistry lead (designated by Madhan), it reviewed the literature with "
+             "web search and decided the numbers the trust rule, the classical-check gate and the Ranker use: the "
+             "tolerances, that an independent check counts only if its own method first recovers the measured value, "
+             "the operating window, the solid-solid question and the burst constants. A Claude session on the GB10 "
+             "applied the decisions that evening, and the team froze them in the pre-registration commit before any "
+             "comparison run. It is not a board agent: it made no posts and set no status.",
+             MEMO + "; configs/trust_rules.json (_note); coolorbit/agents/ranker_config.json (_decision); "
+             + PREREGISTRATION["source"],
+             model=lead_m, engine=None if lead_m else "not named in the memo",
+             inputs=["published benchmarks and measurements (web search; the memo lists its sources)"],
+             outputs=["configs/trust_rules.json tolerances", "the classical-check reliability gate",
+                      "coolorbit/agents/ranker_config.json operating window", "burst constants"],
+             code=[MEMO, "configs/trust_rules.json", "coolorbit/agents/ranker_config.json"],
+             note="From the memo itself: sources are as the reviewer reported them and the team spot-checks any source "
+                  "before it goes on a slide; the reviewer ran one read-only command despite a no-shell instruction, "
+                  "and nothing was changed.",
+             decisions=lead_decisions(rules, ranker), date="2026-10-31"),
         node("humans", "steers", "TEAM", "STEERS", "The team (people)", [],
              "pre-register · decide · approve",
              "People steer; agents do the work. Before any comparison run the team froze the trust tolerances, the "
@@ -651,7 +810,7 @@ def agent_graph(roles: dict, rules: dict, ranker: dict) -> dict:
              if scout_role else None,
              scouts=scouts()),
         node("premise", "gates", tag(premise_m, "CODE"), "PREMISE CHECK", "Premise checker", ["referee_premise"],
-             "measurable at all? rules first, Claude if unsure",
+             "measurable at all? a parallel check, not a gate",
              "Before a run: is this property well-defined and measurable with this method, model, size and timescale? "
              "Rules decide what they can (diffusion in a perfect crystal at MD timescales, single-phase heating, a "
              "thermostat on a transport property, an inorganic-only model on a molecular organic). Claude is asked "
@@ -660,18 +819,29 @@ def agent_graph(roles: dict, rules: dict, ranker: dict) -> dict:
              "the generalist worker waits for its verdict.",
              "coolorbit/agents/premise.py; scripts/run_arm_c.py (WorkerDispatcher._premise)",
              model=premise_m, inputs=["every simulation request and comparison task on the board"],
-             outputs=["premise_check: pass / fail / inconclusive"], code=["coolorbit/agents/premise.py"]),
+             outputs=["premise_check: pass / fail / inconclusive"], code=["coolorbit/agents/premise.py"],
+             gates={"text": "On the science boards it does not gate the Simulator, which can claim a request before any "
+                            "premise check is posted; a fail is carried onto the result instead. In arm C it does gate "
+                            "the generalist worker, which never starts work the premise checker refused.",
+                    "source": "coolorbit/sim/simulator_agent.py (SimulatorAgent.pending); scripts/run_arm_c.py "
+                              "(module docstring, WorkerDispatcher)"}),
         node("simulator", "simulates", "GB10 GPU", "SIMULATOR", "Simulator", ["simulator_gb10"],
              "claims requests · one GPU job at a time",
              "Owns the GPU queue and nothing else. It claims the requests it can compute (melting point, latent "
              "heat), runs each as one ALCHEMI job in its own process, and posts a result with full method metadata, "
              "a failed run as a run report with a retry request (a shifted bracket or a longer run), or a refusal: "
-             "MACE-MPA-0 is out of its training domain for molecular organics, so those are rerouted to classical MD.",
-             "coolorbit/sim/simulator_agent.py", engine="code, no LLM call",
+             "MACE-MPA-0 is out of its training domain for molecular organics, so those are rerouted to classical MD. "
+             "Overflow: more Simulators run the same code with an SSH runner on a Brev H100 and split the queue with "
+             "the GB10's through claims on the board, with no coordinator.",
+             "coolorbit/sim/simulator_agent.py; " + remote_src, engine="code, no LLM call",
              inputs=["simulation requests (property_result needs)"],
              outputs=["property_result", "run_report (failed or refused)", "the checks the trust rule still needs"],
-             code=["coolorbit/sim/simulator_agent.py", "coolorbit/sim/melting.py"]),
-        node("alchemi", "simulates", "NVIDIA ALCHEMI", "ON THE GB10", "NVIDIA ALCHEMI Toolkit on the Dell Pro Max GB10",
+             code=["coolorbit/sim/simulator_agent.py", "coolorbit/sim/melting.py", "scripts/run_remote_simulator.py",
+                   "coolorbit/sim/ssh_runner.py"],
+             agent_prefix="simulator",
+             remote={"text": "a Simulator whose results record a remote host ran on the Brev H100 over SSH",
+                     "source": remote_src + " (method.remote on each result)"}),
+        node("alchemi", "simulates", "NVIDIA ALCHEMI", "MACE-MPA-0", "NVIDIA ALCHEMI Toolkit · MACE-MPA-0",
              [], "batched MLIP dynamics on the GPU",
              "The engine. NVIDIA's ALCHEMI Toolkit runs the MACE-MPA-0 machine-learned force field on the GB10's "
              "Blackwell GPU, with dynamics batched over systems: each trial temperature is its own system in one GPU "
@@ -684,10 +854,16 @@ def agent_graph(roles: dict, rules: dict, ranker: dict) -> dict:
              outputs=["trajectories and energies (runs/melting/... result.json), read back by the Simulator"],
              code=["coolorbit/sim/melting.py", "coolorbit/hooks/superheating.py"],
              imports=alchemi_imports(), throughput=throughput,
+             hosts=[{"text": "Dell Pro Max GB10 · home",
+                     "source": "CLAUDE.md section 8; coolorbit/sim/melting.py (GB10_ATOM_STEPS_PER_S, measured there)"},
+                    {"text": "Brev H100 · overflow over SSH", "source": remote_src}],
              protocol=[
                  {"text": "two-phase coexistence, several temperatures per job",
                   "source": "coolorbit/sim/melting.py run_coexistence(); the Simulator runs only this for melting "
                             "points (coolorbit/sim/simulator_agent.py SUPPORTED)"},
+                 {"text": "coexistence protocol v2 (the opt-in fix)",
+                  "source": "coolorbit/sim/melting.py (--protocol 2; docs/results/coexistence-diagnosis.md); "
+                            "coolorbit/sim/simulator_agent.py (coex_protocol)"},
                  {"text": "latent heat = H(liquid) − H(solid), NPT", "source": "coolorbit/sim/melting.py run_latent()"},
                  {"text": "alloys: H(liquid) − Σ xᵢ H(pure solid i)",
                   "source": "coolorbit/sim/melting.py run_alloy_latent() (an approximation the referees flag)"},
@@ -725,16 +901,20 @@ def agent_graph(roles: dict, rules: dict, ranker: dict) -> dict:
              inputs=["every property_result's method metadata"], outputs=["method_audit: pass / fail / inconclusive"],
              code=["coolorbit/agents/referee_llm.py"]),
         node("classical", "checks", "GB10 CPU", "CLASSICAL MD", "Classical-MD referee", ["referee_classical"],
-             "LAMMPS + MEAM · must pass its own test first",
-             "A different physics: classical molecular dynamics with published 2NN-MEAM potentials (NIST Interatomic "
-             "Potentials Repository), LAMMPS on the GB10's CPU, same two-phase protocol. A potential counts only if it "
-             "first recovers the measured melting point within the pre-registered tolerance; otherwise its check is "
-             "posted as inconclusive. Only bismuth's passed, and it was fitted to bismuth's melting point. Posted by "
-             "a script, not a polling agent.",
-             "scripts/post_classical_checks.py; docs/results/classical-check.md", engine="LAMMPS on the GB10 CPU",
-             inputs=["MACE melting-point results", "MEAM analyses in runs/classical/"],
+             "LAMMPS + MEAM/EAM · must pass its own test first",
+             "A different physics: classical molecular dynamics with published MEAM and EAM potentials (NIST "
+             "Interatomic Potentials Repository), LAMMPS on the GB10's CPU, same two-phase protocol. A potential counts "
+             "only if it first recovers the measured value within the pre-registered tolerance; otherwise its check is "
+             "posted as inconclusive. Copper's EAM (Mishin 2001) passed and agrees with MACE, which made copper "
+             "trusted; bismuth's MEAM passed (it was fitted to bismuth's melting point) but disagrees with MACE; "
+             "aluminium's EAM and tin's, indium's and gallium's MEAM failed their own test. Posted by a script, not a "
+             "polling agent.",
+             "scripts/post_classical_checks.py; docs/results/classical-check.md; docs/results/classical-check-eam.md",
+             engine="LAMMPS on the GB10 CPU",
+             inputs=["MACE melting-point and latent-heat results", "MEAM/EAM analyses in runs/classical/"],
              outputs=["classical_md check: agree / disagree / inconclusive"],
-             code=["scripts/post_classical_checks.py", "docs/results/classical-check.md"]),
+             code=["scripts/post_classical_checks.py", "docs/results/classical-check.md",
+                   "docs/results/classical-check-eam.md"]),
         node("librarian", "checks", "CODE", "LIBRARIAN", "Librarian", ["librarian"],
              "measured values, each with a source",
              "Answers every request for a measured value from the curated calibration set, where each value carries "
@@ -809,6 +989,11 @@ def agent_graph(roles: dict, rules: dict, ranker: dict) -> dict:
                          "and a sourced measurement. An adjudicator settles audit disputes.",
                  "source": "coolorbit/agents/referee_rules.py; coolorbit/agents/referee_llm.py; "
                            "scripts/post_classical_checks.py; coolorbit/agents/librarian.py"},
+                {"lead": "It is a loop, not a pipeline.",
+                 "text": "A missed bracket is retried, a failed audit is rerun, a dispute goes to the adjudicator, a "
+                         "checker must first pass its own calibration, and a passed melting point triggers the "
+                         "latent-heat run. Every loop-back is an artifact on the board.",
+                 "source": "; ".join(sorted({e["path"] for lp in GRAPH_LOOPS for e in lp["evidence"]}))},
                 {"lead": "No agent sets a status.",
                  "text": "The trust rule derives it from the evidence on the board, so a confident number without "
                          "independent support never counts.",
@@ -817,6 +1002,17 @@ def agent_graph(roles: dict, rules: dict, ranker: dict) -> dict:
         },
         "case": {"candidate": "BiInSn", "property": "latent_heat", "label": "Field's metal (BiInSn), latent heat",
                  "source": OUTLINE + " claims register S24 (result 7ed6f997 and its checks on boards/science-1)"},
+        # Replays built at load time from the exported lineage; the first one found is the default.
+        "cases": [
+            {"id": "cu", "candidate": "Cu", "property": "melting_point", "board": "science-2", "status": "trusted",
+             "label": "Copper (Cu), melting point",
+             "source": "boards/science-2: the Cu melting_point result whose derived status is trusted, with its "
+                       "parents and checks (found at load time)"},
+            {"id": "fields", "candidate": "BiInSn", "property": "latent_heat", "board": "science-1", "status": None,
+             "label": "Field's metal (BiInSn), latent heat",
+             "source": OUTLINE + " claims register S24 (result 7ed6f997 and its checks on boards/science-1)"},
+        ],
+        "loops": GRAPH_LOOPS,
         "vs": [
             {"alchemi": "Batched GPU dynamics: NPT with one temperature per system, all systems in one job.",
              "alchemi_source": "coolorbit/sim/melting.py (npt(): NPT, temperature per system)",
@@ -922,33 +1118,306 @@ def comparison_setup(roles: dict) -> dict:
                         "computed, and on a trap task it counts against the catch rate.",
             "source": "coolorbit/eval/metrics.py (module docstring, reference_rule=True); " + CMP1_DOC,
         },
-        "report": {"text": "Written findings of run cmp-1, repeat 1", "url": GITHUB + "/blob/main/" + CMP1_DOC,
+        "report": {"text": "Written findings of run cmp-1 (all repeats)", "url": GITHUB + "/blob/main/" + CMP1_DOC,
                    "source": CMP1_DOC},
         "source": "CLAUDE.md section 13; coolorbit/eval/arms.md; " + OUTLINE + " slide 7",
     }
 
 
 def comparison_findings() -> dict:
-    """What repeat 1 of run cmp-1 showed, as the team wrote it up (docs/results/comparison-cmp1.md)."""
+    """What run cmp-1 showed over its complete repeats, as the team wrote it up (docs/results/comparison-cmp1.md)."""
     return {
-        "title": "What repeat 1 of cmp-1 says",
+        "title": "What cmp-1 says (3 complete repeats)",
         "items": [
-            "No arm shipped a confident wrong answer: 0 silent errors in A, B and C. All three refused the ill-posed "
-            "tasks. With NVIDIA's recommended prompt and web access a single agent already avoids these traps; that "
-            "does not support our thesis that the collective catches more, and we report it as is.",
-            "The collective's measurable edge is false alarms: 0 of 3 well-posed controls for C, against 1 of 3 for A "
-            "and B, which both doubted a correct O/Cu(111) adsorption energy.",
-            "B's worker + checker pipeline 'resolved' a disagreement by replacing its own aluminium simulation "
-            "(862 ± 38 K, within the ±10% tolerance) with the measured value from the calibration file. The "
-            "pre-registered scorer counted that as a perfect answer; under the post-hoc rule B's trap catch falls "
-            "from 80% to 60%, level with A and C.",
-            "Unanswered tasks are timeouts under GPU crowding, and one is our own weakness: C's Simulator chose full "
-            "production settings for aluminium and the 60-minute task clock cut it off.",
-            "Small sample: 8 tasks, one repeat. No statistical claims.",
+            "Trap catch: the collective (C) 80% against 60% for the single agent (A) and the worker + checker pipeline "
+            "(B) under the post-hoc rule (pre-registered scoring: 80 / 60 / 67%). C's lead appears after a disclosed "
+            "post-hoc fix (its Simulator now fits its run to the time left): repeat 1 60%, repeats 2 and 3 100% and 80%.",
+            "False alarms on correct tasks: C 11% and A 11%, B 22%. No arm shipped a confident wrong answer: with "
+            "NVIDIA's recommended prompt and web access, the single agent already refuses the ill-posed tasks.",
+            "B's pipeline once 'resolved' a disagreement by replacing its own aluminium simulation (862 ± 38 K, within "
+            "the ±10% tolerance) with the measured value from the calibration file; the pre-registered scorer counted "
+            "that as a perfect answer, which is why the post-hoc rule exists. Both scorecards are shown.",
+            "Cost: C is the cheapest arm, about $2.40 of LLM spend per repeat against about $4.57 for A and $3.50 for B.",
+            "Small sample: 8 tasks x 3 repeats. No statistical claims.",
         ],
-        "source": CMP1_DOC + " (repeat 1: 2026-10-31 21:45 UTC to 2026-11-01 02:30 UTC)",
+        "source": CMP1_DOC + " (repeats 1-3, 2026-10-31 21:45 UTC to 2026-11-01 10:19 UTC)",
         "url": GITHUB + "/blob/main/" + CMP1_DOC,
     }
+
+
+def head_to_head(b: dict, window: Optional[tuple] = None) -> Optional[dict]:
+    """Paraffin vs gallium, aspect by aspect, from the burst calculation's own sourced numbers (nothing typed in)."""
+    mats = (b or {}).get("materials") or []
+    wax = next((m for m in mats if m.get("kind") == "paraffin"), None)
+    ga = next((m for m in mats if "gallium" in m.get("name", "").lower()), None)
+    if not wax or not ga:
+        return None
+    W, G_, Wi, Gi = wax["result"], ga["result"], wax["inputs"], ga["inputs"]
+    sc = b.get("scenario") or {}
+    calc = f"{BURST_SRC}: one {sc.get('minutes', 15):g}-minute burst at {sc.get('power_W', 1000):g} W"
+
+    def num(aspect, why, wv, gv, units, better, wsrc, gsrc):
+        if better == "high":
+            winner = "paraffin" if wv > gv else "gallium" if gv > wv else "tie"
+        else:
+            winner = "paraffin" if wv < gv else "gallium" if gv < wv else "tie"
+        lo, hi = min(wv, gv), max(wv, gv)
+        return {"aspect": aspect, "why": why, "units": units, "better": better, "winner": winner,
+                "paraffin": {"value": wv, "source": wsrc}, "gallium": {"value": gv, "source": gsrc},
+                "ratio": {"value": round(hi / lo, 1) if lo else None, "source": "ratio of the two values in this row"}}
+
+    def inp(m, key):
+        return m["inputs"][key]["value"], m["inputs"][key]["source"]
+
+    rows = []
+    (wl, wls), (gl, gls) = inp(wax, "latent_heat_J_per_kg"), inp(ga, "latent_heat_J_per_kg")
+    rows.append(num("Heat stored per kilogram", "what each kilogram launched buys", round(wl / 1000, 1),
+                    round(gl / 1000, 1), "kJ/kg", "high", wls, gls))
+    rows.append(num("Device mass for one burst", "PCM + aluminium fins: the launch-cost number", W["total_kg"],
+                    G_["total_kg"], "kg", "low", calc, calc))
+    rows.append(num("Container volume", "space inside the satellite", W["pcm_volume_L"], G_["pcm_volume_L"], "L",
+                    "low", calc, calc))
+    rows.append(num("Heat-exchange area needed", "fin surface to soak up the burst in time", W["area_m2"],
+                    G_["area_m2"], "m2", "low", calc, calc))
+    (wk, wks), (gk, gks) = inp(wax, "conductivity_liquid_W_mK"), inp(ga, "conductivity_liquid_W_mK")
+    rows.append(num("Heat conduction (liquid)", "how fast heat gets in and out", wk, gk, "W/m/K", "high", wks, gks))
+    rows.append(num("Aluminium fins needed", "extra structure to carry", W["fin_kg"], G_["fin_kg"], "kg", "low",
+                    calc, calc))
+    # Volume change between solid and liquid: the free space (or compliance) the container must allow. A different
+    # design problem from the container's size, computed from the same sourced solid and liquid densities.
+    if all(k in m["inputs"] for m in (wax, ga) for k in ("density_solid_kg_m3", "density_liquid_kg_m3")):
+        def swell(m):
+            (s, ss), (lq, lqs) = inp(m, "density_solid_kg_m3"), inp(m, "density_liquid_kg_m3")
+            return round(100 * (s / lq - 1), 1), f"{ss}; {lqs} (liquid/solid volume ratio = solid/liquid density)"
+        (wsw, wsws), (gsw, gsws) = swell(wax), swell(ga)
+        vrow = num("Volume change on melting", "free space the container must leave; paraffin swells when it melts, "
+                   "gallium (unusually) swells when it freezes", abs(wsw), abs(gsw), "%", "low", wsws, gsws)
+        vrow["paraffin"]["text"] = f"{wsw:+g}% on melting"
+        vrow["gallium"]["text"] = f"{gsw:+g}% on melting ({-gsw:+g}% on freezing)"
+        rows.append(vrow)
+    if window and "melting_point_K" in Wi and "melting_point_K" in Gi:
+        lo_w, hi_w = window
+        (wt, wts), (gt, gts) = inp(wax, "melting_point_K"), inp(ga, "melting_point_K")
+        ins = lambda t: lo_w <= t <= hi_w  # noqa: E731
+        win = ("both" if ins(wt) and ins(gt) else "paraffin" if ins(wt) else "gallium" if ins(gt) else "neither")
+        rows.append({"aspect": f"Melts inside our {lo_w:g}-{hi_w:g} K operating window",
+                     "why": "it must melt above the radiator and below the chip limit", "winner": win,
+                     "paraffin": {"text": f"{'Yes' if ins(wt) else 'No'}, {wt:g} K", "value": wt, "source": wts},
+                     "gallium": {"text": f"{'Yes' if ins(gt) else 'No'}, {gt:g} K", "value": gt, "source": gts},
+                     "window": {"min": lo_w, "max": hi_w, "source": "coolorbit/agents/ranker_config.json; " + MEMO}})
+    rows.append({"aspect": "Safe with aluminium hardware", "why": "fins, heat pipes and housings are aluminium",
+                 "winner": "paraffin",
+                 "paraffin": {"text": "Yes", "source": "inert hydrocarbon (" + MEMO + ")"},
+                 "gallium": {"text": "No: liquid gallium penetrates aluminium",
+                             "source": MEMO + ", 'What a chemistry judge will challenge' item 3 (Hugo & Hoagland, "
+                                              "Scripta Mater. 38(3), 1998; abstract)"}})
+    r = {x["aspect"]: x for x in rows}
+    heat, mass, vol, area, cond = (r["Heat stored per kilogram"], r["Device mass for one burst"],
+                                   r["Container volume"], r["Heat-exchange area needed"], r["Heat conduction (liquid)"])
+    ok = (heat["winner"] == "paraffin" and mass["winner"] == "paraffin" and vol["winner"] == "gallium"
+          and area["winner"] == "gallium" and cond["winner"] == "gallium")
+    window_row = next((x for x in rows if x["aspect"].startswith("Melts inside")), None)
+    tail = " Neither melts inside our operating window." if window_row and window_row["winner"] == "neither" else ""
+    n_ga = sum(x["winner"] == "gallium" for x in rows)
+    tail = (f" Like wax, it melts below our {window[0]:g}-{window[1]:g} K operating window."
+            if window and window_row and window_row["winner"] == "neither" else "")
+    minutes = sc.get("minutes", 15)
+    verdict = (f"Gallium wins {n_ga} of our {len(rows)} comparisons. Liquid gallium conducts heat "
+               f"{cond['ratio']['value']:.0f}x better than wax, so one {minutes:g}-minute burst fits in a block "
+               f"{vol['ratio']['value']:g}x smaller, through {area['ratio']['value']:.0f}x less heat-exchange area, "
+               "with almost no aluminium fins, and it swells less when it melts. The trade-off is weight: the "
+               f"gallium device is {mass['ratio']['value']:g}x heavier." + tail) if ok else (
+        "With the current inputs the comparison does not split simply; read the rows.")
+    return {"title": "Gallium vs paraffin: who wins what", "verdict": verdict, "rows": rows,
+            "materials": {"paraffin": wax["label"], "gallium": ga["label"]},
+            "source": calc + "; latent heat, conductivity and melting points as cited in each row"}
+
+
+GA_STRUCTURE_SRC = ("coolorbit/sim/alloys.py element_crystal('Ga'): the alpha-Ga crystal our simulations start from "
+                    "(Cmce; lattice and position from Sharma & Donohue, Z. Kristallogr. 117, 293 (1962))")
+
+
+def gallium_structure(reps: tuple = (2, 2, 2), calibration: Optional[dict] = None) -> Optional[dict]:
+    """alpha-Ga for the 3D view, built by the same code our simulations use, with its neighbour shells computed here.
+
+    Returns None if ASE (or the structure code) can't be imported, so the rest of the context still builds.
+    """
+    try:
+        import numpy as np
+        from ase.neighborlist import neighbor_list
+
+        from coolorbit.sim.alloys import ELEMENT_CRYSTALS, element_crystal
+    except Exception:  # noqa: BLE001
+        return None
+    unit = element_crystal("Ga")
+    i, j, d = neighbor_list("ijd", unit, 3.2)
+    first = d[i == 0]
+    pair = float(np.round(first.min(), 3))
+    shell = np.sort(first[first > pair + 0.1])
+    block = unit.repeat(reps)
+    block.pbc = True
+    pos = [p for p in block.get_positions()]
+    n_block = len(pos)
+    # Each atom's close partner, through the periodic boundary if need be: a partner outside the block is added as a
+    # "ghost" (a real atom of the neighbouring cell, drawn faded), so every atom of the block shows its pair.
+    bi, bj, bD = neighbor_list("ijD", block, pair + 0.05)
+    ghost = [False] * n_block
+    bonds = set()
+    for a_i, vec in zip(bi, bD):
+        target = pos[a_i] + vec
+        k = next((m for m, p in enumerate(pos) if float(np.linalg.norm(p - target)) < 0.01), None)
+        if k is None:
+            pos.append(target)
+            ghost.append(True)
+            k = len(pos) - 1
+        bonds.add(tuple(sorted((int(a_i), int(k)))))
+    atom_src = "alpha-Ga block built by coolorbit/sim/alloys.py element_crystal('Ga'), repeated " + "x".join(map(str, reps))
+    bond_src = f"close pair (<= {pair + 0.05:.2f} Å), found with ase.neighborlist on that block"
+    a, b, c = (float(x) for x in unit.cell.lengths())
+    calibration = calibration if calibration is not None else load_calibration()
+    measured = []
+    for prop, label in (("melting_point", "Melting point"), ("latent_heat", "Latent heat")):
+        rec = calibration.get(("ga", prop))
+        if rec:
+            measured.append({"label": label, "value": rec["value"], "units": rec.get("units"), "source": rec["source"]})
+    return {
+        "phase": ELEMENT_CRYSTALS["Ga"][0],
+        "atoms": [{"x": round(float(p[0]), 3), "y": round(float(p[1]), 3), "z": round(float(p[2]), 3),
+                   "ghost": g_, "source": atom_src} for p, g_ in zip(pos, ghost)],
+        "n_block": n_block,
+        "bonds": [{"a": a_, "b": b_, "source": bond_src} for a_, b_ in sorted(bonds)],
+        "cell": {"a": round(a, 3), "b": round(b, 3), "c": round(c, 3),
+                 "reps": {"a": int(reps[0]), "b": int(reps[1]), "c": int(reps[2]),
+                          "source": "unit cells shown along a, b, c (dashboard/context.py gallium_structure)"},
+                 "units": "Å",
+                 "source": GA_STRUCTURE_SRC},
+        "pair": {"value": pair, "units": "Å", "count": int((first <= pair + 0.05).sum()),
+                 "source": "nearest-neighbour distance computed with ase.neighborlist from " + GA_STRUCTURE_SRC},
+        "next_shell": {"min": round(float(shell[:6].min()), 3), "max": round(float(shell[:6].max()), 3), "count": 6,
+                       "units": "Å", "source": "the next six neighbours, computed with ase.neighborlist from "
+                                               + GA_STRUCTURE_SRC},
+        "measured": measured,
+        "caveats": [
+            {"text": "Gallium melts at 302.9 K, below the 315-345 K operating window, and liquid gallium penetrates "
+                     "aluminium, so a real device needs a different window or container.",
+             "source": "data/calibration/tier1.json (NIST WebBook); coolorbit/agents/ranker_config.json; " + MEMO},
+        ],
+        "source": GA_STRUCTURE_SRC,
+    }
+
+
+# --------------------------------------------------------------------------- the Agents tab: what the loop caught
+
+NVIDIA_BLOG = ("https://developer.nvidia.com/blog/how-ai-coding-agents-can-unlock-materials-simulation-with-nvidia-"
+               "alchemi-toolkit/")
+
+
+def _cr(ids: str, extra: str = "") -> str:
+    """A source line pointing at entries of the pitch's claims register (each checked against its file or paper)."""
+    return f"[{ids}, {OUTLINE} claims register]" + (f" {extra}" if extra else "")
+
+
+def catches() -> dict:
+    """Real cases where a clean-looking run rested on a wrong assumption, who in the loop caught it and what happened.
+
+    Every sentence restates a claim from the pitch's claims register (docs/pitch/outline.md, S-ids), which records
+    the file or paper each number was read from, or describes the code that does the catching."""
+    cases = [
+        {"id": "superheating", "title": "“A perfect crystal melts at its melting point.”",
+         "shipped": {"text": "Heat a perfect copper crystal on ALCHEMI and it reports 1600 ± 100 K: clean, "
+                             "confident, and 18% above the measured 1357.77 K. With nowhere to start melting, the "
+                             "crystal superheats.",
+                     "source": HOOK_CONTROL_SRC + "; measured value from data/calibration/tier1.json (ITS-90)"},
+         "caught": {"who": "Method audit and our SuperheatingDetectorHook.",
+                    "text": "The audit fails any melting point from single-phase heating and asks for a two-phase "
+                            "rerun. The hook catches it inside any ALCHEMI run: 3 of 3 superheated crystals flagged, "
+                            "0 of 4 two-phase boxes.",
+                    "source": "coolorbit/agents/referee_rules.py (module docstring); coolorbit/hooks/superheating.py; "
+                              + HOOK_CONTROL_SRC},
+         "outcome": {"tone": "ok", "label": "trusted",
+                     "text": "Two-phase coexistence on the same engine and model gives 1290-1330 K, and an independent "
+                             "classical check agrees (1327 K). Copper's melting point is trusted.",
+                     "source": _cr("S26, S27, S29", "boards/science-2 result 94311022; "
+                                   "docs/results/classical-check-eam.md; runs/remote/refine")}},
+        {"id": "domain", "title": "“One AI force field fits every material.”",
+         "shipped": {"text": "ALCHEMI will run MACE-MPA-0 on paraffin wax if asked. MACE-MP models were trained on "
+                             "inorganic crystals and miss the weak forces that hold wax together, so the number would "
+                             "look fine and mean nothing.",
+                     "source": "coolorbit/sim/melting.py; CLAUDE.md section 11 (out-of-distribution warning); "
+                               + OUTLINE + " slide 11"},
+         "caught": {"who": "Premise checker, Scouts and Simulator.",
+                    "text": "The premise checker and the method audit flag an inorganic-only model on a molecular "
+                            "organic; the Scouts send waxes to classical MD, and the Simulator refuses them.",
+                    "source": "coolorbit/agents/premise.py; coolorbit/agents/scout.py; coolorbit/sim/simulator_agent.py"},
+         "outcome": {"tone": "warn", "label": "refused, rerouted",
+                     "text": "Waxes go to classical MD instead. Fair note: in our comparison, with web access and "
+                             "NVIDIA's own prompt, the single agent refused MACE on eicosane too.",
+                     "source": _cr("S25", CMP1_DOC)}},
+        {"id": "accuracy", "title": "“The model is accurate for these metals.”",
+         "shipped": {"text": "MACE-MPA-0 puts indium's melting point at 344.7 ± 21.3 K (measured 429.75 K) and "
+                             "bismuth's at 408.3 ± 54.7 K (measured 544.56 K): 20% and 25% low, with error bars "
+                             "that look reasonable.",
+                     "source": _cr("S26", "boards/science-2; measured values from data/calibration/tier1.json")},
+         "caught": {"who": "Sourced measurements and the trust rule.",
+                    "text": "Measured values with sources and the pre-registered ±10% tolerance flag both. For "
+                            "bismuth, a classical check that first passed its own calibration disagrees too.",
+                    "source": _cr("S22, S26", "configs/trust_rules.json")},
+         "outcome": {"tone": "warn", "label": "flagged",
+                     "text": "Flagged and never ranked. MACE is within about 3% for copper and aluminium but 15-28% "
+                             "low on indium, bismuth and tin, the very metals that matter for metal thermal batteries.",
+                     "source": _cr("S26, S29", OUTLINE + " slide 8")}},
+        {"id": "prep", "title": "“The crystal in the box is still a crystal.”",
+         "shipped": {"text": "At tin's real melting point (505 K), MACE's tin crystal does not survive preparation. A "
+                             "melting point read from that box would describe a liquid, not a crystal melting.",
+                     "source": _cr("S26, S29", "boards/science-2 artifact 41ee63bb")},
+         "caught": {"who": "The run gate (coexistence protocol 2).",
+                    "text": "It checks the two-phase box before production. The crystal was lost in preparation, so "
+                            "the run stops, says why, and is not retried: a longer run would repeat the artefact.",
+                    "source": "coolorbit/sim/melting.py (--protocol 2); coolorbit/sim/simulator_agent.py "
+                              "(V2_NO_RETRY_FAILURES)"},
+         "outcome": {"tone": "bad", "label": "stopped, reported",
+                     "text": "Reported as a failure, not a number. Extra runs show MACE's tin melts below 380 K, about "
+                             "25% low or more.",
+                     "source": _cr("S29", "runs/remote/supp")}},
+        {"id": "approximation", "title": "“An alloy's solid is just its metals mixed together.”",
+         "shipped": {"text": "Field's metal (bismuth, indium and tin): the simulated latent heat, 25.3 ± 0.2 "
+                             "kJ/kg, lands close to the measurements (27.1 and 25.4 kJ/kg). But the calculation treats "
+                             "the solid as a mix of pure metals, ignoring the compounds a real alloy forms.",
+                     "source": _cr("S21, S23, S24")},
+         "caught": {"who": "The LLM referee and the Fable adjudicator.",
+                    "text": "The rule-based audit passed it; the LLM referee failed it on that approximation. They "
+                            "disagreed, so the adjudicator (Claude Fable 5.1) read both arguments and upheld the fail.",
+                    "source": _cr("S24", "boards/science-1 checks ada06981, 8af1ea18, 65e3e208")},
+         "outcome": {"tone": "warn", "label": "flagged",
+                     "text": "Flagged despite a good-looking number: it may be right for the wrong reason. Our alloy "
+                             "latent heats are labelled as likely underestimates.",
+                     "source": _cr("S24", OUTLINE + " slide 11")}},
+        {"id": "checker", "title": "“The second opinion is reliable.”",
+         "shipped": {"text": "A classical potential is only as good as its fit. The aluminium EAM potential melts "
+                             "aluminium at 1041.4 K (+11.6%). Of four NIST MEAM potentials only bismuth's recovers its metal's measured "
+                             "values: indium's is 63-77% high, tin's 17% or more low, gallium's cannot hold the "
+                             "crystal.",
+                     "source": _cr("S15, S22, S27")},
+         "caught": {"who": "The calibration gate (the chemistry lead's rule).",
+                    "text": "A checker counts only if it first recovers the measured value of the same material within "
+                            "the pre-registered tolerance. Otherwise its check is posted as inconclusive: it can "
+                            "neither confirm nor flag.",
+                    "source": "scripts/post_classical_checks.py (reliability gate); " + MEMO + " 'Decisions applied'"},
+         "outcome": {"tone": "warn", "label": "under review",
+                     "text": "Aluminium stays under review even though MACE matches its measurement: a bad checker "
+                             "may not confirm a good result.",
+                     "source": _cr("S27", "docs/results/classical-check-eam.md")}},
+    ]
+    return {"eyebrow": "Caught by the loop",
+            "title": "Where a clean-looking run hid a wrong assumption",
+            "lede": "ALCHEMI computes exactly what it is given; it cannot tell a sound set-up from a flawed one. "
+                    "These are real cases from our runs: what a single pass would have shipped, which agent or rule "
+                    "caught it, and what happened next.",
+            "nvidia": {"text": "NVIDIA saw the same pattern in 45 agent-written ALCHEMI pipelines: no configuration "
+                               "pushed back on a physically ill-posed task.",
+                       "source": "NVIDIA Technical Blog, Aug 18 2026 " + _cr("S14"), "url": NVIDIA_BLOG},
+            "cases": cases,
+            "source": OUTLINE + " claims register"}
 
 
 # --------------------------------------------------------------------------- the whole context
@@ -965,15 +1434,19 @@ def build_context(*, inputs_path: str | Path = BURST_INPUTS, rules: Optional[dic
     calibration = load_calibration(calibration_path)
     win = ranker.get("window_K") or {}
     window = (win["min"], win["max"]) if win.get("min") is not None and win.get("max") is not None else None
+    burst_out = burst(inputs_path, scenario, window)
     return {
         "schema": SCHEMA,
         "question": question(),
-        "burst": burst(inputs_path, scenario, window),
+        "burst": burst_out,
+        "head_to_head": head_to_head(burst_out, window),
         "methods": methods(rules, calibration, Path(classical_root), classical_run),
         "agent_graph": agent_graph(roles, rules, ranker),
         "trust_rule": trust_rule(rules, ranker),
         "comparison_setup": comparison_setup(roles),
         "comparison_findings": comparison_findings(),
+        "gallium": gallium_structure(calibration=calibration),
+        "catches": catches(),
         "deadline": {"iso": "2026-11-01T18:00:00Z",
                      "text": "Hacking ends Sunday Nov 1 2026 at 1:00 PM in Cambridge, MA: EST (UTC-5; daylight time "
                              "ends at 2 AM that day), so 18:00 UTC",

@@ -26,7 +26,13 @@ from pathlib import Path
 from typing import Callable, Optional
 
 HERE = Path(__file__).resolve().parent
-STATIC = {"/": "index.html", "/index.html": "index.html", "/app.js": "app.js", "/style.css": "style.css"}
+STATIC = {"/": "index.html", "/index.html": "index.html", "/app.js": "app.js", "/style.css": "style.css",
+          "/ga3d.js": "ga3d.js",
+          # three.js r160 (MIT, vendor/three/LICENSE), served from here because the CSP allows only our own scripts;
+          # the two addons import the core by relative path (patched from the bare 'three' specifier).
+          "/vendor/three/three.module.min.js": "vendor/three/three.module.min.js",
+          "/vendor/three/addons/OrbitControls.js": "vendor/three/addons/OrbitControls.js",
+          "/vendor/three/addons/RoomEnvironment.js": "vendor/three/addons/RoomEnvironment.js"}
 TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
          ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8"}
 DATA_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,200}\.(json|js)$")
@@ -133,7 +139,11 @@ def make_handler(cache: Cache, static_root: Path = HERE):
                 return self._send(200, b"ok\n", "text/plain; charset=utf-8")
             if path in STATIC:
                 f = static_root / STATIC[path]
-                return self._send(200, f.read_bytes(), TYPES[f.suffix], cache_s=60)
+                try:
+                    body = f.read_bytes()
+                except FileNotFoundError:  # a whitelisted file missing from the image: answer, don't drop the connection
+                    return self._send(404, b"not found\n", "text/plain; charset=utf-8")
+                return self._send(200, body, TYPES[f.suffix], cache_s=60)
             if path.startswith("/data/"):
                 name = path[len("/data/"):]
                 if not DATA_NAME.match(name):

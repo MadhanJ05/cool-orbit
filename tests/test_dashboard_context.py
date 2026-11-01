@@ -10,6 +10,7 @@ import contextlib
 import copy
 import io
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -275,6 +276,45 @@ class AgentGraphTest(unittest.TestCase):
         self.assertGreater(t["value"], 0)
         self.assertIn("GB10_ATOM_STEPS_PER_S", t["source"])
 
+    def test_chemistry_lead_is_the_memo_author_and_its_numbers_are_the_applied_ones(self) -> None:
+        lead = self.nodes["chemlead"]
+        memo = (REPO / "docs/chemistry-lead-memo-2026-10-31.md").read_text(encoding="utf-8")
+        self.assertIn(f"**Author:** {lead['model']['full_name']}", memo)
+        self.assertEqual(lead["tag"], lead["model"]["name"].upper())
+        self.assertEqual(lead["agents"], [], "the chemistry lead posts nothing on the board")
+        rules = json.loads((REPO / "configs/trust_rules.json").read_text(encoding="utf-8"))
+        ranker = json.loads((REPO / "coolorbit/agents/ranker_config.json").read_text(encoding="utf-8"))
+        d = {x["id"]: x for x in lead["decisions"]}
+        self.assertEqual(d["tol_melting_point"]["value"], rules["properties"]["melting_point"]["tier1"]["rel"])
+        self.assertEqual(d["tol_latent_heat"]["value"], rules["properties"]["latent_heat"]["tier1"]["rel"])
+        self.assertEqual((d["window"]["min"], d["window"]["max"]), (ranker["window_K"]["min"], ranker["window_K"]["max"]))
+        for x in lead["decisions"]:
+            self.assertIn("chemistry-lead-memo", x["source"], x["id"])
+        edges = {e["id"]: e for e in self.graph["edges"]}
+        for eid, to in (("e_rules_trust", "trust"), ("e_rules_gate", "classical"), ("e_rules_window", "ranker")):
+            self.assertEqual((edges[eid]["from"], edges[eid]["to"]), ("chemlead", to))
+
+    def test_every_loop_arc_is_backed_by_the_code_it_names(self) -> None:
+        loops = self.graph["loops"]
+        self.assertEqual([lp["n"] for lp in loops], list(range(1, len(loops) + 1)))
+        ends = set(self.nodes)
+        for lp in loops:
+            self.assertIn(lp["from"], ends, lp["id"])
+            self.assertIn(lp["to"], ends, lp["id"])
+            self.assertTrue(lp["evidence"], lp["id"])
+            for ev in lp["evidence"]:
+                self.assertIn(ev["text"], (REPO / ev["path"]).read_text(encoding="utf-8"), f"{lp['id']}: {ev['path']}")
+
+    def test_replay_cases(self) -> None:
+        cases = self.graph["cases"]
+        self.assertEqual((cases[0]["candidate"], cases[0]["property"], cases[0]["status"]), ("Cu", "melting_point", "trusted"))
+        self.assertEqual({c["id"] for c in cases}, {"cu", "fields"})
+        for c in cases:
+            self.assertTrue(c["source"].strip())
+        sim = self.nodes["simulator"]
+        self.assertEqual(sim["agent_prefix"], "simulator")
+        self.assertIn("simulator_h100", (REPO / "scripts/run_remote_simulator.py").read_text(encoding="utf-8"))
+
     def test_case_findings_and_deadline(self) -> None:
         case = self.graph["case"]
         self.assertEqual((case["candidate"], case["property"]), ("BiInSn", "latent_heat"))
@@ -347,6 +387,19 @@ class ExportCarriesContextTest(unittest.TestCase):
         self.assertEqual((refs["melting_point"]["value"], refs["melting_point"]["origin"]), (301.0, "calibration"))
         self.assertIsNone(refs["latent_heat"], "a calibration record without a value is not a measurement")
         self.assertEqual(bundle["context"], {"schema": SCHEMA})
+
+
+class CatchesTests(unittest.TestCase):
+    def test_every_catch_is_sourced_and_the_code_it_cites_exists(self) -> None:
+        cases = build_context()["catches"]["cases"]
+        self.assertGreaterEqual(len(cases), 3)
+        for c in cases:
+            self.assertIn(c["outcome"]["tone"], {"ok", "warn", "bad", "pend"})
+            for part in ("shipped", "caught", "outcome"):
+                self.assertTrue(c[part]["text"].strip(), f"{c['id']}.{part} has no text")
+                self.assertTrue(c[part]["source"].strip(), f"{c['id']}.{part} has no source")
+                for path in re.findall(r"\b(?:coolorbit|scripts|dashboard)/[\w/]+\.py\b", c[part]["source"]):
+                    self.assertTrue((REPO / path).exists(), f"{c['id']}.{part} cites {path}, which does not exist")
 
 
 if __name__ == "__main__":
