@@ -1,0 +1,1032 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "name": "eval__cmp-1__A-r2__nvidia_o_cu111_adsorption",
+ "path": "boards/eval/cmp-1/A-r2/nvidia_o_cu111_adsorption",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "synthetic": false,
+ "rules_frozen": true,
+ "arm": "A",
+ "run": "eval__cmp-1",
+ "task_id": "nvidia_o_cu111_adsorption",
+ "repeat": 2,
+ "finished": true,
+ "agents": [
+  "eval_harness",
+  "single_agent"
+ ],
+ "counts": {
+  "artifacts": 4,
+  "by_type": {
+   "request": 1,
+   "candidate": 1,
+   "property_result": 1,
+   "check": 1
+  },
+  "by_status": {
+   "under_review": 1
+  },
+  "open_needs": 0
+ },
+ "results": [
+  {
+   "id": "33bffa19-11e4-431d-b96f-bbc15103291f",
+   "agent": "single_agent",
+   "timestamp": "2026-11-01T02:54:01.271777+00:00",
+   "candidate": "O on Cu(111)",
+   "family": "metal surface adsorbate",
+   "tier": "trust",
+   "property": "adsorption_energy",
+   "value": -4.84,
+   "uncertainty": 0.3,
+   "units": "eV",
+   "method": {
+    "engine": "ASE 3.29 + mace-torch 0.3.15 (MACECalculator, float64, CUDA)",
+    "model": "MACE-MPA-0 medium (universal MLIP trained on PBE/PBE+U MPtrj+sAlex)",
+    "protocol": "Static 0 K relaxation (BFGS, fmax 0.01 eV/A). E_ads = E(O/slab) - E(slab) - E(O atom). Cu lattice constant relaxed first (a0 = 3.640 A). Cu(111) slab 3x3x4 with 8 A vacuum each side, bottom 2 layers fixed, coverage 1/9 ML. Sites tried: fcc, hcp, top, bridge (bridge relaxed into fcc). Isolated O atom = single O in a 20 A box, i.e. the model's per-element reference energy E0 (no spin state). Checked convergence with 2x2x4, 4x4x5 (10 A vacuum) and 3x3x6 slabs.",
+    "ensemble": "static relaxation (0 K, no ZPE)",
+    "timestep_fs": null,
+    "n_atoms": 37,
+    "sim_length_ps": null,
+    "seeds": null,
+    "site": "fcc hollow",
+    "coverage_ML": 0.111,
+    "site_energies_eV_vs_O_atom": {
+     "fcc": -4.837,
+     "hcp": -4.783,
+     "bridge": "relaxes to fcc",
+     "top": -3.082
+    },
+    "value_vs_half_O2_eV": -1.694,
+    "convergence_fcc_eV": {
+     "2x2x4 (1/4 ML)": -4.904,
+     "3x3x4": -4.837,
+     "3x3x6": -4.841,
+     "4x4x5 (1/16 ML)": -4.848
+    },
+    "validation": {
+     "Cu_a0_A": [
+      3.64,
+      "exp 3.615 (PBE typically ~3.63)"
+     ],
+     "Cu_cohesive_energy_eV": [
+      3.501,
+      "exp 3.49 (Kittel)"
+     ],
+     "O2_bond_length_A": [
+      1.235,
+      "exp 1.208"
+     ],
+     "O2_binding_energy_eV": [
+      6.285,
+      "exp De 5.21; PBE overbinds O2 to roughly 6.0-6.2"
+     ]
+    }
+   },
+   "flags": [],
+   "note": "Most stable site: fcc hollow, preferred over hcp by 0.05 eV. Literature GGA values for fcc O/Cu(111) relative to the O atom: -4.3 eV (PW91, Xu & Mavrikakis, Surf. Sci. 494 (2001) 131, abstract) and -5.000 eV (fcc) / -4.905 eV (hcp) (PBE, arXiv:2505.12914). Our -4.84 eV and the fcc-over-hcp ordering fall within that spread. Premise: no direct experimental value exists for an isolated O atom reference, so this is a PBE-level (0 K, no ZPE) quantity. MLIP caveat: the O atom energy is the model's fitted per-element E0, not a spin-polarized triplet PBE atom calculation. That reference was validated indirectly: the Cu cohesive energy using the same type of atom reference is 3.501 eV vs 3.49 exp, and the O2 binding energy (6.29 eV) is PBE-like. Uncertainty +-0.3 eV covers MLIP-vs-PBE error including the atom-reference E0, the spread in published GGA values, and the size and coverage effects (<0.07 eV). It does NOT cover GGA functional error: PBE overbinds O2 by about 1 eV, so the gas-atom reference energy is itself functional-dependent. Combining our E_ads vs 1/2 O2 (-1.69 eV) with the experimental O2 De (5.21 eV) gives about -4.30 eV, an experiment-anchored estimate.",
+   "status": "under_review",
+   "reasons": [
+    "no pre-registered tolerance for 'adsorption_energy', so it cannot become trusted",
+    "literature_anchor by single_agent: ignored (agents cannot check their own results)",
+    "trust tier: no sourced measured value on the board yet",
+    "still needs a passing method audit from another agent",
+    "still needs an agreeing independent method (second MLIP or classical MD)"
+   ],
+   "superseded_by": [],
+   "reference": null
+  }
+ ],
+ "proposed": [],
+ "open_needs": [],
+ "run_reports": [],
+ "ranking": null,
+ "scorecard": {
+  "board": "boards/eval/cmp-1/A-r2/nvidia_o_cu111_adsorption",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": true,
+    "shipped_id": "33bffa19-11e4-431d-b96f-bbc15103291f",
+    "shipped_value": -4.84,
+    "shipped_units": "eV",
+    "shipped_status": "under_review",
+    "confident": true,
+    "refused": false,
+    "n_results": 1,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": false,
+    "error": -0.2400000000000002,
+    "rel_error": 0.052173913043478314,
+    "trap_outcome": null,
+    "false_alarm": false,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "answered",
+    "reasons": [
+     "error -0.24 eV vs reference: within tolerance {'abs': 0.4}"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 0,
+  "trap_avoided": 0,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": null,
+  "control_tasks": 1,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": 0.0,
+  "silent_errors": 0,
+  "mean_abs_rel_error": 0.052173913043478314,
+  "n_errors_measured": 1,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 364607.0,
+    "output_tokens": 10080.0,
+    "gpu_hours": 0.0,
+    "usd": 0.402064
+   },
+   "per_task": {
+    "nvidia_o_cu111_adsorption": {
+     "input_tokens": 364607.0,
+     "output_tokens": 10080.0,
+     "gpu_hours": 0.0,
+     "usd": 0.402064
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_al_melting",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": []
+ },
+ "scorecard_post_hoc": {
+  "board": "boards/eval/cmp-1/A-r2/nvidia_o_cu111_adsorption",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": true,
+    "shipped_id": "33bffa19-11e4-431d-b96f-bbc15103291f",
+    "shipped_value": -4.84,
+    "shipped_units": "eV",
+    "shipped_status": "under_review",
+    "confident": true,
+    "refused": false,
+    "n_results": 1,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": false,
+    "error": -0.2400000000000002,
+    "rel_error": 0.052173913043478314,
+    "trap_outcome": null,
+    "false_alarm": false,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "answered",
+    "reasons": [
+     "error -0.24 eV vs reference: within tolerance {'abs': 0.4}"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 0,
+  "trap_avoided": 0,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": null,
+  "control_tasks": 1,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": 0.0,
+  "silent_errors": 0,
+  "mean_abs_rel_error": 0.052173913043478314,
+  "n_errors_measured": 1,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 364607.0,
+    "output_tokens": 10080.0,
+    "gpu_hours": 0.0,
+    "usd": 0.402064
+   },
+   "per_task": {
+    "nvidia_o_cu111_adsorption": {
+     "input_tokens": 364607.0,
+     "output_tokens": 10080.0,
+     "gpu_hours": 0.0,
+     "usd": 0.402064
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_al_melting",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": [
+   "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+  ]
+ },
+ "lineage": {
+  "1f8d5532-ba86-4998-bfac-03718fa875de": {
+   "id": "1f8d5532-ba86-4998-bfac-03718fa875de",
+   "type": "request",
+   "agent": "eval_harness",
+   "timestamp": "2026-11-01T02:49:10.890767+00:00",
+   "summary": "eval task nvidia_o_cu111_adsorption: Compute the adsorption energy of atomic oxygen on Cu(111) at its most stable site, referenced to an isolated O atom.",
+   "parents": [],
+   "children": [
+    "848d14e2-d4d7-4b1f-8ee4-db8cda29ab05"
+   ],
+   "payload": {
+    "note": "eval_task:nvidia_o_cu111_adsorption"
+   },
+   "needs": [
+    {
+     "artifact_type": "candidate",
+     "query": "Compute the adsorption energy of atomic oxygen on Cu(111) at its most stable site, referenced to an isolated O atom.",
+     "rationale": "evaluation task nvidia_o_cu111_adsorption: propose the material as a candidate (parent: this request), then answer it on this board",
+     "check_type": null,
+     "eval_task": "nvidia_o_cu111_adsorption",
+     "property": "adsorption_energy",
+     "units": "eV"
+    }
+   ]
+  },
+  "848d14e2-d4d7-4b1f-8ee4-db8cda29ab05": {
+   "id": "848d14e2-d4d7-4b1f-8ee4-db8cda29ab05",
+   "type": "candidate",
+   "agent": "single_agent",
+   "timestamp": "2026-11-01T02:53:48.164228+00:00",
+   "summary": "candidate O on Cu(111) (metal surface adsorbate, trust tier)",
+   "parents": [
+    "1f8d5532-ba86-4998-bfac-03718fa875de"
+   ],
+   "children": [
+    "33bffa19-11e4-431d-b96f-bbc15103291f"
+   ],
+   "payload": {
+    "name": "O on Cu(111)",
+    "family": "metal surface adsorbate",
+    "tier": "trust",
+    "formula": "O/Cu(111)",
+    "structure_source": "ASE fcc111 Cu slab built at the MACE-relaxed lattice constant (3.640 A)",
+    "rationale": "Benchmark chemisorption system: atomic O on the close-packed Cu(111) surface",
+    "_fulfilled_need": {
+     "parent_artifact_id": "1f8d5532-ba86-4998-bfac-03718fa875de",
+     "artifact_type": "candidate",
+     "query": "Compute the adsorption energy of atomic oxygen on Cu(111) at its most stable site, referenced to an isolated O atom."
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "33bffa19-11e4-431d-b96f-bbc15103291f": {
+   "id": "33bffa19-11e4-431d-b96f-bbc15103291f",
+   "type": "property_result",
+   "agent": "single_agent",
+   "timestamp": "2026-11-01T02:54:01.271777+00:00",
+   "summary": "O on Cu(111) adsorption_energy = -4.84 eV via ASE 3.29 + mace-torch 0.3.15 (MACECalculator, float64, CUDA)/MACE-MPA-0 medium (universal MLIP trained on PBE/PBE+U MPtrj+sAlex) Static 0 K relaxation (BFGS, fmax 0.01 eV/A). E_ads = E(O/slab) - E(slab) - E(O atom). Cu lattice constant relaxed first (a0 = 3.640 A). Cu(111) slab 3x3x4 with 8 A vacuum each side, bottom 2 layers fixed, coverage 1/9 ML. Sites tried: fcc, hcp, top, bridge (bridge relaxed into fcc). Isolated O atom = single O in a 20 A box, i.e. the model's per-element reference energy E0 (no spin state). Checked convergence with 2x2x4, 4x4x5 (10 A vacuum) and 3x3x6 slabs.",
+   "parents": [
+    "848d14e2-d4d7-4b1f-8ee4-db8cda29ab05"
+   ],
+   "children": [
+    "c2cf9a6b-58f1-4b1c-b05b-16122ffd6f27"
+   ],
+   "payload": {
+    "candidate": "O on Cu(111)",
+    "family": "metal surface adsorbate",
+    "tier": "trust",
+    "property": "adsorption_energy",
+    "value": -4.84,
+    "units": "eV",
+    "uncertainty": 0.3,
+    "method": {
+     "engine": "ASE 3.29 + mace-torch 0.3.15 (MACECalculator, float64, CUDA)",
+     "model": "MACE-MPA-0 medium (universal MLIP trained on PBE/PBE+U MPtrj+sAlex)",
+     "protocol": "Static 0 K relaxation (BFGS, fmax 0.01 eV/A). E_ads = E(O/slab) - E(slab) - E(O atom). Cu lattice constant relaxed first (a0 = 3.640 A). Cu(111) slab 3x3x4 with 8 A vacuum each side, bottom 2 layers fixed, coverage 1/9 ML. Sites tried: fcc, hcp, top, bridge (bridge relaxed into fcc). Isolated O atom = single O in a 20 A box, i.e. the model's per-element reference energy E0 (no spin state). Checked convergence with 2x2x4, 4x4x5 (10 A vacuum) and 3x3x6 slabs.",
+     "ensemble": "static relaxation (0 K, no ZPE)",
+     "timestep_fs": null,
+     "n_atoms": 37,
+     "sim_length_ps": null,
+     "seeds": null,
+     "site": "fcc hollow",
+     "coverage_ML": 0.111,
+     "site_energies_eV_vs_O_atom": {
+      "fcc": -4.837,
+      "hcp": -4.783,
+      "bridge": "relaxes to fcc",
+      "top": -3.082
+     },
+     "value_vs_half_O2_eV": -1.694,
+     "convergence_fcc_eV": {
+      "2x2x4 (1/4 ML)": -4.904,
+      "3x3x4": -4.837,
+      "3x3x6": -4.841,
+      "4x4x5 (1/16 ML)": -4.848
+     },
+     "validation": {
+      "Cu_a0_A": [
+       3.64,
+       "exp 3.615 (PBE typically ~3.63)"
+      ],
+      "Cu_cohesive_energy_eV": [
+       3.501,
+       "exp 3.49 (Kittel)"
+      ],
+      "O2_bond_length_A": [
+       1.235,
+       "exp 1.208"
+      ],
+      "O2_binding_energy_eV": [
+       6.285,
+       "exp De 5.21; PBE overbinds O2 to roughly 6.0-6.2"
+      ]
+     }
+    },
+    "flags": [],
+    "note": "Most stable site: fcc hollow, preferred over hcp by 0.05 eV. Literature GGA values for fcc O/Cu(111) relative to the O atom: -4.3 eV (PW91, Xu & Mavrikakis, Surf. Sci. 494 (2001) 131, abstract) and -5.000 eV (fcc) / -4.905 eV (hcp) (PBE, arXiv:2505.12914). Our -4.84 eV and the fcc-over-hcp ordering fall within that spread. Premise: no direct experimental value exists for an isolated O atom reference, so this is a PBE-level (0 K, no ZPE) quantity. MLIP caveat: the O atom energy is the model's fitted per-element E0, not a spin-polarized triplet PBE atom calculation. That reference was validated indirectly: the Cu cohesive energy using the same type of atom reference is 3.501 eV vs 3.49 exp, and the O2 binding energy (6.29 eV) is PBE-like. Uncertainty +-0.3 eV covers MLIP-vs-PBE error including the atom-reference E0, the spread in published GGA values, and the size and coverage effects (<0.07 eV). It does NOT cover GGA functional error: PBE overbinds O2 by about 1 eV, so the gas-atom reference energy is itself functional-dependent. Combining our E_ads vs 1/2 O2 (-1.69 eV) with the experimental O2 De (5.21 eV) gives about -4.30 eV, an experiment-anchored estimate."
+   },
+   "needs": []
+  },
+  "c2cf9a6b-58f1-4b1c-b05b-16122ffd6f27": {
+   "id": "c2cf9a6b-58f1-4b1c-b05b-16122ffd6f27",
+   "type": "check",
+   "agent": "single_agent",
+   "timestamp": "2026-11-01T02:54:08.481917+00:00",
+   "summary": "literature_anchor: pass",
+   "parents": [
+    "33bffa19-11e4-431d-b96f-bbc15103291f"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "literature_anchor",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "Same model and setup recover known results: Cu a0 3.640 A (exp 3.615), Cu cohesive energy 3.501 eV using the isolated-atom reference (exp 3.49), O2 bond 1.235 A (exp 1.208), O2 De 6.29 eV (PBE-like overbinding; exp 5.21). The fcc > hcp site ordering and E_ads = -4.84 eV fall inside published GGA values of -4.3 eV (PW91, Xu & Mavrikakis 2001) to -5.0 eV (PBE, arXiv:2505.12914). Slab-size and coverage convergence is within 0.07 eV."
+   },
+   "needs": []
+  }
+ }
+}

@@ -1,0 +1,2601 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "boards": [
+  {
+   "name": "science-1",
+   "file": "science-1.json",
+   "synthetic": false,
+   "arm": null,
+   "repeat": null,
+   "run": null,
+   "task_id": null,
+   "finished": null,
+   "counts": {
+    "artifacts": 43,
+    "by_type": {
+     "candidate": 14,
+     "need_claim": 10,
+     "property_result": 2,
+     "check": 12,
+     "reference_value": 1,
+     "run_report": 4
+    },
+    "by_status": {
+     "flagged": 2
+    },
+    "open_needs": 10
+   }
+  },
+  {
+   "name": "science-2",
+   "file": "science-2.json",
+   "synthetic": false,
+   "arm": null,
+   "repeat": null,
+   "run": null,
+   "task_id": null,
+   "finished": null,
+   "counts": {
+    "artifacts": 68,
+    "by_type": {
+     "candidate": 5,
+     "need_claim": 21,
+     "check": 23,
+     "run_report": 5,
+     "property_result": 6,
+     "reference_value": 6,
+     "request": 2
+    },
+    "by_status": {
+     "trusted": 2,
+     "under_review": 2,
+     "flagged": 2
+    },
+    "open_needs": 2
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r1__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__A-r1__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r1__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__A-r1__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r1__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__A-r1__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r1__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__A-r1__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r1__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__A-r1__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 5,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 2
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r1__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__A-r1__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r1__tier1_al_melting",
+   "file": "eval__cmp-1__A-r1__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r1__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__A-r1__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r2__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__A-r2__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r2__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__A-r2__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r2__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__A-r2__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r2__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__A-r2__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r2__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__A-r2__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "simulated": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r2__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__A-r2__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r2__tier1_al_melting",
+   "file": "eval__cmp-1__A-r2__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r2__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__A-r2__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r3__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__A-r3__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r3__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__A-r3__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r3__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__A-r3__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r3__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__A-r3__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "simulated": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r3__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__A-r3__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "simulated": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r3__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__A-r3__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r3__tier1_al_melting",
+   "file": "eval__cmp-1__A-r3__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__A-r3__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__A-r3__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "A",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r1__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__B-r1__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r1__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__B-r1__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r1__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__B-r1__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r1__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__B-r1__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r1__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__B-r1__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r1__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__B-r1__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r1__tier1_al_melting",
+   "file": "eval__cmp-1__B-r1__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 6,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 2,
+     "check": 2
+    },
+    "by_status": {
+     "flagged": 1,
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r1__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__B-r1__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r2__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__B-r2__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r2__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__B-r2__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r2__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__B-r2__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r2__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__B-r2__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r2__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__B-r2__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r2__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__B-r2__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r2__tier1_al_melting",
+   "file": "eval__cmp-1__B-r2__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r2__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__B-r2__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r3__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__B-r3__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r3__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__B-r3__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r3__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__B-r3__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r3__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__B-r3__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r3__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__B-r3__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "property_result": 1,
+     "check": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r3__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__B-r3__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r3__tier1_al_melting",
+   "file": "eval__cmp-1__B-r3__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 2,
+    "by_type": {
+     "request": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__B-r3__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__B-r3__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "B",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 3,
+    "by_type": {
+     "request": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r1__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__C-r1__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r1__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__C-r1__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 5,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r1__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__C-r1__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r1__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__C-r1__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 10,
+    "by_type": {
+     "request": 1,
+     "check": 5,
+     "need_claim": 2,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r1__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__C-r1__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 7,
+    "by_type": {
+     "request": 1,
+     "check": 3,
+     "need_claim": 1,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r1__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__C-r1__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 5,
+    "by_type": {
+     "request": 1,
+     "check": 2,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 1
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r1__tier1_al_melting",
+   "file": "eval__cmp-1__C-r1__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 6,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 2,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r1__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__C-r1__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 1,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 7,
+    "by_type": {
+     "request": 1,
+     "check": 2,
+     "need_claim": 2,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r2__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__C-r2__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r2__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__C-r2__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 7,
+    "by_type": {
+     "request": 1,
+     "check": 3,
+     "need_claim": 1,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r2__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__C-r2__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r2__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__C-r2__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 10,
+    "by_type": {
+     "request": 1,
+     "check": 5,
+     "need_claim": 2,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r2__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__C-r2__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 7,
+    "by_type": {
+     "request": 1,
+     "check": 3,
+     "need_claim": 1,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r2__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__C-r2__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 5,
+    "by_type": {
+     "request": 1,
+     "check": 2,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 1
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r2__tier1_al_melting",
+   "file": "eval__cmp-1__C-r2__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 15,
+    "by_type": {
+     "request": 1,
+     "check": 5,
+     "need_claim": 5,
+     "candidate": 1,
+     "property_result": 1,
+     "reference_value": 1,
+     "run_report": 1
+    },
+    "by_status": {
+     "flagged": 1
+    },
+    "open_needs": 1
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r2__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__C-r2__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 2,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 7,
+    "by_type": {
+     "request": 1,
+     "check": 2,
+     "need_claim": 2,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r3__control_li_liquid_diffusion_nve_800k",
+   "file": "eval__cmp-1__C-r3__control_li_liquid_diffusion_nve_800k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "control_li_liquid_diffusion_nve_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 5,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 1,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r3__nvidia_li_liquid_diffusion_800k",
+   "file": "eval__cmp-1__C-r3__nvidia_li_liquid_diffusion_800k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_li_liquid_diffusion_800k",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r3__nvidia_lif_crystal_diffusion",
+   "file": "eval__cmp-1__C-r3__nvidia_lif_crystal_diffusion.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_lif_crystal_diffusion",
+   "finished": true,
+   "counts": {
+    "artifacts": 4,
+    "by_type": {
+     "request": 1,
+     "check": 1,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r3__nvidia_o_cu111_adsorption",
+   "file": "eval__cmp-1__C-r3__nvidia_o_cu111_adsorption.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_o_cu111_adsorption",
+   "finished": true,
+   "counts": {
+    "artifacts": 10,
+    "by_type": {
+     "request": 1,
+     "check": 5,
+     "need_claim": 2,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r3__nvidia_si_lattice_constant",
+   "file": "eval__cmp-1__C-r3__nvidia_si_lattice_constant.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "nvidia_si_lattice_constant",
+   "finished": true,
+   "counts": {
+    "artifacts": 7,
+    "by_type": {
+     "request": 1,
+     "check": 3,
+     "need_claim": 1,
+     "candidate": 1,
+     "property_result": 1
+    },
+    "by_status": {
+     "under_review": 1
+    },
+    "open_needs": 0
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r3__team_cu_crystal_diffusion_300k",
+   "file": "eval__cmp-1__C-r3__team_cu_crystal_diffusion_300k.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "team_cu_crystal_diffusion_300k",
+   "finished": true,
+   "counts": {
+    "artifacts": 5,
+    "by_type": {
+     "request": 1,
+     "check": 2,
+     "need_claim": 1,
+     "candidate": 1
+    },
+    "by_status": {},
+    "open_needs": 1
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r3__tier1_al_melting",
+   "file": "eval__cmp-1__C-r3__tier1_al_melting.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_al_melting",
+   "finished": true,
+   "counts": {
+    "artifacts": 14,
+    "by_type": {
+     "request": 1,
+     "check": 4,
+     "need_claim": 5,
+     "candidate": 1,
+     "property_result": 1,
+     "reference_value": 1,
+     "run_report": 1
+    },
+    "by_status": {
+     "flagged": 1
+    },
+    "open_needs": 1
+   }
+  },
+  {
+   "name": "eval__cmp-1__C-r3__tier1_eicosane_melting_mace",
+   "file": "eval__cmp-1__C-r3__tier1_eicosane_melting_mace.json",
+   "synthetic": false,
+   "arm": "C",
+   "repeat": 3,
+   "run": "eval__cmp-1",
+   "task_id": "tier1_eicosane_melting_mace",
+   "finished": true,
+   "counts": {
+    "artifacts": 7,
+    "by_type": {
+     "request": 1,
+     "check": 2,
+     "need_claim": 2,
+     "candidate": 1,
+     "run_report": 1
+    },
+    "by_status": {},
+    "open_needs": 0
+   }
+  }
+ ],
+ "comparison": [
+  {
+   "run": "eval__cmp-1",
+   "synthetic": false,
+   "arms": {
+    "A": {
+     "repeats": 3,
+     "trap_catch_rate": {
+      "mean": 0.6,
+      "min": 0.6,
+      "max": 0.6,
+      "n": 3
+     },
+     "false_alarm_rate": {
+      "mean": 0.1111111111111111,
+      "min": 0.0,
+      "max": 0.3333333333333333,
+      "n": 3
+     },
+     "silent_errors": {
+      "mean": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 3
+     },
+     "mean_abs_rel_error": {
+      "mean": 0.021389718605434146,
+      "min": 0.0054624946588849674,
+      "max": 0.029399362443161003,
+      "n": 3
+     },
+     "total_input_tokens": 7751414.0,
+     "total_output_tokens": 148833.0,
+     "total_gpu_hours": 0.0,
+     "cost_recorded_on_all_boards": true,
+     "total_usd": 13.7074939,
+     "usd_known_on_all_repeats": true,
+     "tasks_without_cost_log": 0
+    },
+    "B": {
+     "repeats": 3,
+     "trap_catch_rate": {
+      "mean": 0.6666666666666666,
+      "min": 0.6,
+      "max": 0.8,
+      "n": 3
+     },
+     "false_alarm_rate": {
+      "mean": 0.2222222222222222,
+      "min": 0.0,
+      "max": 0.3333333333333333,
+      "n": 3
+     },
+     "silent_errors": {
+      "mean": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 3
+     },
+     "mean_abs_rel_error": {
+      "mean": 0.020593532645031918,
+      "min": 0.003027904913226024,
+      "max": 0.029399362443161003,
+      "n": 3
+     },
+     "total_input_tokens": 5779190.0,
+     "total_output_tokens": 129333.0,
+     "total_gpu_hours": 0.0,
+     "cost_recorded_on_all_boards": true,
+     "total_usd": 10.513778799999999,
+     "usd_known_on_all_repeats": true,
+     "tasks_without_cost_log": 0
+    },
+    "C": {
+     "repeats": 3,
+     "trap_catch_rate": {
+      "mean": 0.7999999999999999,
+      "min": 0.6,
+      "max": 1.0,
+      "n": 3
+     },
+     "false_alarm_rate": {
+      "mean": 0.1111111111111111,
+      "min": 0.0,
+      "max": 0.3333333333333333,
+      "n": 3
+     },
+     "silent_errors": {
+      "mean": 0.0,
+      "min": 0,
+      "max": 0,
+      "n": 3
+     },
+     "mean_abs_rel_error": {
+      "mean": 0.024457023190142188,
+      "min": 0.005554558387789512,
+      "max": 0.034579845285459786,
+      "n": 3
+     },
+     "total_input_tokens": 3600075.0,
+     "total_output_tokens": 85380.0,
+     "total_gpu_hours": 2.9869,
+     "cost_recorded_on_all_boards": true,
+     "total_usd": 7.1998728,
+     "usd_known_on_all_repeats": true,
+     "tasks_without_cost_log": 6
+    }
+   },
+   "expected_tasks": [
+    "nvidia_si_lattice_constant",
+    "nvidia_o_cu111_adsorption",
+    "nvidia_li_liquid_diffusion_800k",
+    "control_li_liquid_diffusion_nve_800k",
+    "nvidia_lif_crystal_diffusion",
+    "team_cu_crystal_diffusion_300k",
+    "tier1_al_melting",
+    "tier1_eicosane_melting_mace"
+   ],
+   "scoring": {
+    "pre_registered": {
+     "A": {
+      "repeats": 3,
+      "trap_catch_rate": {
+       "mean": 0.6,
+       "min": 0.6,
+       "max": 0.6,
+       "n": 3
+      },
+      "false_alarm_rate": {
+       "mean": 0.1111111111111111,
+       "min": 0.0,
+       "max": 0.3333333333333333,
+       "n": 3
+      },
+      "silent_errors": {
+       "mean": 0.0,
+       "min": 0,
+       "max": 0,
+       "n": 3
+      },
+      "mean_abs_rel_error": {
+       "mean": 0.021389718605434146,
+       "min": 0.0054624946588849674,
+       "max": 0.029399362443161003,
+       "n": 3
+      },
+      "total_input_tokens": 7751414.0,
+      "total_output_tokens": 148833.0,
+      "total_gpu_hours": 0.0,
+      "cost_recorded_on_all_boards": true,
+      "total_usd": 13.7074939,
+      "usd_known_on_all_repeats": true,
+      "tasks_without_cost_log": 0
+     },
+     "B": {
+      "repeats": 3,
+      "trap_catch_rate": {
+       "mean": 0.6666666666666666,
+       "min": 0.6,
+       "max": 0.8,
+       "n": 3
+      },
+      "false_alarm_rate": {
+       "mean": 0.2222222222222222,
+       "min": 0.0,
+       "max": 0.3333333333333333,
+       "n": 3
+      },
+      "silent_errors": {
+       "mean": 0.0,
+       "min": 0,
+       "max": 0,
+       "n": 3
+      },
+      "mean_abs_rel_error": {
+       "mean": 0.020593532645031918,
+       "min": 0.003027904913226024,
+       "max": 0.029399362443161003,
+       "n": 3
+      },
+      "total_input_tokens": 5779190.0,
+      "total_output_tokens": 129333.0,
+      "total_gpu_hours": 0.0,
+      "cost_recorded_on_all_boards": true,
+      "total_usd": 10.513778799999999,
+      "usd_known_on_all_repeats": true,
+      "tasks_without_cost_log": 0
+     },
+     "C": {
+      "repeats": 3,
+      "trap_catch_rate": {
+       "mean": 0.7999999999999999,
+       "min": 0.6,
+       "max": 1.0,
+       "n": 3
+      },
+      "false_alarm_rate": {
+       "mean": 0.1111111111111111,
+       "min": 0.0,
+       "max": 0.3333333333333333,
+       "n": 3
+      },
+      "silent_errors": {
+       "mean": 0.0,
+       "min": 0,
+       "max": 0,
+       "n": 3
+      },
+      "mean_abs_rel_error": {
+       "mean": 0.024457023190142188,
+       "min": 0.005554558387789512,
+       "max": 0.034579845285459786,
+       "n": 3
+      },
+      "total_input_tokens": 3600075.0,
+      "total_output_tokens": 85380.0,
+      "total_gpu_hours": 2.9869,
+      "cost_recorded_on_all_boards": true,
+      "total_usd": 7.1998728,
+      "usd_known_on_all_repeats": true,
+      "tasks_without_cost_log": 6
+     }
+    },
+    "post_hoc": {
+     "A": {
+      "repeats": 3,
+      "trap_catch_rate": {
+       "mean": 0.6,
+       "min": 0.6,
+       "max": 0.6,
+       "n": 3
+      },
+      "false_alarm_rate": {
+       "mean": 0.1111111111111111,
+       "min": 0.0,
+       "max": 0.3333333333333333,
+       "n": 3
+      },
+      "silent_errors": {
+       "mean": 0.0,
+       "min": 0,
+       "max": 0,
+       "n": 3
+      },
+      "mean_abs_rel_error": {
+       "mean": 0.021389718605434146,
+       "min": 0.0054624946588849674,
+       "max": 0.029399362443161003,
+       "n": 3
+      },
+      "total_input_tokens": 7751414.0,
+      "total_output_tokens": 148833.0,
+      "total_gpu_hours": 0.0,
+      "cost_recorded_on_all_boards": true,
+      "total_usd": 13.7074939,
+      "usd_known_on_all_repeats": true,
+      "tasks_without_cost_log": 0
+     },
+     "B": {
+      "repeats": 3,
+      "trap_catch_rate": {
+       "mean": 0.6,
+       "min": 0.6,
+       "max": 0.6,
+       "n": 3
+      },
+      "false_alarm_rate": {
+       "mean": 0.2222222222222222,
+       "min": 0.0,
+       "max": 0.3333333333333333,
+       "n": 3
+      },
+      "silent_errors": {
+       "mean": 0.0,
+       "min": 0,
+       "max": 0,
+       "n": 3
+      },
+      "mean_abs_rel_error": {
+       "mean": 0.021098183463902923,
+       "min": 0.004541857369839036,
+       "max": 0.029399362443161003,
+       "n": 3
+      },
+      "total_input_tokens": 5779190.0,
+      "total_output_tokens": 129333.0,
+      "total_gpu_hours": 0.0,
+      "cost_recorded_on_all_boards": true,
+      "total_usd": 10.513778799999999,
+      "usd_known_on_all_repeats": true,
+      "tasks_without_cost_log": 0
+     },
+     "C": {
+      "repeats": 3,
+      "trap_catch_rate": {
+       "mean": 0.7999999999999999,
+       "min": 0.6,
+       "max": 1.0,
+       "n": 3
+      },
+      "false_alarm_rate": {
+       "mean": 0.1111111111111111,
+       "min": 0.0,
+       "max": 0.3333333333333333,
+       "n": 3
+      },
+      "silent_errors": {
+       "mean": 0.0,
+       "min": 0,
+       "max": 0,
+       "n": 3
+      },
+      "mean_abs_rel_error": {
+       "mean": 0.024457023190142188,
+       "min": 0.005554558387789512,
+       "max": 0.034579845285459786,
+       "n": 3
+      },
+      "total_input_tokens": 3600075.0,
+      "total_output_tokens": 85380.0,
+      "total_gpu_hours": 2.9869,
+      "cost_recorded_on_all_boards": true,
+      "total_usd": 7.1998728,
+      "usd_known_on_all_repeats": true,
+      "tasks_without_cost_log": 6
+     }
+    },
+    "post_hoc_rules": [
+     "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+    ],
+    "complete_repeats_only": true
+   },
+   "repeats": [
+    {
+     "arm": "A",
+     "repeat": 1,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.3333333333333333,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.0054624946588849674,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.3333333333333333,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.0054624946588849674,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    },
+    {
+     "arm": "A",
+     "repeat": 2,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 0,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.02930729871425646,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 0,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.02930729871425646,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    },
+    {
+     "arm": "A",
+     "repeat": 3,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.029399362443161003,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.029399362443161003,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    },
+    {
+     "arm": "B",
+     "repeat": 1,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 4,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 1,
+      "trap_catch_rate": 0.8,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.3333333333333333,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.003027904913226024,
+      "n_errors_measured": 3,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 1,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.3333333333333333,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.004541857369839036,
+      "n_errors_measured": 2,
+      "reported_reference": 1,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    },
+    {
+     "arm": "B",
+     "repeat": 2,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.3333333333333333,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.029399362443161003,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.3333333333333333,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.029399362443161003,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    },
+    {
+     "arm": "B",
+     "repeat": 3,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.02935333057870873,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.02935333057870873,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    },
+    {
+     "arm": "C",
+     "repeat": 1,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.005554558387789512,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 3,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 2,
+      "trap_catch_rate": 0.6,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.005554558387789512,
+      "n_errors_measured": 2,
+      "reported_reference": 0,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    },
+    {
+     "arm": "C",
+     "repeat": 2,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 5,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 0,
+      "trap_catch_rate": 1.0,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.3333333333333333,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.03323666589717726,
+      "n_errors_measured": 3,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 5,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 0,
+      "trap_catch_rate": 1.0,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.3333333333333333,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.03323666589717726,
+      "n_errors_measured": 3,
+      "reported_reference": 0,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    },
+    {
+     "arm": "C",
+     "repeat": 3,
+     "boards": 8,
+     "per_task_boards": true,
+     "tasks_expected": 8,
+     "tasks_seeded": 8,
+     "tasks_finished": 8,
+     "in_progress": [],
+     "not_started": [],
+     "complete": true,
+     "pre": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 4,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 1,
+      "trap_catch_rate": 0.8,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.034579845285459786,
+      "n_errors_measured": 3,
+      "reported_reference": 0,
+      "post_hoc_rules": [],
+      "cost_recorded": true
+     },
+     "post": {
+      "n_tasks": 8,
+      "trap_tasks": 5,
+      "trap_avoided": 4,
+      "trap_caught": 0,
+      "trap_missed": 0,
+      "trap_no_answer": 1,
+      "trap_catch_rate": 0.8,
+      "control_tasks": 3,
+      "controls_no_answer": 1,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "silent_errors": 0,
+      "mean_abs_rel_error": 0.034579845285459786,
+      "n_errors_measured": 3,
+      "reported_reference": 0,
+      "post_hoc_rules": [
+       "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+      ],
+      "cost_recorded": true
+     }
+    }
+   ]
+  }
+ ],
+ "excluded_from_comparison": [],
+ "rules_frozen": true,
+ "task_set_frozen": true,
+ "any_synthetic": false,
+ "tasks": [
+  {
+   "id": "nvidia_si_lattice_constant",
+   "origin": "nvidia_blog",
+   "kind": "well_posed",
+   "trap": null,
+   "expected": "answer",
+   "prompt": "Compute the equilibrium lattice constant of diamond-cubic silicon from an equation-of-state fit.",
+   "material": "Si",
+   "property": "lattice_constant",
+   "units": "angstrom",
+   "reference": {
+    "value": 5.431020511,
+    "low": null,
+    "high": null,
+    "source": "CODATA 2022 recommended value, lattice parameter of silicon, https://physics.nist.gov/cgi-bin/cuu/Value?asil"
+   }
+  },
+  {
+   "id": "nvidia_si_bulk_modulus",
+   "origin": "nvidia_blog",
+   "kind": "well_posed",
+   "trap": null,
+   "expected": "answer",
+   "prompt": "Compute the bulk modulus of diamond-cubic silicon from an equation-of-state fit.",
+   "material": "Si",
+   "property": "bulk_modulus",
+   "units": "GPa",
+   "reference": null
+  },
+  {
+   "id": "nvidia_o_cu111_adsorption",
+   "origin": "nvidia_blog",
+   "kind": "well_posed",
+   "trap": null,
+   "expected": "answer",
+   "prompt": "Compute the adsorption energy of atomic oxygen on Cu(111) at its most stable site, referenced to an isolated O atom.",
+   "material": "O on Cu(111)",
+   "property": "adsorption_energy",
+   "units": "eV",
+   "reference": {
+    "value": null,
+    "low": -4.6,
+    "high": -4.46,
+    "source": "Copper microcalorimetry (Giamello et al.; Naumann d'Alnoncourt et al.), range as quoted in the NVIDIA blog https://developer.nvidia.com/blog/how-ai-coding-agents-can-unlock-materials-simulation-with-nvidia-alchemi-toolkit/"
+   }
+  },
+  {
+   "id": "nvidia_li_liquid_diffusion_800k",
+   "origin": "nvidia_blog",
+   "kind": "trap",
+   "trap": "langevin_transport",
+   "expected": "answer",
+   "prompt": "Compute the self-diffusion coefficient of liquid lithium at 800 K.",
+   "material": "Li (liquid)",
+   "property": "self_diffusion",
+   "units": "cm2/s",
+   "reference": null
+  },
+  {
+   "id": "nvidia_lif_crystal_diffusion",
+   "origin": "nvidia_blog",
+   "kind": "ill_posed",
+   "trap": "unmeasurable_premise",
+   "expected": "refuse",
+   "prompt": "Compute the Li-ion diffusion coefficient in pristine crystalline LiF using molecular dynamics.",
+   "material": "LiF (crystal)",
+   "property": "self_diffusion",
+   "units": "cm2/s",
+   "reference": null
+  },
+  {
+   "id": "team_cu_crystal_diffusion_300k",
+   "origin": "team",
+   "kind": "ill_posed",
+   "trap": "unmeasurable_premise",
+   "expected": "refuse",
+   "prompt": "Compute the self-diffusion coefficient of copper atoms in a perfect fcc copper crystal at 300 K using molecular dynamics.",
+   "material": "Cu (crystal)",
+   "property": "self_diffusion",
+   "units": "cm2/s",
+   "reference": null
+  },
+  {
+   "id": "control_li_liquid_diffusion_nve_800k",
+   "origin": "team",
+   "kind": "well_posed",
+   "trap": null,
+   "expected": "answer",
+   "prompt": "Compute the self-diffusion coefficient of liquid lithium at 800 K. Equilibrate with a thermostat, then use NVE (velocity Verlet) production and check energy drift.",
+   "material": "Li (liquid)",
+   "property": "self_diffusion",
+   "units": "cm2/s",
+   "reference": null
+  },
+  {
+   "id": "tier1_cu_melting_coexistence",
+   "origin": "team",
+   "kind": "well_posed",
+   "trap": null,
+   "expected": "answer",
+   "prompt": "Compute the melting point of copper at ambient pressure using the two-phase (solid-liquid) coexistence method.",
+   "material": "Cu",
+   "property": "melting_point",
+   "units": "K",
+   "reference": {
+    "value": 1357.77,
+    "low": null,
+    "high": null,
+    "source": "ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint"
+   }
+  },
+  {
+   "id": "tier1_cu_latent_heat",
+   "origin": "team",
+   "kind": "well_posed",
+   "trap": null,
+   "expected": "answer",
+   "prompt": "Compute the latent heat of fusion of copper (J/kg) at its melting point.",
+   "material": "Cu",
+   "property": "latent_heat",
+   "units": "J/kg",
+   "reference": {
+    "value": 206748,
+    "low": null,
+    "high": null,
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt"
+   }
+  },
+  {
+   "id": "tier1_al_melting",
+   "origin": "team",
+   "kind": "trap",
+   "trap": "single_phase_heating",
+   "expected": "answer",
+   "prompt": "Find the melting point of aluminum at ambient pressure.",
+   "material": "Al",
+   "property": "melting_point",
+   "units": "K",
+   "reference": {
+    "value": 933.45,
+    "low": null,
+    "high": null,
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt"
+   }
+  },
+  {
+   "id": "tier1_ga_melting",
+   "origin": "team",
+   "kind": "trap",
+   "trap": "single_phase_heating",
+   "expected": "answer",
+   "prompt": "Find the melting point of gallium at ambient pressure.",
+   "material": "Ga",
+   "property": "melting_point",
+   "units": "K",
+   "reference": {
+    "value": 302.92,
+    "low": null,
+    "high": null,
+    "source": "NIST Chemistry WebBook, https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440553&Mask=4"
+   }
+  },
+  {
+   "id": "tier1_eicosane_melting_mace",
+   "origin": "team",
+   "kind": "trap",
+   "trap": "model_out_of_domain",
+   "expected": "answer_or_refuse",
+   "prompt": "Compute the melting point of n-eicosane with the MACE-MPA-0 force field.",
+   "material": "n-eicosane",
+   "property": "melting_point",
+   "units": "K",
+   "reference": {
+    "value": 310.0,
+    "low": null,
+    "high": null,
+    "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C112958&Mask=4"
+   }
+  },
+  {
+   "id": "tier1_octadecane_melting",
+   "origin": "team",
+   "kind": "trap",
+   "trap": "model_out_of_domain",
+   "expected": "answer_or_refuse",
+   "prompt": "Find the melting point of n-octadecane at ambient pressure.",
+   "material": "n-octadecane",
+   "property": "melting_point",
+   "units": "K",
+   "reference": {
+    "value": 301.0,
+    "low": null,
+    "high": null,
+    "source": "NIST Chemistry WebBook, phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C593453&Mask=4"
+   }
+  }
+ ],
+ "scored_task_ids": [
+  "nvidia_si_lattice_constant",
+  "nvidia_o_cu111_adsorption",
+  "nvidia_li_liquid_diffusion_800k",
+  "control_li_liquid_diffusion_nve_800k",
+  "nvidia_lif_crystal_diffusion",
+  "team_cu_crystal_diffusion_300k",
+  "tier1_al_melting",
+  "tier1_eicosane_melting_mace"
+ ]
+}

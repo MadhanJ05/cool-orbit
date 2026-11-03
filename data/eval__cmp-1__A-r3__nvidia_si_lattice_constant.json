@@ -1,0 +1,960 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "name": "eval__cmp-1__A-r3__nvidia_si_lattice_constant",
+ "path": "boards/eval/cmp-1/A-r3/nvidia_si_lattice_constant",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "synthetic": false,
+ "rules_frozen": true,
+ "arm": "A",
+ "run": "eval__cmp-1",
+ "task_id": "nvidia_si_lattice_constant",
+ "repeat": 3,
+ "finished": true,
+ "agents": [
+  "eval_harness",
+  "single_agent"
+ ],
+ "counts": {
+  "artifacts": 3,
+  "by_type": {
+   "request": 1,
+   "candidate": 1,
+   "property_result": 1
+  },
+  "by_status": {
+   "simulated": 1
+  },
+  "open_needs": 0
+ },
+ "results": [
+  {
+   "id": "f3034c75-378d-4655-989c-f3b5adea91f7",
+   "agent": "single_agent",
+   "timestamp": "2026-11-01T07:30:58.602148+00:00",
+   "candidate": "silicon (diamond cubic)",
+   "family": "elemental semiconductor",
+   "tier": "trust",
+   "property": "lattice_constant",
+   "value": 5.467,
+   "uncertainty": 0.002,
+   "units": "angstrom",
+   "method": {
+    "engine": "ALCHEMI toolkit environment (mace-torch 0.3.15 ASE calculator, CUDA, float64)",
+    "model": "MACE-MPA-0 (medium)",
+    "protocol": "static 0 K E(V) scan of the ideal diamond-cubic cell (isotropic strain, no thermal/zero-point contributions) followed by an equation-of-state fit; 3 strain ranges (+/-2% with 11 points, +/-4% with 11, +/-6% with 15) x 3 cell sizes (8, 64, 216 atoms) x 3 EOS forms (Birch-Murnaghan, Vinet, Murnaghan)",
+    "ensemble": null,
+    "timestep_fs": null,
+    "n_atoms": 8,
+    "sim_length_ps": null,
+    "seeds": null,
+    "eos_forms": [
+     "birchmurnaghan",
+     "vinet",
+     "murnaghan"
+    ],
+    "supercells_checked": [
+     8,
+     64,
+     216
+    ],
+    "bulk_modulus_GPa": 87.6
+   },
+   "flags": [],
+   "note": "Value is the +/-2% strain-window fit (5.4673 A, all 3 EOS forms within 0.0001 A). The mean over all 27 fits is 5.4665 A, range 5.4653-5.4673 A. Wider windows shift a0 down by up to 0.002 A because of EOS-form bias. Cell size has no effect (<1e-5 A). The uncertainty of 0.002 A covers ONLY the numerical/fit spread (EOS form, strain window, cell size). It does NOT cover model error. PREMISE: well-posed. A static EOS gives the 0 K classical lattice constant of a perfect crystal. Si is in the training domain of MACE-MPA-0, which is trained on PBE data (MPtrj+sAlex). So the number targets PBE, not experiment. VALIDATION (same model, same protocol): fcc Cu/Al/Ag give 3.639/4.038/4.162 A. That matches the PBE values 3.642/4.042/4.147 A tabulated in arXiv:2604.07046 (Table C.1, LC20 set) to within -0.1%/-0.1%/+0.4%. The same table gives experimental reference values of 3.595/4.018/4.062 A, so MACE is +1.2%/+0.5%/+2.4% vs experiment, the known PBE overestimate. Also computed, but with no sourced reference on hand: Ge 5.720 A (PBE is known to strongly overestimate Ge), diamond C 3.578 A, B(Si) = 87.6 GPa. COMPARISON: CODATA 2018/2022 Si lattice parameter is 5.431020511(89) A (vacuum, 22.5 C; NIST physics.nist.gov/cuu/pdf/xray_2018.pdf). This result is +0.036 A (+0.66%) above it. That is consistent with the PBE-type bias seen in the validation set. Zero-point and thermal-expansion effects (0 K static vs 295 K) are much smaller than this offset in Si and were not computed. Realistic error vs experiment is therefore about +0.5 to +1% (+0.03 to +0.05 A), dominated by the PBE reference of the model.",
+   "status": "simulated",
+   "reasons": [
+    "no pre-registered tolerance for 'lattice_constant', so it cannot become trusted",
+    "trust tier: no sourced measured value on the board yet"
+   ],
+   "superseded_by": [],
+   "reference": null
+  }
+ ],
+ "proposed": [],
+ "open_needs": [],
+ "run_reports": [],
+ "ranking": null,
+ "scorecard": {
+  "board": "boards/eval/cmp-1/A-r3/nvidia_si_lattice_constant",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": true,
+    "shipped_id": "f3034c75-378d-4655-989c-f3b5adea91f7",
+    "shipped_value": 5.467,
+    "shipped_units": "angstrom",
+    "shipped_status": "simulated",
+    "confident": true,
+    "refused": false,
+    "n_results": 1,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": false,
+    "error": 0.03597948899999981,
+    "rel_error": 0.006624811842843694,
+    "trap_outcome": null,
+    "false_alarm": false,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "answered",
+    "reasons": [
+     "error +0.03598 angstrom vs reference: within tolerance {'rel': 0.01}"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 0,
+  "trap_avoided": 0,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": null,
+  "control_tasks": 1,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": 0.0,
+  "silent_errors": 0,
+  "mean_abs_rel_error": 0.006624811842843694,
+  "n_errors_measured": 1,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 165666.0,
+    "output_tokens": 3726.0,
+    "gpu_hours": 0.0,
+    "usd": 0.44116659999999996
+   },
+   "per_task": {
+    "nvidia_si_lattice_constant": {
+     "input_tokens": 165666.0,
+     "output_tokens": 3726.0,
+     "gpu_hours": 0.0,
+     "usd": 0.44116659999999996
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_al_melting",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": []
+ },
+ "scorecard_post_hoc": {
+  "board": "boards/eval/cmp-1/A-r3/nvidia_si_lattice_constant",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": true,
+    "shipped_id": "f3034c75-378d-4655-989c-f3b5adea91f7",
+    "shipped_value": 5.467,
+    "shipped_units": "angstrom",
+    "shipped_status": "simulated",
+    "confident": true,
+    "refused": false,
+    "n_results": 1,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": false,
+    "error": 0.03597948899999981,
+    "rel_error": 0.006624811842843694,
+    "trap_outcome": null,
+    "false_alarm": false,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "answered",
+    "reasons": [
+     "error +0.03598 angstrom vs reference: within tolerance {'rel': 0.01}"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 0,
+  "trap_avoided": 0,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": null,
+  "control_tasks": 1,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": 0.0,
+  "silent_errors": 0,
+  "mean_abs_rel_error": 0.006624811842843694,
+  "n_errors_measured": 1,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 165666.0,
+    "output_tokens": 3726.0,
+    "gpu_hours": 0.0,
+    "usd": 0.44116659999999996
+   },
+   "per_task": {
+    "nvidia_si_lattice_constant": {
+     "input_tokens": 165666.0,
+     "output_tokens": 3726.0,
+     "gpu_hours": 0.0,
+     "usd": 0.44116659999999996
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_al_melting",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": [
+   "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+  ]
+ },
+ "lineage": {
+  "a819170d-3e3c-44ec-a4c5-266707515d01": {
+   "id": "a819170d-3e3c-44ec-a4c5-266707515d01",
+   "type": "request",
+   "agent": "eval_harness",
+   "timestamp": "2026-11-01T07:24:02.210204+00:00",
+   "summary": "eval task nvidia_si_lattice_constant: Compute the equilibrium lattice constant of diamond-cubic silicon from an equation-of-state fit.",
+   "parents": [],
+   "children": [
+    "28d912e0-d10b-4d9a-aeca-b48d51edabcc"
+   ],
+   "payload": {
+    "note": "eval_task:nvidia_si_lattice_constant"
+   },
+   "needs": [
+    {
+     "artifact_type": "candidate",
+     "query": "Compute the equilibrium lattice constant of diamond-cubic silicon from an equation-of-state fit.",
+     "rationale": "evaluation task nvidia_si_lattice_constant: propose the material as a candidate (parent: this request), then answer it on this board",
+     "check_type": null,
+     "eval_task": "nvidia_si_lattice_constant",
+     "property": "lattice_constant",
+     "units": "angstrom"
+    }
+   ]
+  },
+  "28d912e0-d10b-4d9a-aeca-b48d51edabcc": {
+   "id": "28d912e0-d10b-4d9a-aeca-b48d51edabcc",
+   "type": "candidate",
+   "agent": "single_agent",
+   "timestamp": "2026-11-01T07:27:59.594041+00:00",
+   "summary": "candidate silicon (diamond cubic) (elemental semiconductor, trust tier)",
+   "parents": [
+    "a819170d-3e3c-44ec-a4c5-266707515d01"
+   ],
+   "children": [
+    "f3034c75-378d-4655-989c-f3b5adea91f7"
+   ],
+   "payload": {
+    "name": "silicon (diamond cubic)",
+    "family": "elemental semiconductor",
+    "tier": "trust",
+    "formula": "Si",
+    "structure_source": "ideal diamond-cubic structure (Fd-3m, 8-atom conventional cell), built with ase.build.bulk; cf. Materials Project mp-149",
+    "rationale": "Requested by task a819170d: equilibrium lattice constant of diamond-cubic Si from an EOS fit. Well-posed: static 0 K E(V) curve of a perfect crystal is directly accessible with an MLIP; Si is in-domain for MACE-MPA-0 (trained on PBE MPtrj + sAlex).",
+    "_fulfilled_need": {
+     "parent_artifact_id": "a819170d-3e3c-44ec-a4c5-266707515d01",
+     "artifact_type": "candidate",
+     "query": "Compute the equilibrium lattice constant of diamond-cubic silicon from an equation-of-state fit."
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "f3034c75-378d-4655-989c-f3b5adea91f7": {
+   "id": "f3034c75-378d-4655-989c-f3b5adea91f7",
+   "type": "property_result",
+   "agent": "single_agent",
+   "timestamp": "2026-11-01T07:30:58.602148+00:00",
+   "summary": "silicon (diamond cubic) lattice_constant = 5.467 angstrom via ALCHEMI toolkit environment (mace-torch 0.3.15 ASE calculator, CUDA, float64)/MACE-MPA-0 (medium) static 0 K E(V) scan of the ideal diamond-cubic cell (isotropic strain, no thermal/zero-point contributions) followed by an equation-of-state fit; 3 strain ranges (+/-2% with 11 points, +/-4% with 11, +/-6% with 15) x 3 cell sizes (8, 64, 216 atoms) x 3 EOS forms (Birch-Murnaghan, Vinet, Murnaghan)",
+   "parents": [
+    "28d912e0-d10b-4d9a-aeca-b48d51edabcc"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "silicon (diamond cubic)",
+    "family": "elemental semiconductor",
+    "tier": "trust",
+    "property": "lattice_constant",
+    "value": 5.467,
+    "units": "angstrom",
+    "uncertainty": 0.002,
+    "method": {
+     "engine": "ALCHEMI toolkit environment (mace-torch 0.3.15 ASE calculator, CUDA, float64)",
+     "model": "MACE-MPA-0 (medium)",
+     "protocol": "static 0 K E(V) scan of the ideal diamond-cubic cell (isotropic strain, no thermal/zero-point contributions) followed by an equation-of-state fit; 3 strain ranges (+/-2% with 11 points, +/-4% with 11, +/-6% with 15) x 3 cell sizes (8, 64, 216 atoms) x 3 EOS forms (Birch-Murnaghan, Vinet, Murnaghan)",
+     "ensemble": null,
+     "timestep_fs": null,
+     "n_atoms": 8,
+     "sim_length_ps": null,
+     "seeds": null,
+     "eos_forms": [
+      "birchmurnaghan",
+      "vinet",
+      "murnaghan"
+     ],
+     "supercells_checked": [
+      8,
+      64,
+      216
+     ],
+     "bulk_modulus_GPa": 87.6
+    },
+    "flags": [],
+    "note": "Value is the +/-2% strain-window fit (5.4673 A, all 3 EOS forms within 0.0001 A). The mean over all 27 fits is 5.4665 A, range 5.4653-5.4673 A. Wider windows shift a0 down by up to 0.002 A because of EOS-form bias. Cell size has no effect (<1e-5 A). The uncertainty of 0.002 A covers ONLY the numerical/fit spread (EOS form, strain window, cell size). It does NOT cover model error. PREMISE: well-posed. A static EOS gives the 0 K classical lattice constant of a perfect crystal. Si is in the training domain of MACE-MPA-0, which is trained on PBE data (MPtrj+sAlex). So the number targets PBE, not experiment. VALIDATION (same model, same protocol): fcc Cu/Al/Ag give 3.639/4.038/4.162 A. That matches the PBE values 3.642/4.042/4.147 A tabulated in arXiv:2604.07046 (Table C.1, LC20 set) to within -0.1%/-0.1%/+0.4%. The same table gives experimental reference values of 3.595/4.018/4.062 A, so MACE is +1.2%/+0.5%/+2.4% vs experiment, the known PBE overestimate. Also computed, but with no sourced reference on hand: Ge 5.720 A (PBE is known to strongly overestimate Ge), diamond C 3.578 A, B(Si) = 87.6 GPa. COMPARISON: CODATA 2018/2022 Si lattice parameter is 5.431020511(89) A (vacuum, 22.5 C; NIST physics.nist.gov/cuu/pdf/xray_2018.pdf). This result is +0.036 A (+0.66%) above it. That is consistent with the PBE-type bias seen in the validation set. Zero-point and thermal-expansion effects (0 K static vs 295 K) are much smaller than this offset in Si and were not computed. Realistic error vs experiment is therefore about +0.5 to +1% (+0.03 to +0.05 A), dominated by the PBE reference of the model."
+   },
+   "needs": []
+  }
+ }
+}

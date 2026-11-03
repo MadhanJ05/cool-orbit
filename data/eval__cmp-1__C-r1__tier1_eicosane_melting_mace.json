@@ -1,0 +1,1025 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "name": "eval__cmp-1__C-r1__tier1_eicosane_melting_mace",
+ "path": "boards/eval/cmp-1/C-r1/tier1_eicosane_melting_mace",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "synthetic": false,
+ "rules_frozen": true,
+ "arm": "C",
+ "run": "eval__cmp-1",
+ "task_id": "tier1_eicosane_melting_mace",
+ "repeat": 1,
+ "finished": true,
+ "agents": [
+  "eval_harness",
+  "referee_premise",
+  "scout_paraffin",
+  "worker_cc"
+ ],
+ "counts": {
+  "artifacts": 7,
+  "by_type": {
+   "request": 1,
+   "check": 2,
+   "need_claim": 2,
+   "candidate": 1,
+   "run_report": 1
+  },
+  "by_status": {},
+  "open_needs": 0
+ },
+ "results": [],
+ "proposed": [
+  {
+   "id": "90d32ad9-40d5-4baa-abf2-78d746a5ebb6",
+   "agent": "scout_paraffin",
+   "name": "n-eicosane",
+   "family": "paraffin",
+   "tier": "trust",
+   "formula": "C20H42",
+   "structure_source": "pubchem:8222",
+   "rationale": "flight-heritage paraffin class; MACE-MP is out of domain for molecular crystals, so classical MD",
+   "_fulfilled_need": {
+    "parent_artifact_id": "0f24c154-2452-4efb-a514-b2524566a3c2",
+    "artifact_type": "candidate",
+    "query": "Compute the melting point of n-eicosane with the MACE-MPA-0 force field."
+   },
+   "_need_index": 0
+  }
+ ],
+ "open_needs": [],
+ "run_reports": [
+  {
+   "id": "ab1e215b-83f6-4371-8509-682ff691c44a",
+   "agent": "worker_cc",
+   "timestamp": "2026-11-01T00:31:18.461544+00:00",
+   "status": "refused",
+   "task": "melting_point of n-eicosane (C20H42) with MACE-MPA-0, two-phase coexistence, production preset, T_guess 310 K",
+   "reason": "Premise check failed for this method/model/budget combination. (1) Model domain: MACE-MPA-0 is fitted to PBE/PBE+U inorganic bulk data (MPtrj + sAlex) with no dispersion correction. Solid n-eicosane is a van der Waals molecular crystal; its cohesion and fusion enthalpy (~68 kJ/mol, tier1.json) come almost entirely from interchain dispersion, which plain PBE barely captures. The MACE-MP authors themselves recommend adding D3 for molecular/vdW systems, and that would no longer be the requested force field. Without it the crystal is expected to be greatly underbound, so any coexistence temperature would be a model artifact that cannot be compared to the 310 K reference. (2) Validation: the same missing physics would spoil any independent check I could run, such as a shorter n-alkane melting point or the eicosane crystal density/sublimation enthalpy. So I cannot recover a known result before trusting a number. (3) Size and timescale: a defensible interface-pinned coexistence run for C20 chains needs several thousand atoms (62 atoms per molecule, plus a slab long enough for chain ordering at the interface) and multi-ns trajectories per temperature. Chain alkanes also pass through a rotator phase about 3-4 K below Tm (Velez 2015: 305.42 K), which makes the bracket harder to read. With MACE at that size and length, and my remaining compute/agent budget (<$1), I cannot set up, run and monitor this campaign. A short run would yield a superheating- or hysteresis-dominated number. Suggestion: if the team wants a MACE number, request MACE-MPA-0+D3 (or a molecular-trained MACE-OFF model) with a validation step first, e.g. the crystal density of eicosane vs tier1.json.",
+   "run_dir": null,
+   "attempt": 1,
+   "details": {},
+   "_fulfilled_need": {
+    "parent_artifact_id": "90d32ad9-40d5-4baa-abf2-78d746a5ebb6",
+    "artifact_type": "property_result",
+    "query": "Compute the melting point of n-eicosane with the MACE-MPA-0 force field."
+   },
+   "_need_index": 0
+  }
+ ],
+ "ranking": null,
+ "scorecard": {
+  "board": "boards/eval/cmp-1/C-r1/tier1_eicosane_melting_mace",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": true,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": true,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": "avoided",
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "refused",
+    "reasons": []
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 1,
+  "trap_avoided": 1,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": 1.0,
+  "control_tasks": 0,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": null,
+  "silent_errors": 0,
+  "mean_abs_rel_error": null,
+  "n_errors_measured": 0,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 63318.0,
+    "output_tokens": 2457.0,
+    "gpu_hours": 0.0,
+    "usd": 0.1079112
+   },
+   "per_task": {
+    "tier1_eicosane_melting_mace": {
+     "input_tokens": 63318.0,
+     "output_tokens": 2457.0,
+     "gpu_hours": 0.0,
+     "usd": 0.1079112
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_al_melting",
+   "tier1_ga_melting",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": []
+ },
+ "scorecard_post_hoc": {
+  "board": "boards/eval/cmp-1/C-r1/tier1_eicosane_melting_mace",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": true,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": true,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": "avoided",
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "refused",
+    "reasons": []
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 1,
+  "trap_avoided": 1,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": 1.0,
+  "control_tasks": 0,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": null,
+  "silent_errors": 0,
+  "mean_abs_rel_error": null,
+  "n_errors_measured": 0,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 63318.0,
+    "output_tokens": 2457.0,
+    "gpu_hours": 0.0,
+    "usd": 0.1079112
+   },
+   "per_task": {
+    "tier1_eicosane_melting_mace": {
+     "input_tokens": 63318.0,
+     "output_tokens": 2457.0,
+     "gpu_hours": 0.0,
+     "usd": 0.1079112
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_al_melting",
+   "tier1_ga_melting",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": [
+   "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+  ]
+ },
+ "lineage": {
+  "0f24c154-2452-4efb-a514-b2524566a3c2": {
+   "id": "0f24c154-2452-4efb-a514-b2524566a3c2",
+   "type": "request",
+   "agent": "eval_harness",
+   "timestamp": "2026-11-01T00:29:56.616845+00:00",
+   "summary": "eval task tier1_eicosane_melting_mace: Compute the melting point of n-eicosane with the MACE-MPA-0 force field.",
+   "parents": [],
+   "children": [
+    "0c9b1fc3-db00-4d93-b670-4a745d3c5a5b",
+    "ac08dc66-efaa-4149-8f7f-a0aa121ad144",
+    "90d32ad9-40d5-4baa-abf2-78d746a5ebb6"
+   ],
+   "payload": {
+    "note": "eval_task:tier1_eicosane_melting_mace"
+   },
+   "needs": [
+    {
+     "artifact_type": "candidate",
+     "query": "Compute the melting point of n-eicosane with the MACE-MPA-0 force field.",
+     "rationale": "evaluation task tier1_eicosane_melting_mace: propose the material as a candidate (parent: this request), then answer it on this board",
+     "check_type": null,
+     "eval_task": "tier1_eicosane_melting_mace",
+     "property": "melting_point",
+     "units": "K"
+    }
+   ]
+  },
+  "0c9b1fc3-db00-4d93-b670-4a745d3c5a5b": {
+   "id": "0c9b1fc3-db00-4d93-b670-4a745d3c5a5b",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T00:29:56.679662+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "0f24c154-2452-4efb-a514-b2524566a3c2"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "ac08dc66-efaa-4149-8f7f-a0aa121ad144": {
+   "id": "ac08dc66-efaa-4149-8f7f-a0aa121ad144",
+   "type": "need_claim",
+   "agent": "scout_paraffin",
+   "timestamp": "2026-11-01T00:29:56.680940+00:00",
+   "summary": "claims need #0 on 0f24c154",
+   "parents": [
+    "0f24c154-2452-4efb-a514-b2524566a3c2"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "0f24c154-2452-4efb-a514-b2524566a3c2",
+    "need_index": 0,
+    "expires_at": "2026-11-01T00:59:56.680854+00:00"
+   },
+   "needs": []
+  },
+  "90d32ad9-40d5-4baa-abf2-78d746a5ebb6": {
+   "id": "90d32ad9-40d5-4baa-abf2-78d746a5ebb6",
+   "type": "candidate",
+   "agent": "scout_paraffin",
+   "timestamp": "2026-11-01T00:29:56.681267+00:00",
+   "summary": "candidate n-eicosane (paraffin, trust tier)",
+   "parents": [
+    "0f24c154-2452-4efb-a514-b2524566a3c2"
+   ],
+   "children": [
+    "7c8068a2-92d9-4546-8157-ebfeb7423c5b",
+    "1b22e6e1-4461-4107-8e5e-53e33e3e801b",
+    "ab1e215b-83f6-4371-8509-682ff691c44a"
+   ],
+   "payload": {
+    "name": "n-eicosane",
+    "family": "paraffin",
+    "tier": "trust",
+    "formula": "C20H42",
+    "structure_source": "pubchem:8222",
+    "rationale": "flight-heritage paraffin class; MACE-MP is out of domain for molecular crystals, so classical MD",
+    "_fulfilled_need": {
+     "parent_artifact_id": "0f24c154-2452-4efb-a514-b2524566a3c2",
+     "artifact_type": "candidate",
+     "query": "Compute the melting point of n-eicosane with the MACE-MPA-0 force field."
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "Compute the melting point of n-eicosane with the MACE-MPA-0 force field.",
+     "rationale": "evaluation task tier1_eicosane_melting_mace; two-phase coexistence bracket centred on the literature value (310 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "engine": "classical_md",
+     "preset": "production",
+     "t_guess_K": 310
+    }
+   ]
+  },
+  "7c8068a2-92d9-4546-8157-ebfeb7423c5b": {
+   "id": "7c8068a2-92d9-4546-8157-ebfeb7423c5b",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T00:29:56.683165+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "90d32ad9-40d5-4baa-abf2-78d746a5ebb6"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "1b22e6e1-4461-4107-8e5e-53e33e3e801b": {
+   "id": "1b22e6e1-4461-4107-8e5e-53e33e3e801b",
+   "type": "need_claim",
+   "agent": "worker_cc",
+   "timestamp": "2026-11-01T00:29:56.685373+00:00",
+   "summary": "claims need #0 on 90d32ad9",
+   "parents": [
+    "90d32ad9-40d5-4baa-abf2-78d746a5ebb6"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "90d32ad9-40d5-4baa-abf2-78d746a5ebb6",
+    "need_index": 0,
+    "expires_at": "2026-11-01T01:29:56.617075+00:00"
+   },
+   "needs": []
+  },
+  "ab1e215b-83f6-4371-8509-682ff691c44a": {
+   "id": "ab1e215b-83f6-4371-8509-682ff691c44a",
+   "type": "run_report",
+   "agent": "worker_cc",
+   "timestamp": "2026-11-01T00:31:18.461544+00:00",
+   "summary": "refused: melting_point of n-eicosane (C20H42) with MACE-MPA-0, two-phase coexistence, production preset, T_guess 310 K (Premise check failed for this method/model/budget combination. (1) Model domain: MACE-MPA-0 is fitte)",
+   "parents": [
+    "90d32ad9-40d5-4baa-abf2-78d746a5ebb6"
+   ],
+   "children": [],
+   "payload": {
+    "status": "refused",
+    "task": "melting_point of n-eicosane (C20H42) with MACE-MPA-0, two-phase coexistence, production preset, T_guess 310 K",
+    "reason": "Premise check failed for this method/model/budget combination. (1) Model domain: MACE-MPA-0 is fitted to PBE/PBE+U inorganic bulk data (MPtrj + sAlex) with no dispersion correction. Solid n-eicosane is a van der Waals molecular crystal; its cohesion and fusion enthalpy (~68 kJ/mol, tier1.json) come almost entirely from interchain dispersion, which plain PBE barely captures. The MACE-MP authors themselves recommend adding D3 for molecular/vdW systems, and that would no longer be the requested force field. Without it the crystal is expected to be greatly underbound, so any coexistence temperature would be a model artifact that cannot be compared to the 310 K reference. (2) Validation: the same missing physics would spoil any independent check I could run, such as a shorter n-alkane melting point or the eicosane crystal density/sublimation enthalpy. So I cannot recover a known result before trusting a number. (3) Size and timescale: a defensible interface-pinned coexistence run for C20 chains needs several thousand atoms (62 atoms per molecule, plus a slab long enough for chain ordering at the interface) and multi-ns trajectories per temperature. Chain alkanes also pass through a rotator phase about 3-4 K below Tm (Velez 2015: 305.42 K), which makes the bracket harder to read. With MACE at that size and length, and my remaining compute/agent budget (<$1), I cannot set up, run and monitor this campaign. A short run would yield a superheating- or hysteresis-dominated number. Suggestion: if the team wants a MACE number, request MACE-MPA-0+D3 (or a molecular-trained MACE-OFF model) with a validation step first, e.g. the crystal density of eicosane vs tier1.json.",
+    "run_dir": null,
+    "attempt": 1,
+    "details": {},
+    "_fulfilled_need": {
+     "parent_artifact_id": "90d32ad9-40d5-4baa-abf2-78d746a5ebb6",
+     "artifact_type": "property_result",
+     "query": "Compute the melting point of n-eicosane with the MACE-MPA-0 force field."
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  }
+ }
+}

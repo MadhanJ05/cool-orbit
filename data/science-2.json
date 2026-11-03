@@ -1,0 +1,3034 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "name": "science-2",
+ "path": "boards/science-2",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "synthetic": false,
+ "rules_frozen": true,
+ "arm": null,
+ "run": null,
+ "task_id": null,
+ "repeat": null,
+ "finished": null,
+ "agents": [
+  "librarian",
+  "referee_classical",
+  "referee_premise",
+  "referee_rules",
+  "scout_metals",
+  "simulator_gb10",
+  "simulator_h100",
+  "simulator_h100b",
+  "simulator_h100c"
+ ],
+ "counts": {
+  "artifacts": 68,
+  "by_type": {
+   "candidate": 5,
+   "need_claim": 21,
+   "check": 23,
+   "run_report": 5,
+   "property_result": 6,
+   "reference_value": 6,
+   "request": 2
+  },
+  "by_status": {
+   "trusted": 2,
+   "under_review": 2,
+   "flagged": 2
+  },
+  "open_needs": 2
+ },
+ "results": [
+  {
+   "id": "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T06:10:14.660582+00:00",
+   "candidate": "Cu",
+   "family": "validation_metal",
+   "tier": "trust",
+   "property": "melting_point",
+   "value": 1358.0,
+   "uncertainty": 68.0,
+   "units": "K",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 512,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "temperatures_K": [
+     1154.0,
+     1290.0,
+     1426.0,
+     1562.0
+    ],
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/f04022e9-n0-a1/20261101T050603Z_Cu_coexistence",
+    "remote": {
+     "host": "coolorbit-h100-host",
+     "transport": "ssh",
+     "commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+    },
+    "protocol_version": 2,
+    "git_commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+   },
+   "flags": [],
+   "note": "",
+   "status": "trusted",
+   "reasons": [
+    "method_audit by referee_rules: pass (rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen])",
+    "classical_md by referee_classical: agrees, |delta| = 31 K (LAMMPS/EAM, NIST IPR 2001--Mishin-Y--Cu-1--LAMMPS--ipr1)",
+    "matches measured 1357.77 K (|delta| = 0.23) [ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint]"
+   ],
+   "superseded_by": [],
+   "reference": {
+    "value": 1357.77,
+    "units": "K",
+    "source": "ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint",
+    "origin": "board",
+    "id": "56dd388b-34f8-414e-9038-9d76d63f9828",
+    "agent": "librarian"
+   }
+  },
+  {
+   "id": "d502cce5-a466-4ae3-b3cf-7820eb17b9e6",
+   "agent": "simulator_h100c",
+   "timestamp": "2026-11-01T06:36:22.987086+00:00",
+   "candidate": "Al",
+   "family": "validation_metal",
+   "tier": "trust",
+   "property": "melting_point",
+   "value": 933.0,
+   "uncertainty": 47.0,
+   "units": "K",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 512,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "temperatures_K": [
+     793.0,
+     886.0,
+     980.0,
+     1073.0
+    ],
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/da6aca07-n0-a1/20261101T053730Z_Al_coexistence",
+    "remote": {
+     "host": "coolorbit-h100-host",
+     "transport": "ssh",
+     "commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+    },
+    "protocol_version": 2,
+    "git_commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+   },
+   "flags": [],
+   "note": "",
+   "status": "under_review",
+   "reasons": [
+    "method_audit by referee_rules: pass (rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen])",
+    "matches measured 933.45 K (|delta| = 0.45) [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]",
+    "still needs an agreeing independent method (second MLIP or classical MD)"
+   ],
+   "superseded_by": [],
+   "reference": {
+    "value": 933.45,
+    "units": "K",
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
+    "origin": "board",
+    "id": "7aff9e30-2fb5-46f4-9c70-50f79e46b90d",
+    "agent": "librarian"
+   }
+  },
+  {
+   "id": "ef8617e2-c9d0-4022-89f4-536056112ee1",
+   "agent": "simulator_h100",
+   "timestamp": "2026-11-01T07:09:13.833721+00:00",
+   "candidate": "In",
+   "family": "low_melting_metal",
+   "tier": "trust",
+   "property": "melting_point",
+   "value": 344.7,
+   "uncertainty": 21.3,
+   "units": "K",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 576,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "temperatures_K": [
+     238.0,
+     280.667,
+     323.333,
+     366.0
+    ],
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/3826f46d-n0-a2/20261101T060401Z_In_coexistence",
+    "remote": {
+     "host": "coolorbit-h100-host",
+     "transport": "ssh",
+     "commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+    },
+    "protocol_version": 2,
+    "git_commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+   },
+   "flags": [],
+   "note": "",
+   "status": "flagged",
+   "reasons": [
+    "method_audit by referee_rules: pass (rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen])",
+    "off from measured 429.748 K by 85 [Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90]"
+   ],
+   "superseded_by": [],
+   "reference": {
+    "value": 429.748,
+    "units": "K",
+    "source": "Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90",
+    "origin": "board",
+    "id": "2ddc4a12-c6ba-4bf7-ab8c-7047d940503b",
+    "agent": "librarian"
+   }
+  },
+  {
+   "id": "065ef630-fbc1-46e0-b0fb-820ea919bae8",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T07:12:48.036797+00:00",
+   "candidate": "Cu",
+   "family": "validation_metal",
+   "tier": "trust",
+   "property": "latent_heat",
+   "value": 190222.0,
+   "uncertainty": 2692.0,
+   "units": "J/kg",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "NPT enthalpy difference (solid vs liquid)",
+    "ensemble": "NPT isotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 256,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "temperatures_K": [
+     1358.0
+    ],
+    "run_dir": "runs/remote/science-2/06c67470-n0-a1/20261101T061054Z_Cu_latent"
+   },
+   "flags": [],
+   "note": "Recovered result: the remote run completed after the runner gave up (failed report a9f70452: run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeou). Same run folder; posted with scripts/recover_remote_result.py.",
+   "status": "trusted",
+   "reasons": [
+    "method_audit by referee_rules: pass (rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen])",
+    "classical_md by referee_classical: agrees, |delta| = 1.54e+03 J/kg (LAMMPS/EAM, NIST IPR 2001--Mishin-Y--Cu-1--LAMMPS--ipr1)",
+    "matches measured 206748 J/kg (|delta| = 1.65e+04) [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt]"
+   ],
+   "superseded_by": [],
+   "reference": {
+    "value": 206748.0,
+    "units": "J/kg",
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt",
+    "origin": "board",
+    "id": "00c27d33-198b-4542-a80c-ce94f1b00161",
+    "agent": "librarian"
+   }
+  },
+  {
+   "id": "8ccfb876-901b-431b-b120-7d055bce1231",
+   "agent": "simulator_h100c",
+   "timestamp": "2026-11-01T07:35:30.154446+00:00",
+   "candidate": "Al",
+   "family": "validation_metal",
+   "tier": "trust",
+   "property": "latent_heat",
+   "value": 355031.0,
+   "uncertainty": 2437.0,
+   "units": "J/kg",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "NPT enthalpy difference (solid vs liquid)",
+    "ensemble": "NPT isotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 256,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "temperatures_K": [
+     933.0
+    ],
+    "run_dir": "runs/remote/science-2/fe944af4-n0-a1/20261101T063702Z_Al_latent"
+   },
+   "flags": [],
+   "note": "Recovered result: the remote run completed after the runner gave up (failed report 0a443abd: run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeou). Same run folder; posted with scripts/recover_remote_result.py.",
+   "status": "under_review",
+   "reasons": [
+    "method_audit by referee_rules: pass (rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen])",
+    "matches measured 396975 J/kg (|delta| = 4.19e+04) [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]",
+    "still needs an agreeing independent method (second MLIP or classical MD)"
+   ],
+   "superseded_by": [],
+   "reference": {
+    "value": 396975.0,
+    "units": "J/kg",
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
+    "origin": "board",
+    "id": "a183e46e-7a3f-4f7c-80ac-68d070149b14",
+    "agent": "librarian"
+   }
+  },
+  {
+   "id": "2f575597-fc1f-4bc8-9731-29e6d58ea692",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T07:45:05.597320+00:00",
+   "candidate": "Bi",
+   "family": "low_melting_metal",
+   "tier": "trust",
+   "property": "melting_point",
+   "value": 408.3,
+   "uncertainty": 54.7,
+   "units": "K",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 768,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "temperatures_K": [
+     299.0,
+     353.667,
+     408.333,
+     463.0
+    ],
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-2/4b7431a6-n0-a2/20261101T064256Z_Bi_coexistence",
+    "protocol_version": 2,
+    "git_commit": "1845e84230ce8b4c1e40da6aeae1f62dcefff0ed"
+   },
+   "flags": [],
+   "note": "",
+   "status": "flagged",
+   "reasons": [
+    "method_audit by referee_rules: pass (rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen])",
+    "classical_md by referee_classical: disagree (Classical MD (MEAM) two-phase coexistence: Tm = 586.7 +/- 17 K, bracket [576.0, 610.0]; from runs/classical/meam-bi-refine/metals/Bi/analysis_coexistence.json. Measured 544.556 K.)",
+    "classical_md by referee_classical: |delta| = 178 K exceeds the agree tolerance",
+    "off from measured 544.556 K by 136 [NIST Certificate of Analysis, Standard Reference Material 2235 'Bismuth for Thermal Analysis' (2015), https://tsapps.nist.gov/srmext/certificates/archives/2235.pdf]"
+   ],
+   "superseded_by": [],
+   "reference": {
+    "value": 544.556,
+    "units": "K",
+    "source": "NIST Certificate of Analysis, Standard Reference Material 2235 'Bismuth for Thermal Analysis' (2015), https://tsapps.nist.gov/srmext/certificates/archives/2235.pdf",
+    "origin": "board",
+    "id": "2dcaca47-f758-4467-8abe-a7cb3ae61c90",
+    "agent": "librarian"
+   }
+  }
+ ],
+ "proposed": [
+  {
+   "id": "a5b51afa-2ed5-45d8-ac58-809bfa88ee07",
+   "agent": "scout_metals",
+   "name": "Sn",
+   "family": "low_melting_metal",
+   "tier": "trust",
+   "formula": "Sn",
+   "structure_source": "ref:Sn",
+   "rationale": "low-melting metal (505 K); real beta-Sn crystal via ref:Sn"
+  }
+ ],
+ "open_needs": [
+  {
+   "artifact_id": "ef8617e2-c9d0-4022-89f4-536056112ee1",
+   "index": 1,
+   "on_type": "property_result",
+   "kind": "classical_md",
+   "query": "independent melting_point for In with a different method (classical MD or a second MLIP)",
+   "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "8ccfb876-901b-431b-b120-7d055bce1231",
+   "index": 1,
+   "on_type": "property_result",
+   "kind": "classical_md",
+   "query": "independent latent_heat for Al with a different method (classical MD or a second MLIP)",
+   "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+   "claimed_by": null,
+   "claim_expires_at": null
+  }
+ ],
+ "run_reports": [
+  {
+   "id": "41ee63bb-43e5-4e97-a9be-90e61017e1a6",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T05:05:53.565875+00:00",
+   "status": "failed",
+   "task": "melting_point of Sn via two-phase coexistence (ALCHEMI)",
+   "reason": "the crystal did not survive the solid preparation (half or more of its atoms moved > 0.5 nearest-neighbour distances), so the box would never hold a crystal half; stopped before melting and production",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/a5b51afa-n0-a1/20261101T045654Z_Sn_coexistence",
+   "attempt": 1,
+   "details": {
+    "failure": "crystal_lost_in_prep",
+    "per_temperature": [],
+    "flags": [
+     "crystal_lost_in_prep"
+    ],
+    "protocol_version": 2,
+    "t_melt_K": 1010.0,
+    "t_ref_K": 505.0,
+    "seed": 2027,
+    "stopped_after": "prep_solid_npt",
+    "retry": "no retry: crystal_lost_in_prep is a set-up or analysis artefact; a shifted or longer run would repeat it"
+   },
+   "_fulfilled_need": {
+    "parent_artifact_id": "a5b51afa-2ed5-45d8-ac58-809bfa88ee07",
+    "artifact_type": "property_result",
+    "query": "melting_point of Sn"
+   },
+   "_need_index": 0
+  },
+  {
+   "id": "3826f46d-8c47-44ce-9d32-d25086541a31",
+   "agent": "simulator_h100",
+   "timestamp": "2026-11-01T06:03:51.590525+00:00",
+   "status": "failed",
+   "task": "melting_point of In via two-phase coexistence (ALCHEMI)",
+   "reason": "no temperature froze and the coldest run melted: the melting point is below the bracket",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/96074d6b-n0-a1/20261101T045510Z_In_coexistence",
+   "attempt": 1,
+   "details": {
+    "failure": "below_bracket",
+    "per_temperature": [
+     {
+      "T_target_K": 366.0,
+      "T_measured_K": 366.1,
+      "ref_pe_eV_per_atom": -2.6515454162250864,
+      "end_pe_eV_per_atom": -2.643188123703003,
+      "delta_pe_eV_per_atom": 0.008357292522083615,
+      "block_means_eV_per_atom": [
+       -2.650785698890686,
+       -2.651427984237671,
+       -2.650573935508728,
+       -2.649026246070862,
+       -2.6492328739166258,
+       -2.6467240715026854,
+       -2.643510112762451,
+       -2.6441004610061647,
+       -2.643926944732666,
+       -2.643188123703003
+      ],
+      "block_noise_eV_per_atom": 0.0022190576201873806,
+      "threshold_eV_per_atom": 0.006657172860562142,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+       0.5,
+       1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9826388888888888,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+     },
+     {
+      "T_target_K": 408.0,
+      "T_measured_K": 407.9,
+      "ref_pe_eV_per_atom": -2.6448578617789527,
+      "end_pe_eV_per_atom": -2.636642909049988,
+      "delta_pe_eV_per_atom": 0.008214952728964775,
+      "block_means_eV_per_atom": [
+       -2.644425768852234,
+       -2.6411829137802125,
+       -2.638852233886719,
+       -2.6371055698394774,
+       -2.635129623413086,
+       -2.6366411781311037,
+       -2.636147117614746,
+       -2.635531158447266,
+       -2.636757755279541,
+       -2.636642909049988
+      ],
+      "block_noise_eV_per_atom": 0.001186275549439115,
+      "threshold_eV_per_atom": 0.003558826648317345,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+       0.5,
+       1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9965277777777778,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+     },
+     {
+      "T_target_K": 452.0,
+      "T_measured_K": 451.9,
+      "ref_pe_eV_per_atom": -2.637119401584972,
+      "end_pe_eV_per_atom": -2.6293912506103516,
+      "delta_pe_eV_per_atom": 0.00772815097462054,
+      "block_means_eV_per_atom": [
+       -2.6338784980773924,
+       -2.62812038898468,
+       -2.628477244377136,
+       -2.629210419654846,
+       -2.628966031074524,
+       -2.630028486251831,
+       -2.629591979980469,
+       -2.627914533615112,
+       -2.628177452087402,
+       -2.6293912506103516
+      ],
+      "block_noise_eV_per_atom": 0.0019314716998452054,
+      "threshold_eV_per_atom": 0.0057944150995356165,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+       0.5,
+       1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9982638888888888,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+     },
+     {
+      "T_target_K": 494.0,
+      "T_measured_K": 493.8,
+      "ref_pe_eV_per_atom": -2.6274254322052,
+      "end_pe_eV_per_atom": -2.6213398933410645,
+      "delta_pe_eV_per_atom": 0.006085538864135653,
+      "block_means_eV_per_atom": [
+       -2.6244106578826902,
+       -2.620967493057251,
+       -2.620831618309021,
+       -2.6232146644592285,
+       -2.6218140935897827,
+       -2.620438451766968,
+       -2.620918970108032,
+       -2.621567587852478,
+       -2.6222381258010863,
+       -2.6213398933410645
+      ],
+      "block_noise_eV_per_atom": 0.0011082304396667095,
+      "threshold_eV_per_atom": 0.0033246913190001287,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+       0.5,
+       1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9982638888888888,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+     }
+    ],
+    "flags": [],
+    "protocol_version": 2,
+    "t_melt_K": 860.0,
+    "t_ref_K": 430.0,
+    "seed": 2027,
+    "upper_bound_K": 366.0,
+    "retry": "retry 2: bracket shifted down"
+   },
+   "_fulfilled_need": {
+    "parent_artifact_id": "96074d6b-50ad-461a-ac86-41ed6869bdb3",
+    "artifact_type": "property_result",
+    "query": "melting_point of In"
+   },
+   "_need_index": 0
+  },
+  {
+   "id": "4b7431a6-daab-49bc-9ae0-992d04df10f4",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T06:42:53.078290+00:00",
+   "status": "failed",
+   "task": "melting_point of Bi via two-phase coexistence (ALCHEMI)",
+   "reason": "no temperature froze and the coldest run melted: the melting point is below the bracket",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-2/636b77c4-n0-a1/20261101T045143Z_Bi_coexistence",
+   "attempt": 1,
+   "details": {
+    "failure": "below_bracket",
+    "per_temperature": [
+     {
+      "T_target_K": 463.0,
+      "T_measured_K": 463.7,
+      "ref_pe_eV_per_atom": -3.733251788399436,
+      "end_pe_eV_per_atom": -3.721172819137573,
+      "delta_pe_eV_per_atom": 0.012078969261863026,
+      "block_means_eV_per_atom": [
+       -3.733429298400879,
+       -3.733757724761963,
+       -3.7324650049209596,
+       -3.7319065618515013,
+       -3.728451199531555,
+       -3.7288156843185423,
+       -3.726865530014038,
+       -3.724466156959534,
+       -3.7224802923202516,
+       -3.721172819137573
+      ],
+      "block_noise_eV_per_atom": 0.0006849638749511252,
+      "threshold_eV_per_atom": 0.0020548916248533757,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+       0.5,
+       1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9231770833333334,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+     },
+     {
+      "T_target_K": 518.0,
+      "T_measured_K": 518.5,
+      "ref_pe_eV_per_atom": -3.722831292585893,
+      "end_pe_eV_per_atom": -3.6973900175094605,
+      "delta_pe_eV_per_atom": 0.025441275076432568,
+      "block_means_eV_per_atom": [
+       -3.721939492225647,
+       -3.720327229499817,
+       -3.7117740058898927,
+       -3.7092405128479005,
+       -3.704620819091797,
+       -3.70446692943573,
+       -3.6995474243164064,
+       -3.6969440031051635,
+       -3.69701201915741,
+       -3.6973900175094605
+      ],
+      "block_noise_eV_per_atom": 0.004259311073631967,
+      "threshold_eV_per_atom": 0.0127779332208959,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+       0.5,
+       1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.984375,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+     },
+     {
+      "T_target_K": 572.0,
+      "T_measured_K": 572.0,
+      "ref_pe_eV_per_atom": -3.7124232812361284,
+      "end_pe_eV_per_atom": -3.6879098272323607,
+      "delta_pe_eV_per_atom": 0.0245134540037677,
+      "block_means_eV_per_atom": [
+       -3.7090151739120483,
+       -3.6970343160629273,
+       -3.6915046072006223,
+       -3.6891286087036135,
+       -3.689588313102722,
+       -3.690233507156372,
+       -3.688996043205261,
+       -3.6897478818893434,
+       -3.689608726501465,
+       -3.6879098272323607
+      ],
+      "block_noise_eV_per_atom": 0.0014805048940116268,
+      "threshold_eV_per_atom": 0.0044415146820348805,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+       0.5,
+       1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 1.0,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+     },
+     {
+      "T_target_K": 627.0,
+      "T_measured_K": 627.4,
+      "ref_pe_eV_per_atom": -3.7044930674813012,
+      "end_pe_eV_per_atom": -3.6795784425735474,
+      "delta_pe_eV_per_atom": 0.02491462490775387,
+      "block_means_eV_per_atom": [
+       -3.699978060722351,
+       -3.683224802017212,
+       -3.6789630889892577,
+       -3.6818539571762083,
+       -3.6798279428482057,
+       -3.6791330671310423,
+       -3.6809125900268556,
+       -3.6817567682266237,
+       -3.6802208852767944,
+       -3.6795784425735474
+      ],
+      "block_noise_eV_per_atom": 0.0024651852656532853,
+      "threshold_eV_per_atom": 0.007395555796959856,
+      "pe_verdict": "melting",
+      "ref_window_ps": [
+       0.5,
+       1.5
+      ],
+      "n_ref_rows": 11,
+      "n_end_rows": 50,
+      "max_mobile_fraction": 0.9986979166666666,
+      "mobility_verdict": "melting",
+      "verdict": "melting",
+      "basis": "mobility and pe"
+     }
+    ],
+    "flags": [],
+    "protocol_version": 2,
+    "t_melt_K": 1090.0,
+    "t_ref_K": 545.0,
+    "seed": 2027,
+    "upper_bound_K": 463.0,
+    "retry": "retry 2: bracket shifted down"
+   },
+   "_fulfilled_need": {
+    "parent_artifact_id": "636b77c4-6dad-4614-9f11-2423bdacac5e",
+    "artifact_type": "property_result",
+    "query": "melting_point of Bi"
+   },
+   "_need_index": 0
+  },
+  {
+   "id": "a9f70452-0928-4ddc-97d8-7f8066c2032a",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T07:01:35.135044+00:00",
+   "status": "failed",
+   "task": "latent_heat of Cu via NPT enthalpy difference (solid vs liquid) (ALCHEMI)",
+   "reason": "run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeout=30', '-o', 'ServerAliveInterval=30', '-o', 'ServerAliveCountMax=6', 'coolorbit-h100-host', 'cd ~/cool-orbit-v2c && git fetch -q origin && git checkout -q --detach afd42cd4beb12908ee209521cebc78bd98426774 && mkdir -p runs/remote/06c67470-n0-a1 && .venv/bin/python -m coolorbit.sim.melting latent --element Cu --structure fcc --a 3.61 --reps 4 4 4 --dt 2 --out runs/remote/06c6747",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/06c67470-n0-a1",
+   "attempt": 1,
+   "details": {},
+   "_fulfilled_need": {
+    "parent_artifact_id": "06c67470-6719-4c7d-9608-475da7abdb49",
+    "artifact_type": "property_result",
+    "query": "latent_heat of Cu"
+   },
+   "_need_index": 0
+  },
+  {
+   "id": "0a443abd-a43f-4b32-b23f-2200da757084",
+   "agent": "simulator_h100c",
+   "timestamp": "2026-11-01T07:27:43.507243+00:00",
+   "status": "failed",
+   "task": "latent_heat of Al via NPT enthalpy difference (solid vs liquid) (ALCHEMI)",
+   "reason": "run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeout=30', '-o', 'ServerAliveInterval=30', '-o', 'ServerAliveCountMax=6', 'coolorbit-h100-host', 'cd ~/cool-orbit-v2d && git fetch -q origin && git checkout -q --detach 1845e84230ce8b4c1e40da6aeae1f62dcefff0ed && mkdir -p runs/remote/fe944af4-n0-a1 && .venv/bin/python -m coolorbit.sim.melting latent --element Al --structure fcc --a 4.05 --reps 4 4 4 --dt 2 --out runs/remote/fe944af",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/fe944af4-n0-a1",
+   "attempt": 1,
+   "details": {},
+   "_fulfilled_need": {
+    "parent_artifact_id": "fe944af4-e03a-4604-8632-22235376f84f",
+    "artifact_type": "property_result",
+    "query": "latent_heat of Al"
+   },
+   "_need_index": 0
+  }
+ ],
+ "ranking": null,
+ "scorecard": null,
+ "scorecard_post_hoc": null,
+ "lineage": {
+  "636b77c4-6dad-4614-9f11-2423bdacac5e": {
+   "id": "636b77c4-6dad-4614-9f11-2423bdacac5e",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T04:51:38.461599+00:00",
+   "summary": "candidate Bi (low_melting_metal, trust tier)",
+   "parents": [],
+   "children": [
+    "94f71d5a-662a-4eec-b48c-7b0a14d87533",
+    "620c675d-0ab6-4805-b114-1031b426b967",
+    "4b7431a6-daab-49bc-9ae0-992d04df10f4",
+    "2f575597-fc1f-4bc8-9731-29e6d58ea692"
+   ],
+   "payload": {
+    "name": "Bi",
+    "family": "low_melting_metal",
+    "tier": "trust",
+    "formula": "Bi",
+    "structure_source": "ref:Bi",
+    "rationale": "low-melting metal (545 K), expands on freezing; real Bi crystal via ref:Bi"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of Bi",
+     "rationale": "low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (545 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "t_guess_K": 545
+    }
+   ]
+  },
+  "94f71d5a-662a-4eec-b48c-7b0a14d87533": {
+   "id": "94f71d5a-662a-4eec-b48c-7b0a14d87533",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T04:51:38.689437+00:00",
+   "summary": "claims need #0 on 636b77c4",
+   "parents": [
+    "636b77c4-6dad-4614-9f11-2423bdacac5e"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "636b77c4-6dad-4614-9f11-2423bdacac5e",
+    "need_index": 0,
+    "expires_at": "2026-11-01T08:44:10.849324+00:00"
+   },
+   "needs": []
+  },
+  "620c675d-0ab6-4805-b114-1031b426b967": {
+   "id": "620c675d-0ab6-4805-b114-1031b426b967",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T04:54:42.326627+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "636b77c4-6dad-4614-9f11-2423bdacac5e"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "96074d6b-50ad-461a-ac86-41ed6869bdb3": {
+   "id": "96074d6b-50ad-461a-ac86-41ed6869bdb3",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T04:54:42.327265+00:00",
+   "summary": "candidate In (low_melting_metal, trust tier)",
+   "parents": [],
+   "children": [
+    "b02b3df2-cf70-483a-9373-5069935dc9a6",
+    "e502d095-a924-4226-8b3e-36fd1fdf3cca",
+    "3826f46d-8c47-44ce-9d32-d25086541a31",
+    "ef8617e2-c9d0-4022-89f4-536056112ee1"
+   ],
+   "payload": {
+    "name": "In",
+    "family": "low_melting_metal",
+    "tier": "trust",
+    "formula": "In",
+    "structure_source": "ref:In",
+    "rationale": "low-melting metal with high conductivity; real tetragonal In crystal via ref:In"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of In",
+     "rationale": "low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (430 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "t_guess_K": 430
+    }
+   ]
+  },
+  "b02b3df2-cf70-483a-9373-5069935dc9a6": {
+   "id": "b02b3df2-cf70-483a-9373-5069935dc9a6",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T04:54:42.327870+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "96074d6b-50ad-461a-ac86-41ed6869bdb3"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "a5b51afa-2ed5-45d8-ac58-809bfa88ee07": {
+   "id": "a5b51afa-2ed5-45d8-ac58-809bfa88ee07",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T04:54:42.328218+00:00",
+   "summary": "candidate Sn (low_melting_metal, trust tier)",
+   "parents": [],
+   "children": [
+    "c5913138-eddd-443a-adbb-cde9abd73c39",
+    "99ddf263-d516-4f14-b717-f10c925a58fb",
+    "41ee63bb-43e5-4e97-a9be-90e61017e1a6"
+   ],
+   "payload": {
+    "name": "Sn",
+    "family": "low_melting_metal",
+    "tier": "trust",
+    "formula": "Sn",
+    "structure_source": "ref:Sn",
+    "rationale": "low-melting metal (505 K); real beta-Sn crystal via ref:Sn"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of Sn",
+     "rationale": "low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (505 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "t_guess_K": 505
+    }
+   ]
+  },
+  "c5913138-eddd-443a-adbb-cde9abd73c39": {
+   "id": "c5913138-eddd-443a-adbb-cde9abd73c39",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T04:54:42.328807+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "a5b51afa-2ed5-45d8-ac58-809bfa88ee07"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "f04022e9-40df-4b17-91a2-dc45c60032a6": {
+   "id": "f04022e9-40df-4b17-91a2-dc45c60032a6",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T04:54:42.329168+00:00",
+   "summary": "candidate Cu (validation_metal, trust tier)",
+   "parents": [],
+   "children": [
+    "c75c279a-d40a-4c2a-883c-8a25fb255802",
+    "90a8da27-f4f1-465c-8f46-31e5c1beb856",
+    "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2",
+    "06c67470-6719-4c7d-9608-475da7abdb49",
+    "a9f70452-0928-4ddc-97d8-7f8066c2032a",
+    "065ef630-fbc1-46e0-b0fb-820ea919bae8"
+   ],
+   "payload": {
+    "name": "Cu",
+    "family": "validation_metal",
+    "tier": "trust",
+    "formula": "Cu",
+    "structure_source": "ase:Cu:fcc:3.61",
+    "rationale": "method validation: well-measured metal, MACE-MPA-0 in domain"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of Cu",
+     "rationale": "validation_metal candidate; two-phase coexistence bracket centred on the literature value (1358 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "t_guess_K": 1358
+    }
+   ]
+  },
+  "c75c279a-d40a-4c2a-883c-8a25fb255802": {
+   "id": "c75c279a-d40a-4c2a-883c-8a25fb255802",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T04:54:42.329781+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "f04022e9-40df-4b17-91a2-dc45c60032a6"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "da6aca07-9fcc-4e4c-9738-9d43f2016ba9": {
+   "id": "da6aca07-9fcc-4e4c-9738-9d43f2016ba9",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T04:54:42.330175+00:00",
+   "summary": "candidate Al (validation_metal, trust tier)",
+   "parents": [],
+   "children": [
+    "be554088-9438-4070-80f9-4256aaf880d6",
+    "74218020-e4e9-4959-89bf-8e414366e0a2",
+    "d502cce5-a466-4ae3-b3cf-7820eb17b9e6",
+    "fe944af4-e03a-4604-8632-22235376f84f",
+    "0a443abd-a43f-4b32-b23f-2200da757084",
+    "8ccfb876-901b-431b-b120-7d055bce1231"
+   ],
+   "payload": {
+    "name": "Al",
+    "family": "validation_metal",
+    "tier": "trust",
+    "formula": "Al",
+    "structure_source": "ase:Al:fcc:4.05",
+    "rationale": "method validation: second well-measured fcc metal"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of Al",
+     "rationale": "validation_metal candidate; two-phase coexistence bracket centred on the literature value (933 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "t_guess_K": 933
+    }
+   ]
+  },
+  "be554088-9438-4070-80f9-4256aaf880d6": {
+   "id": "be554088-9438-4070-80f9-4256aaf880d6",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T04:54:42.330857+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "da6aca07-9fcc-4e4c-9738-9d43f2016ba9"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "e502d095-a924-4226-8b3e-36fd1fdf3cca": {
+   "id": "e502d095-a924-4226-8b3e-36fd1fdf3cca",
+   "type": "need_claim",
+   "agent": "simulator_h100",
+   "timestamp": "2026-11-01T04:54:58.699632+00:00",
+   "summary": "claims need #0 on 96074d6b",
+   "parents": [
+    "96074d6b-50ad-461a-ac86-41ed6869bdb3"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "96074d6b-50ad-461a-ac86-41ed6869bdb3",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:53:07.819248+00:00"
+   },
+   "needs": []
+  },
+  "99ddf263-d516-4f14-b717-f10c925a58fb": {
+   "id": "99ddf263-d516-4f14-b717-f10c925a58fb",
+   "type": "need_claim",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T04:56:43.518468+00:00",
+   "summary": "claims need #0 on a5b51afa",
+   "parents": [
+    "a5b51afa-2ed5-45d8-ac58-809bfa88ee07"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "a5b51afa-2ed5-45d8-ac58-809bfa88ee07",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:36:44.958174+00:00"
+   },
+   "needs": []
+  },
+  "41ee63bb-43e5-4e97-a9be-90e61017e1a6": {
+   "id": "41ee63bb-43e5-4e97-a9be-90e61017e1a6",
+   "type": "run_report",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T05:05:53.565875+00:00",
+   "summary": "failed: melting_point of Sn via two-phase coexistence (ALCHEMI) (the crystal did not survive the solid preparation (half or more of its atoms moved > 0.5 nearest-nei)",
+   "parents": [
+    "a5b51afa-2ed5-45d8-ac58-809bfa88ee07"
+   ],
+   "children": [],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of Sn via two-phase coexistence (ALCHEMI)",
+    "reason": "the crystal did not survive the solid preparation (half or more of its atoms moved > 0.5 nearest-neighbour distances), so the box would never hold a crystal half; stopped before melting and production",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/a5b51afa-n0-a1/20261101T045654Z_Sn_coexistence",
+    "attempt": 1,
+    "details": {
+     "failure": "crystal_lost_in_prep",
+     "per_temperature": [],
+     "flags": [
+      "crystal_lost_in_prep"
+     ],
+     "protocol_version": 2,
+     "t_melt_K": 1010.0,
+     "t_ref_K": 505.0,
+     "seed": 2027,
+     "stopped_after": "prep_solid_npt",
+     "retry": "no retry: crystal_lost_in_prep is a set-up or analysis artefact; a shifted or longer run would repeat it"
+    },
+    "_fulfilled_need": {
+     "parent_artifact_id": "a5b51afa-2ed5-45d8-ac58-809bfa88ee07",
+     "artifact_type": "property_result",
+     "query": "melting_point of Sn"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "90a8da27-f4f1-465c-8f46-31e5c1beb856": {
+   "id": "90a8da27-f4f1-465c-8f46-31e5c1beb856",
+   "type": "need_claim",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T05:05:53.567444+00:00",
+   "summary": "claims need #0 on f04022e9",
+   "parents": [
+    "f04022e9-40df-4b17-91a2-dc45c60032a6"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "f04022e9-40df-4b17-91a2-dc45c60032a6",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:45:55.007293+00:00"
+   },
+   "needs": []
+  },
+  "74218020-e4e9-4959-89bf-8e414366e0a2": {
+   "id": "74218020-e4e9-4959-89bf-8e414366e0a2",
+   "type": "need_claim",
+   "agent": "simulator_h100c",
+   "timestamp": "2026-11-01T05:37:21.592565+00:00",
+   "summary": "claims need #0 on da6aca07",
+   "parents": [
+    "da6aca07-9fcc-4e4c-9738-9d43f2016ba9"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "da6aca07-9fcc-4e4c-9738-9d43f2016ba9",
+    "need_index": 0,
+    "expires_at": "2026-11-01T08:17:23.032061+00:00"
+   },
+   "needs": []
+  },
+  "3826f46d-8c47-44ce-9d32-d25086541a31": {
+   "id": "3826f46d-8c47-44ce-9d32-d25086541a31",
+   "type": "run_report",
+   "agent": "simulator_h100",
+   "timestamp": "2026-11-01T06:03:51.590525+00:00",
+   "summary": "failed: melting_point of In via two-phase coexistence (ALCHEMI) (no temperature froze and the coldest run melted: the melting point is below the bracket)",
+   "parents": [
+    "96074d6b-50ad-461a-ac86-41ed6869bdb3"
+   ],
+   "children": [
+    "7e5a83e0-49f5-42cd-b0e7-4a1578369dbc",
+    "afb16d7c-b0fc-48eb-bd17-1a6172a2f5d5",
+    "ef8617e2-c9d0-4022-89f4-536056112ee1"
+   ],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of In via two-phase coexistence (ALCHEMI)",
+    "reason": "no temperature froze and the coldest run melted: the melting point is below the bracket",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/96074d6b-n0-a1/20261101T045510Z_In_coexistence",
+    "attempt": 1,
+    "details": {
+     "failure": "below_bracket",
+     "per_temperature": [
+      {
+       "T_target_K": 366.0,
+       "T_measured_K": 366.1,
+       "ref_pe_eV_per_atom": -2.6515454162250864,
+       "end_pe_eV_per_atom": -2.643188123703003,
+       "delta_pe_eV_per_atom": 0.008357292522083615,
+       "block_means_eV_per_atom": [
+        -2.650785698890686,
+        -2.651427984237671,
+        -2.650573935508728,
+        -2.649026246070862,
+        -2.6492328739166258,
+        -2.6467240715026854,
+        -2.643510112762451,
+        -2.6441004610061647,
+        -2.643926944732666,
+        -2.643188123703003
+       ],
+       "block_noise_eV_per_atom": 0.0022190576201873806,
+       "threshold_eV_per_atom": 0.006657172860562142,
+       "pe_verdict": "melting",
+       "ref_window_ps": [
+        0.5,
+        1.5
+       ],
+       "n_ref_rows": 11,
+       "n_end_rows": 50,
+       "max_mobile_fraction": 0.9826388888888888,
+       "mobility_verdict": "melting",
+       "verdict": "melting",
+       "basis": "mobility and pe"
+      },
+      {
+       "T_target_K": 408.0,
+       "T_measured_K": 407.9,
+       "ref_pe_eV_per_atom": -2.6448578617789527,
+       "end_pe_eV_per_atom": -2.636642909049988,
+       "delta_pe_eV_per_atom": 0.008214952728964775,
+       "block_means_eV_per_atom": [
+        -2.644425768852234,
+        -2.6411829137802125,
+        -2.638852233886719,
+        -2.6371055698394774,
+        -2.635129623413086,
+        -2.6366411781311037,
+        -2.636147117614746,
+        -2.635531158447266,
+        -2.636757755279541,
+        -2.636642909049988
+       ],
+       "block_noise_eV_per_atom": 0.001186275549439115,
+       "threshold_eV_per_atom": 0.003558826648317345,
+       "pe_verdict": "melting",
+       "ref_window_ps": [
+        0.5,
+        1.5
+       ],
+       "n_ref_rows": 11,
+       "n_end_rows": 50,
+       "max_mobile_fraction": 0.9965277777777778,
+       "mobility_verdict": "melting",
+       "verdict": "melting",
+       "basis": "mobility and pe"
+      },
+      {
+       "T_target_K": 452.0,
+       "T_measured_K": 451.9,
+       "ref_pe_eV_per_atom": -2.637119401584972,
+       "end_pe_eV_per_atom": -2.6293912506103516,
+       "delta_pe_eV_per_atom": 0.00772815097462054,
+       "block_means_eV_per_atom": [
+        -2.6338784980773924,
+        -2.62812038898468,
+        -2.628477244377136,
+        -2.629210419654846,
+        -2.628966031074524,
+        -2.630028486251831,
+        -2.629591979980469,
+        -2.627914533615112,
+        -2.628177452087402,
+        -2.6293912506103516
+       ],
+       "block_noise_eV_per_atom": 0.0019314716998452054,
+       "threshold_eV_per_atom": 0.0057944150995356165,
+       "pe_verdict": "melting",
+       "ref_window_ps": [
+        0.5,
+        1.5
+       ],
+       "n_ref_rows": 11,
+       "n_end_rows": 50,
+       "max_mobile_fraction": 0.9982638888888888,
+       "mobility_verdict": "melting",
+       "verdict": "melting",
+       "basis": "mobility and pe"
+      },
+      {
+       "T_target_K": 494.0,
+       "T_measured_K": 493.8,
+       "ref_pe_eV_per_atom": -2.6274254322052,
+       "end_pe_eV_per_atom": -2.6213398933410645,
+       "delta_pe_eV_per_atom": 0.006085538864135653,
+       "block_means_eV_per_atom": [
+        -2.6244106578826902,
+        -2.620967493057251,
+        -2.620831618309021,
+        -2.6232146644592285,
+        -2.6218140935897827,
+        -2.620438451766968,
+        -2.620918970108032,
+        -2.621567587852478,
+        -2.6222381258010863,
+        -2.6213398933410645
+       ],
+       "block_noise_eV_per_atom": 0.0011082304396667095,
+       "threshold_eV_per_atom": 0.0033246913190001287,
+       "pe_verdict": "melting",
+       "ref_window_ps": [
+        0.5,
+        1.5
+       ],
+       "n_ref_rows": 11,
+       "n_end_rows": 50,
+       "max_mobile_fraction": 0.9982638888888888,
+       "mobility_verdict": "melting",
+       "verdict": "melting",
+       "basis": "mobility and pe"
+      }
+     ],
+     "flags": [],
+     "protocol_version": 2,
+     "t_melt_K": 860.0,
+     "t_ref_K": 430.0,
+     "seed": 2027,
+     "upper_bound_K": 366.0,
+     "retry": "retry 2: bracket shifted down"
+    },
+    "_fulfilled_need": {
+     "parent_artifact_id": "96074d6b-50ad-461a-ac86-41ed6869bdb3",
+     "artifact_type": "property_result",
+     "query": "melting_point of In"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of In (retry 2: bracket shifted down)",
+     "rationale": "attempt 1 failed: no temperature froze and the coldest run melted: the melting point is below the bracket",
+     "check_type": null,
+     "property": "melting_point",
+     "temps_K": [
+      238.0,
+      280.6666666666667,
+      323.3333333333333,
+      366.0
+     ],
+     "attempt": 2,
+     "protocol_version": 2,
+     "bracket_history": [
+      {
+       "attempt": 1,
+       "temps_K": [
+        366.0,
+        408.0,
+        452.0,
+        494.0
+       ],
+       "failure": "below_bracket",
+       "seed": 2027,
+       "upper_bound_K": 366.0
+      }
+     ],
+     "t_ref_K": 430.0,
+     "t_melt_K": 860.0
+    }
+   ]
+  },
+  "7e5a83e0-49f5-42cd-b0e7-4a1578369dbc": {
+   "id": "7e5a83e0-49f5-42cd-b0e7-4a1578369dbc",
+   "type": "need_claim",
+   "agent": "simulator_h100",
+   "timestamp": "2026-11-01T06:03:51.592085+00:00",
+   "summary": "claims need #0 on 3826f46d",
+   "parents": [
+    "3826f46d-8c47-44ce-9d32-d25086541a31"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "3826f46d-8c47-44ce-9d32-d25086541a31",
+    "need_index": 0,
+    "expires_at": "2026-11-01T09:02:00.712002+00:00"
+   },
+   "needs": []
+  },
+  "afb16d7c-b0fc-48eb-bd17-1a6172a2f5d5": {
+   "id": "afb16d7c-b0fc-48eb-bd17-1a6172a2f5d5",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T06:04:12.901476+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "3826f46d-8c47-44ce-9d32-d25086541a31"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2": {
+   "id": "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2",
+   "type": "property_result",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T06:10:14.660582+00:00",
+   "summary": "Cu melting_point = 1358 K via ALCHEMI/medium-mpa-0 two-phase coexistence",
+   "parents": [
+    "f04022e9-40df-4b17-91a2-dc45c60032a6"
+   ],
+   "children": [
+    "a5fc2e1f-3a00-4b3c-a9e4-2cfd714c815e",
+    "101aedb1-cc5f-400d-a437-a51ec8e34932",
+    "3986ed02-bc1d-4020-8919-1d5b38b3221b",
+    "47395e33-192b-42c7-8f2f-9a05c9191051",
+    "56dd388b-34f8-414e-9038-9d76d63f9828",
+    "06c67470-6719-4c7d-9608-475da7abdb49",
+    "86dcaf90-d725-470e-814e-4b0b6ff71295"
+   ],
+   "payload": {
+    "candidate": "Cu",
+    "family": "validation_metal",
+    "tier": "trust",
+    "property": "melting_point",
+    "value": 1358.0,
+    "units": "K",
+    "uncertainty": 68.0,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "two-phase coexistence",
+     "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 512,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "temperatures_K": [
+      1154.0,
+      1290.0,
+      1426.0,
+      1562.0
+     ],
+     "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/f04022e9-n0-a1/20261101T050603Z_Cu_coexistence",
+     "remote": {
+      "host": "coolorbit-h100-host",
+      "transport": "ssh",
+      "commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+     },
+     "protocol_version": 2,
+     "git_commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+    },
+    "flags": [],
+    "note": "",
+    "_fulfilled_need": {
+     "parent_artifact_id": "f04022e9-40df-4b17-91a2-dc45c60032a6",
+     "artifact_type": "property_result",
+     "query": "melting_point of Cu"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for Cu",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent melting_point for Cu with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    },
+    {
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of Cu with a citable source",
+     "rationale": "trust rule (c): trust-tier results must match a sourced measurement",
+     "check_type": null
+    }
+   ]
+  },
+  "a5fc2e1f-3a00-4b3c-a9e4-2cfd714c815e": {
+   "id": "a5fc2e1f-3a00-4b3c-a9e4-2cfd714c815e",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T06:10:42.949816+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [carried] same request as premise check c75c279a: melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "101aedb1-cc5f-400d-a437-a51ec8e34932": {
+   "id": "101aedb1-cc5f-400d-a437-a51ec8e34932",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T06:10:42.954512+00:00",
+   "summary": "claims need #0 on 94311022",
+   "parents": [
+    "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2",
+    "need_index": 0,
+    "expires_at": "2026-11-01T06:15:42.954206+00:00"
+   },
+   "needs": []
+  },
+  "3986ed02-bc1d-4020-8919-1d5b38b3221b": {
+   "id": "3986ed02-bc1d-4020-8919-1d5b38b3221b",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T06:10:42.955850+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2",
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for Cu"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "47395e33-192b-42c7-8f2f-9a05c9191051": {
+   "id": "47395e33-192b-42c7-8f2f-9a05c9191051",
+   "type": "need_claim",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T06:10:42.957400+00:00",
+   "summary": "claims need #2 on 94311022",
+   "parents": [
+    "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2",
+    "need_index": 2,
+    "expires_at": "2026-11-01T06:20:42.957203+00:00"
+   },
+   "needs": []
+  },
+  "56dd388b-34f8-414e-9038-9d76d63f9828": {
+   "id": "56dd388b-34f8-414e-9038-9d76d63f9828",
+   "type": "reference_value",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T06:10:42.958610+00:00",
+   "summary": "measured Cu melting_point = 1357.77 K [ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint]",
+   "parents": [
+    "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "Cu",
+    "property": "melting_point",
+    "value": 1357.77,
+    "units": "K",
+    "uncertainty": 0.03,
+    "source": "ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint",
+    "note": "ITS-90 freezing point; formula: Cu",
+    "_fulfilled_need": {
+     "parent_artifact_id": "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2",
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of Cu with a citable source"
+    },
+    "_need_index": 2
+   },
+   "needs": []
+  },
+  "06c67470-6719-4c7d-9608-475da7abdb49": {
+   "id": "06c67470-6719-4c7d-9608-475da7abdb49",
+   "type": "request",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T06:10:42.963912+00:00",
+   "summary": "request: latent_heat of Cu at the simulated melting_point",
+   "parents": [
+    "f04022e9-40df-4b17-91a2-dc45c60032a6",
+    "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2"
+   ],
+   "children": [
+    "bda5c2c3-f50f-4ae9-8cd1-4708f48596cf",
+    "6673c4e6-21c1-4f1d-bf47-3d83f989b620",
+    "a9f70452-0928-4ddc-97d8-7f8066c2032a"
+   ],
+   "payload": {
+    "note": "latent_heat of Cu at the simulated melting_point"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "latent_heat of Cu",
+     "rationale": "second figure-of-merit input, at the simulated melting_point (1358 K, result 94311022)",
+     "check_type": null,
+     "property": "latent_heat",
+     "temperature_K": 1358.0
+    }
+   ]
+  },
+  "bda5c2c3-f50f-4ae9-8cd1-4708f48596cf": {
+   "id": "bda5c2c3-f50f-4ae9-8cd1-4708f48596cf",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T06:10:42.968142+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "06c67470-6719-4c7d-9608-475da7abdb49"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] latent_heat from NPT runs of each phase at the transition temperature is well-posed"
+   },
+   "needs": []
+  },
+  "6673c4e6-21c1-4f1d-bf47-3d83f989b620": {
+   "id": "6673c4e6-21c1-4f1d-bf47-3d83f989b620",
+   "type": "need_claim",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T06:10:44.663925+00:00",
+   "summary": "claims need #0 on 06c67470",
+   "parents": [
+    "06c67470-6719-4c7d-9608-475da7abdb49"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "06c67470-6719-4c7d-9608-475da7abdb49",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:01:35.063613+00:00"
+   },
+   "needs": []
+  },
+  "86dcaf90-d725-470e-814e-4b0b6ff71295": {
+   "id": "86dcaf90-d725-470e-814e-4b0b6ff71295",
+   "type": "check",
+   "agent": "referee_classical",
+   "timestamp": "2026-11-01T06:32:29.714000+00:00",
+   "summary": "classical_md: agree",
+   "parents": [
+    "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "classical_md",
+    "verdict": "agree",
+    "value": 1327.0,
+    "units": "K",
+    "uncertainty": 10.0,
+    "method": {
+     "engine": "LAMMPS",
+     "model": "EAM, NIST IPR 2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+     "protocol": "two-phase coexistence",
+     "ensemble": "NPT (Nose-Hoover, aniso)",
+     "timestep_fs": 2.0,
+     "n_atoms": 2744,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "nist_implementation": "2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+     "doi": "10.1103/physrevb.63.224106",
+     "seed": 2026
+    },
+    "flags": [],
+    "note": "Classical MD (EAM, NIST IPR 2001--Mishin-Y--Cu-1--LAMMPS--ipr1) two-phase coexistence: Tm = 1327 +/- 10 K, bracket [1310.0, 1330.0]; from runs/classical/eam-1/metals/Cu/analysis_coexistence.json. Measured 1357.77 K [ITS-90 defining fixed point, NIST https://its90.nist.gov/TerminologyFPoint]; the potential is within the tier1 tolerance of it.",
+    "_fulfilled_need": {
+     "parent_artifact_id": "94311022-a40a-4c6d-9f0f-e8ade9a2e1d2",
+     "artifact_type": "check",
+     "query": "independent melting_point for Cu with a different method (classical MD or a second MLIP)"
+    },
+    "_need_index": 1
+   },
+   "needs": []
+  },
+  "d502cce5-a466-4ae3-b3cf-7820eb17b9e6": {
+   "id": "d502cce5-a466-4ae3-b3cf-7820eb17b9e6",
+   "type": "property_result",
+   "agent": "simulator_h100c",
+   "timestamp": "2026-11-01T06:36:22.987086+00:00",
+   "summary": "Al melting_point = 933 K via ALCHEMI/medium-mpa-0 two-phase coexistence",
+   "parents": [
+    "da6aca07-9fcc-4e4c-9738-9d43f2016ba9"
+   ],
+   "children": [
+    "86536437-72b9-4ece-a5a1-7a59773f66f0",
+    "ebbd0401-a278-4e01-858f-5afb83a5a48f",
+    "b75de4da-4266-46d2-a223-8b721d857ed2",
+    "25e8e2d3-0a97-440d-8fcf-d2f1e73f65c3",
+    "7aff9e30-2fb5-46f4-9c70-50f79e46b90d",
+    "fe944af4-e03a-4604-8632-22235376f84f",
+    "1cdee5d5-cc9c-4256-958c-9c569d603dbc"
+   ],
+   "payload": {
+    "candidate": "Al",
+    "family": "validation_metal",
+    "tier": "trust",
+    "property": "melting_point",
+    "value": 933.0,
+    "units": "K",
+    "uncertainty": 47.0,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "two-phase coexistence",
+     "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 512,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "temperatures_K": [
+      793.0,
+      886.0,
+      980.0,
+      1073.0
+     ],
+     "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/da6aca07-n0-a1/20261101T053730Z_Al_coexistence",
+     "remote": {
+      "host": "coolorbit-h100-host",
+      "transport": "ssh",
+      "commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+     },
+     "protocol_version": 2,
+     "git_commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+    },
+    "flags": [],
+    "note": "",
+    "_fulfilled_need": {
+     "parent_artifact_id": "da6aca07-9fcc-4e4c-9738-9d43f2016ba9",
+     "artifact_type": "property_result",
+     "query": "melting_point of Al"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for Al",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent melting_point for Al with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    },
+    {
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of Al with a citable source",
+     "rationale": "trust rule (c): trust-tier results must match a sourced measurement",
+     "check_type": null
+    }
+   ]
+  },
+  "86536437-72b9-4ece-a5a1-7a59773f66f0": {
+   "id": "86536437-72b9-4ece-a5a1-7a59773f66f0",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T06:36:43.363164+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "d502cce5-a466-4ae3-b3cf-7820eb17b9e6"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [carried] same request as premise check be554088: melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "ebbd0401-a278-4e01-858f-5afb83a5a48f": {
+   "id": "ebbd0401-a278-4e01-858f-5afb83a5a48f",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T06:36:43.370120+00:00",
+   "summary": "claims need #0 on d502cce5",
+   "parents": [
+    "d502cce5-a466-4ae3-b3cf-7820eb17b9e6"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "d502cce5-a466-4ae3-b3cf-7820eb17b9e6",
+    "need_index": 0,
+    "expires_at": "2026-11-01T06:41:43.369808+00:00"
+   },
+   "needs": []
+  },
+  "b75de4da-4266-46d2-a223-8b721d857ed2": {
+   "id": "b75de4da-4266-46d2-a223-8b721d857ed2",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T06:36:43.371347+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "d502cce5-a466-4ae3-b3cf-7820eb17b9e6"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "d502cce5-a466-4ae3-b3cf-7820eb17b9e6",
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for Al"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "25e8e2d3-0a97-440d-8fcf-d2f1e73f65c3": {
+   "id": "25e8e2d3-0a97-440d-8fcf-d2f1e73f65c3",
+   "type": "need_claim",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T06:36:43.373195+00:00",
+   "summary": "claims need #2 on d502cce5",
+   "parents": [
+    "d502cce5-a466-4ae3-b3cf-7820eb17b9e6"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "d502cce5-a466-4ae3-b3cf-7820eb17b9e6",
+    "need_index": 2,
+    "expires_at": "2026-11-01T06:46:43.372954+00:00"
+   },
+   "needs": []
+  },
+  "7aff9e30-2fb5-46f4-9c70-50f79e46b90d": {
+   "id": "7aff9e30-2fb5-46f4-9c70-50f79e46b90d",
+   "type": "reference_value",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T06:36:43.374524+00:00",
+   "summary": "measured Al melting_point = 933.45 K [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]",
+   "parents": [
+    "d502cce5-a466-4ae3-b3cf-7820eb17b9e6"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "Al",
+    "property": "melting_point",
+    "value": 933.45,
+    "units": "K",
+    "uncertainty": null,
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
+    "note": "ITS-90 freezing point is 933.473 K (seen only on its-90.com, not an official copy); formula: Al",
+    "_fulfilled_need": {
+     "parent_artifact_id": "d502cce5-a466-4ae3-b3cf-7820eb17b9e6",
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of Al with a citable source"
+    },
+    "_need_index": 2
+   },
+   "needs": []
+  },
+  "fe944af4-e03a-4604-8632-22235376f84f": {
+   "id": "fe944af4-e03a-4604-8632-22235376f84f",
+   "type": "request",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T06:36:43.381835+00:00",
+   "summary": "request: latent_heat of Al at the simulated melting_point",
+   "parents": [
+    "da6aca07-9fcc-4e4c-9738-9d43f2016ba9",
+    "d502cce5-a466-4ae3-b3cf-7820eb17b9e6"
+   ],
+   "children": [
+    "41decc6e-166e-4278-9a49-dc08f28c41fe",
+    "0a984f80-851f-42b3-8e4f-2cd931ec1fc1",
+    "0a443abd-a43f-4b32-b23f-2200da757084"
+   ],
+   "payload": {
+    "note": "latent_heat of Al at the simulated melting_point"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "latent_heat of Al",
+     "rationale": "second figure-of-merit input, at the simulated melting_point (933 K, result d502cce5)",
+     "check_type": null,
+     "property": "latent_heat",
+     "temperature_K": 933.0
+    }
+   ]
+  },
+  "41decc6e-166e-4278-9a49-dc08f28c41fe": {
+   "id": "41decc6e-166e-4278-9a49-dc08f28c41fe",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T06:36:43.386861+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "fe944af4-e03a-4604-8632-22235376f84f"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] latent_heat from NPT runs of each phase at the transition temperature is well-posed"
+   },
+   "needs": []
+  },
+  "0a984f80-851f-42b3-8e4f-2cd931ec1fc1": {
+   "id": "0a984f80-851f-42b3-8e4f-2cd931ec1fc1",
+   "type": "need_claim",
+   "agent": "simulator_h100c",
+   "timestamp": "2026-11-01T06:36:52.991303+00:00",
+   "summary": "claims need #0 on fe944af4",
+   "parents": [
+    "fe944af4-e03a-4604-8632-22235376f84f"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "fe944af4-e03a-4604-8632-22235376f84f",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:27:43.391110+00:00"
+   },
+   "needs": []
+  },
+  "4b7431a6-daab-49bc-9ae0-992d04df10f4": {
+   "id": "4b7431a6-daab-49bc-9ae0-992d04df10f4",
+   "type": "run_report",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T06:42:53.078290+00:00",
+   "summary": "failed: melting_point of Bi via two-phase coexistence (ALCHEMI) (no temperature froze and the coldest run melted: the melting point is below the bracket)",
+   "parents": [
+    "636b77c4-6dad-4614-9f11-2423bdacac5e"
+   ],
+   "children": [
+    "a8dd8ee2-1293-43ac-9f8a-391cff027a9c",
+    "1a881358-9d8f-4c21-8129-28ec22fd6b11",
+    "2f575597-fc1f-4bc8-9731-29e6d58ea692"
+   ],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of Bi via two-phase coexistence (ALCHEMI)",
+    "reason": "no temperature froze and the coldest run melted: the melting point is below the bracket",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-2/636b77c4-n0-a1/20261101T045143Z_Bi_coexistence",
+    "attempt": 1,
+    "details": {
+     "failure": "below_bracket",
+     "per_temperature": [
+      {
+       "T_target_K": 463.0,
+       "T_measured_K": 463.7,
+       "ref_pe_eV_per_atom": -3.733251788399436,
+       "end_pe_eV_per_atom": -3.721172819137573,
+       "delta_pe_eV_per_atom": 0.012078969261863026,
+       "block_means_eV_per_atom": [
+        -3.733429298400879,
+        -3.733757724761963,
+        -3.7324650049209596,
+        -3.7319065618515013,
+        -3.728451199531555,
+        -3.7288156843185423,
+        -3.726865530014038,
+        -3.724466156959534,
+        -3.7224802923202516,
+        -3.721172819137573
+       ],
+       "block_noise_eV_per_atom": 0.0006849638749511252,
+       "threshold_eV_per_atom": 0.0020548916248533757,
+       "pe_verdict": "melting",
+       "ref_window_ps": [
+        0.5,
+        1.5
+       ],
+       "n_ref_rows": 11,
+       "n_end_rows": 50,
+       "max_mobile_fraction": 0.9231770833333334,
+       "mobility_verdict": "melting",
+       "verdict": "melting",
+       "basis": "mobility and pe"
+      },
+      {
+       "T_target_K": 518.0,
+       "T_measured_K": 518.5,
+       "ref_pe_eV_per_atom": -3.722831292585893,
+       "end_pe_eV_per_atom": -3.6973900175094605,
+       "delta_pe_eV_per_atom": 0.025441275076432568,
+       "block_means_eV_per_atom": [
+        -3.721939492225647,
+        -3.720327229499817,
+        -3.7117740058898927,
+        -3.7092405128479005,
+        -3.704620819091797,
+        -3.70446692943573,
+        -3.6995474243164064,
+        -3.6969440031051635,
+        -3.69701201915741,
+        -3.6973900175094605
+       ],
+       "block_noise_eV_per_atom": 0.004259311073631967,
+       "threshold_eV_per_atom": 0.0127779332208959,
+       "pe_verdict": "melting",
+       "ref_window_ps": [
+        0.5,
+        1.5
+       ],
+       "n_ref_rows": 11,
+       "n_end_rows": 50,
+       "max_mobile_fraction": 0.984375,
+       "mobility_verdict": "melting",
+       "verdict": "melting",
+       "basis": "mobility and pe"
+      },
+      {
+       "T_target_K": 572.0,
+       "T_measured_K": 572.0,
+       "ref_pe_eV_per_atom": -3.7124232812361284,
+       "end_pe_eV_per_atom": -3.6879098272323607,
+       "delta_pe_eV_per_atom": 0.0245134540037677,
+       "block_means_eV_per_atom": [
+        -3.7090151739120483,
+        -3.6970343160629273,
+        -3.6915046072006223,
+        -3.6891286087036135,
+        -3.689588313102722,
+        -3.690233507156372,
+        -3.688996043205261,
+        -3.6897478818893434,
+        -3.689608726501465,
+        -3.6879098272323607
+       ],
+       "block_noise_eV_per_atom": 0.0014805048940116268,
+       "threshold_eV_per_atom": 0.0044415146820348805,
+       "pe_verdict": "melting",
+       "ref_window_ps": [
+        0.5,
+        1.5
+       ],
+       "n_ref_rows": 11,
+       "n_end_rows": 50,
+       "max_mobile_fraction": 1.0,
+       "mobility_verdict": "melting",
+       "verdict": "melting",
+       "basis": "mobility and pe"
+      },
+      {
+       "T_target_K": 627.0,
+       "T_measured_K": 627.4,
+       "ref_pe_eV_per_atom": -3.7044930674813012,
+       "end_pe_eV_per_atom": -3.6795784425735474,
+       "delta_pe_eV_per_atom": 0.02491462490775387,
+       "block_means_eV_per_atom": [
+        -3.699978060722351,
+        -3.683224802017212,
+        -3.6789630889892577,
+        -3.6818539571762083,
+        -3.6798279428482057,
+        -3.6791330671310423,
+        -3.6809125900268556,
+        -3.6817567682266237,
+        -3.6802208852767944,
+        -3.6795784425735474
+       ],
+       "block_noise_eV_per_atom": 0.0024651852656532853,
+       "threshold_eV_per_atom": 0.007395555796959856,
+       "pe_verdict": "melting",
+       "ref_window_ps": [
+        0.5,
+        1.5
+       ],
+       "n_ref_rows": 11,
+       "n_end_rows": 50,
+       "max_mobile_fraction": 0.9986979166666666,
+       "mobility_verdict": "melting",
+       "verdict": "melting",
+       "basis": "mobility and pe"
+      }
+     ],
+     "flags": [],
+     "protocol_version": 2,
+     "t_melt_K": 1090.0,
+     "t_ref_K": 545.0,
+     "seed": 2027,
+     "upper_bound_K": 463.0,
+     "retry": "retry 2: bracket shifted down"
+    },
+    "_fulfilled_need": {
+     "parent_artifact_id": "636b77c4-6dad-4614-9f11-2423bdacac5e",
+     "artifact_type": "property_result",
+     "query": "melting_point of Bi"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of Bi (retry 2: bracket shifted down)",
+     "rationale": "attempt 1 failed: no temperature froze and the coldest run melted: the melting point is below the bracket",
+     "check_type": null,
+     "property": "melting_point",
+     "temps_K": [
+      299.0,
+      353.6666666666667,
+      408.3333333333333,
+      463.0
+     ],
+     "attempt": 2,
+     "protocol_version": 2,
+     "bracket_history": [
+      {
+       "attempt": 1,
+       "temps_K": [
+        463.0,
+        518.0,
+        572.0,
+        627.0
+       ],
+       "failure": "below_bracket",
+       "seed": 2027,
+       "upper_bound_K": 463.0
+      }
+     ],
+     "t_ref_K": 545.0,
+     "t_melt_K": 1090.0
+    }
+   ]
+  },
+  "a8dd8ee2-1293-43ac-9f8a-391cff027a9c": {
+   "id": "a8dd8ee2-1293-43ac-9f8a-391cff027a9c",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T06:42:53.084317+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "4b7431a6-daab-49bc-9ae0-992d04df10f4"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "1a881358-9d8f-4c21-8129-28ec22fd6b11": {
+   "id": "1a881358-9d8f-4c21-8129-28ec22fd6b11",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T06:42:53.092078+00:00",
+   "summary": "claims need #0 on 4b7431a6",
+   "parents": [
+    "4b7431a6-daab-49bc-9ae0-992d04df10f4"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "4b7431a6-daab-49bc-9ae0-992d04df10f4",
+    "need_index": 0,
+    "expires_at": "2026-11-01T10:35:25.251771+00:00"
+   },
+   "needs": []
+  },
+  "1cdee5d5-cc9c-4256-958c-9c569d603dbc": {
+   "id": "1cdee5d5-cc9c-4256-958c-9c569d603dbc",
+   "type": "check",
+   "agent": "referee_classical",
+   "timestamp": "2026-11-01T06:51:09.005660+00:00",
+   "summary": "classical_md: inconclusive",
+   "parents": [
+    "d502cce5-a466-4ae3-b3cf-7820eb17b9e6"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "classical_md",
+    "verdict": "inconclusive",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [
+     "independent_method_unreliable"
+    ],
+    "note": "Classical MD (EAM, NIST IPR 1999--Mishin-Y--Al--LAMMPS--ipr1) two-phase coexistence: Tm = 1041.4 +/- 11.6 K, bracket [1026.8, 1050.0]; from runs/classical/eam-1/metals/Al/analysis_coexistence.json. Not counted: this potential misses the measured 933.45 K [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt] by +108 K, beyond the tier1 tolerance {'rel': 0.1}.",
+    "_fulfilled_need": {
+     "parent_artifact_id": "d502cce5-a466-4ae3-b3cf-7820eb17b9e6",
+     "artifact_type": "check",
+     "query": "independent melting_point for Al with a different method (classical MD or a second MLIP)"
+    },
+    "_need_index": 1
+   },
+   "needs": []
+  },
+  "a9f70452-0928-4ddc-97d8-7f8066c2032a": {
+   "id": "a9f70452-0928-4ddc-97d8-7f8066c2032a",
+   "type": "run_report",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T07:01:35.135044+00:00",
+   "summary": "failed: latent_heat of Cu via NPT enthalpy difference (solid vs liquid) (ALCHEMI) (run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', )",
+   "parents": [
+    "f04022e9-40df-4b17-91a2-dc45c60032a6",
+    "06c67470-6719-4c7d-9608-475da7abdb49"
+   ],
+   "children": [
+    "065ef630-fbc1-46e0-b0fb-820ea919bae8"
+   ],
+   "payload": {
+    "status": "failed",
+    "task": "latent_heat of Cu via NPT enthalpy difference (solid vs liquid) (ALCHEMI)",
+    "reason": "run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeout=30', '-o', 'ServerAliveInterval=30', '-o', 'ServerAliveCountMax=6', 'coolorbit-h100-host', 'cd ~/cool-orbit-v2c && git fetch -q origin && git checkout -q --detach afd42cd4beb12908ee209521cebc78bd98426774 && mkdir -p runs/remote/06c67470-n0-a1 && .venv/bin/python -m coolorbit.sim.melting latent --element Cu --structure fcc --a 3.61 --reps 4 4 4 --dt 2 --out runs/remote/06c6747",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/06c67470-n0-a1",
+    "attempt": 1,
+    "details": {},
+    "_fulfilled_need": {
+     "parent_artifact_id": "06c67470-6719-4c7d-9608-475da7abdb49",
+     "artifact_type": "property_result",
+     "query": "latent_heat of Cu"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "ef8617e2-c9d0-4022-89f4-536056112ee1": {
+   "id": "ef8617e2-c9d0-4022-89f4-536056112ee1",
+   "type": "property_result",
+   "agent": "simulator_h100",
+   "timestamp": "2026-11-01T07:09:13.833721+00:00",
+   "summary": "In melting_point = 344.7 K via ALCHEMI/medium-mpa-0 two-phase coexistence",
+   "parents": [
+    "96074d6b-50ad-461a-ac86-41ed6869bdb3",
+    "3826f46d-8c47-44ce-9d32-d25086541a31"
+   ],
+   "children": [
+    "465b65be-f180-4d08-a61b-1021951191de",
+    "48776d9f-08d2-4cc5-a872-2dffa4637052",
+    "c2450978-654c-4c6f-8487-52bc759363c7",
+    "1ea5a8e7-dbbe-4885-8eb7-98a91264696c",
+    "2ddc4a12-c6ba-4bf7-ab8c-7047d940503b"
+   ],
+   "payload": {
+    "candidate": "In",
+    "family": "low_melting_metal",
+    "tier": "trust",
+    "property": "melting_point",
+    "value": 344.7,
+    "units": "K",
+    "uncertainty": 21.3,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "two-phase coexistence",
+     "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 576,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "temperatures_K": [
+      238.0,
+      280.667,
+      323.333,
+      366.0
+     ],
+     "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/3826f46d-n0-a2/20261101T060401Z_In_coexistence",
+     "remote": {
+      "host": "coolorbit-h100-host",
+      "transport": "ssh",
+      "commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+     },
+     "protocol_version": 2,
+     "git_commit": "afd42cd4beb12908ee209521cebc78bd98426774"
+    },
+    "flags": [],
+    "note": "",
+    "_fulfilled_need": {
+     "parent_artifact_id": "3826f46d-8c47-44ce-9d32-d25086541a31",
+     "artifact_type": "property_result",
+     "query": "melting_point of In (retry 2: bracket shifted down)"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for In",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent melting_point for In with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    },
+    {
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of In with a citable source",
+     "rationale": "trust rule (c): trust-tier results must match a sourced measurement",
+     "check_type": null
+    }
+   ]
+  },
+  "465b65be-f180-4d08-a61b-1021951191de": {
+   "id": "465b65be-f180-4d08-a61b-1021951191de",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T07:09:14.057655+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "ef8617e2-c9d0-4022-89f4-536056112ee1"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [carried] same request as premise check afb16d7c: melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "48776d9f-08d2-4cc5-a872-2dffa4637052": {
+   "id": "48776d9f-08d2-4cc5-a872-2dffa4637052",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T07:09:14.064902+00:00",
+   "summary": "claims need #0 on ef8617e2",
+   "parents": [
+    "ef8617e2-c9d0-4022-89f4-536056112ee1"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "ef8617e2-c9d0-4022-89f4-536056112ee1",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:14:14.064563+00:00"
+   },
+   "needs": []
+  },
+  "c2450978-654c-4c6f-8487-52bc759363c7": {
+   "id": "c2450978-654c-4c6f-8487-52bc759363c7",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T07:09:14.066286+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "ef8617e2-c9d0-4022-89f4-536056112ee1"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "ef8617e2-c9d0-4022-89f4-536056112ee1",
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for In"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "1ea5a8e7-dbbe-4885-8eb7-98a91264696c": {
+   "id": "1ea5a8e7-dbbe-4885-8eb7-98a91264696c",
+   "type": "need_claim",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T07:09:14.068607+00:00",
+   "summary": "claims need #2 on ef8617e2",
+   "parents": [
+    "ef8617e2-c9d0-4022-89f4-536056112ee1"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "ef8617e2-c9d0-4022-89f4-536056112ee1",
+    "need_index": 2,
+    "expires_at": "2026-11-01T07:19:14.068303+00:00"
+   },
+   "needs": []
+  },
+  "2ddc4a12-c6ba-4bf7-ab8c-7047d940503b": {
+   "id": "2ddc4a12-c6ba-4bf7-ab8c-7047d940503b",
+   "type": "reference_value",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T07:09:14.070035+00:00",
+   "summary": "measured In melting_point = 429.748 K [Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90]",
+   "parents": [
+    "ef8617e2-c9d0-4022-89f4-536056112ee1"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "In",
+    "property": "melting_point",
+    "value": 429.748,
+    "units": "K",
+    "uncertainty": null,
+    "source": "Assael et al., J. Phys. Chem. Ref. Data 41, 033101 (2012), doi:10.1063/1.4729873, Table 2, citing ITS-90",
+    "note": "ITS-90 freezing point 429.7485 K; formula: In",
+    "_fulfilled_need": {
+     "parent_artifact_id": "ef8617e2-c9d0-4022-89f4-536056112ee1",
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of In with a citable source"
+    },
+    "_need_index": 2
+   },
+   "needs": []
+  },
+  "065ef630-fbc1-46e0-b0fb-820ea919bae8": {
+   "id": "065ef630-fbc1-46e0-b0fb-820ea919bae8",
+   "type": "property_result",
+   "agent": "simulator_h100b",
+   "timestamp": "2026-11-01T07:12:48.036797+00:00",
+   "summary": "Cu latent_heat = 190222 J/kg via ALCHEMI/medium-mpa-0 NPT enthalpy difference (solid vs liquid)",
+   "parents": [
+    "f04022e9-40df-4b17-91a2-dc45c60032a6",
+    "a9f70452-0928-4ddc-97d8-7f8066c2032a"
+   ],
+   "children": [
+    "5e567360-ef08-4dc8-a989-b56d9dabdc29",
+    "2048126a-d128-49d7-bca0-27d1d47f9ca2",
+    "1c318276-5fab-4547-98f4-79bb34c7d1e2",
+    "00c27d33-198b-4542-a80c-ce94f1b00161",
+    "334cf673-3aa3-4606-86ab-4c0858624d7b"
+   ],
+   "payload": {
+    "candidate": "Cu",
+    "family": "validation_metal",
+    "tier": "trust",
+    "property": "latent_heat",
+    "value": 190222.0,
+    "units": "J/kg",
+    "uncertainty": 2692.0,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "NPT enthalpy difference (solid vs liquid)",
+     "ensemble": "NPT isotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 256,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "temperatures_K": [
+      1358.0
+     ],
+     "run_dir": "runs/remote/science-2/06c67470-n0-a1/20261101T061054Z_Cu_latent"
+    },
+    "flags": [],
+    "note": "Recovered result: the remote run completed after the runner gave up (failed report a9f70452: run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeou). Same run folder; posted with scripts/recover_remote_result.py."
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Cu",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent latent_heat for Cu with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    },
+    {
+     "artifact_type": "reference_value",
+     "query": "measured latent_heat of Cu with a citable source",
+     "rationale": "trust rule (c): trust-tier results must match a sourced measurement",
+     "check_type": null
+    }
+   ]
+  },
+  "5e567360-ef08-4dc8-a989-b56d9dabdc29": {
+   "id": "5e567360-ef08-4dc8-a989-b56d9dabdc29",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T07:13:14.173186+00:00",
+   "summary": "claims need #0 on 065ef630",
+   "parents": [
+    "065ef630-fbc1-46e0-b0fb-820ea919bae8"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "065ef630-fbc1-46e0-b0fb-820ea919bae8",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:18:14.172531+00:00"
+   },
+   "needs": []
+  },
+  "2048126a-d128-49d7-bca0-27d1d47f9ca2": {
+   "id": "2048126a-d128-49d7-bca0-27d1d47f9ca2",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T07:13:14.175114+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "065ef630-fbc1-46e0-b0fb-820ea919bae8"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "065ef630-fbc1-46e0-b0fb-820ea919bae8",
+     "artifact_type": "check",
+     "query": "audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Cu"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "1c318276-5fab-4547-98f4-79bb34c7d1e2": {
+   "id": "1c318276-5fab-4547-98f4-79bb34c7d1e2",
+   "type": "need_claim",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T07:13:14.177652+00:00",
+   "summary": "claims need #2 on 065ef630",
+   "parents": [
+    "065ef630-fbc1-46e0-b0fb-820ea919bae8"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "065ef630-fbc1-46e0-b0fb-820ea919bae8",
+    "need_index": 2,
+    "expires_at": "2026-11-01T07:23:14.177316+00:00"
+   },
+   "needs": []
+  },
+  "00c27d33-198b-4542-a80c-ce94f1b00161": {
+   "id": "00c27d33-198b-4542-a80c-ce94f1b00161",
+   "type": "reference_value",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T07:13:14.179192+00:00",
+   "summary": "measured Cu latent_heat = 206748 J/kg [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt]",
+   "parents": [
+    "065ef630-fbc1-46e0-b0fb-820ea919bae8"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "Cu",
+    "property": "latent_heat",
+    "value": 206748.0,
+    "units": "J/kg",
+    "uncertainty": null,
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt",
+    "note": "H-H(Tr) jump: 42.798 - 29.660 = 13.138 kJ/mol; x 1e6 / 63.546 g/mol; formula: Cu",
+    "_fulfilled_need": {
+     "parent_artifact_id": "065ef630-fbc1-46e0-b0fb-820ea919bae8",
+     "artifact_type": "reference_value",
+     "query": "measured latent_heat of Cu with a citable source"
+    },
+    "_need_index": 2
+   },
+   "needs": []
+  },
+  "334cf673-3aa3-4606-86ab-4c0858624d7b": {
+   "id": "334cf673-3aa3-4606-86ab-4c0858624d7b",
+   "type": "check",
+   "agent": "referee_classical",
+   "timestamp": "2026-11-01T07:13:52.706748+00:00",
+   "summary": "classical_md: agree",
+   "parents": [
+    "065ef630-fbc1-46e0-b0fb-820ea919bae8"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "classical_md",
+    "verdict": "agree",
+    "value": 188684.0,
+    "units": "J/kg",
+    "uncertainty": 1044.0,
+    "method": {
+     "engine": "LAMMPS",
+     "model": "EAM, NIST IPR 2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+     "protocol": "solid vs liquid enthalpy at Tm",
+     "ensemble": "NPT (Nose-Hoover; solid aniso, liquid iso)",
+     "timestep_fs": 2.0,
+     "n_atoms": 864,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "nist_implementation": "2001--Mishin-Y--Cu-1--LAMMPS--ipr1",
+     "doi": "10.1103/physrevb.63.224106",
+     "seed": 2026
+    },
+    "flags": [],
+    "note": "Classical MD (EAM, NIST IPR 2001--Mishin-Y--Cu-1--LAMMPS--ipr1) solid vs liquid NPT enthalpy at the potential's own Tm: L = 188684 +/- 1044 J/kg; from runs/classical/eam-1/metals/Cu/analysis_latent.json. Measured 206748 J/kg [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Cu-001.txt]; the potential is within the tier1 tolerance of it.",
+    "_fulfilled_need": {
+     "parent_artifact_id": "065ef630-fbc1-46e0-b0fb-820ea919bae8",
+     "artifact_type": "check",
+     "query": "independent latent_heat for Cu with a different method (classical MD or a second MLIP)"
+    },
+    "_need_index": 1
+   },
+   "needs": []
+  },
+  "0a443abd-a43f-4b32-b23f-2200da757084": {
+   "id": "0a443abd-a43f-4b32-b23f-2200da757084",
+   "type": "run_report",
+   "agent": "simulator_h100c",
+   "timestamp": "2026-11-01T07:27:43.507243+00:00",
+   "summary": "failed: latent_heat of Al via NPT enthalpy difference (solid vs liquid) (ALCHEMI) (run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', )",
+   "parents": [
+    "da6aca07-9fcc-4e4c-9738-9d43f2016ba9",
+    "fe944af4-e03a-4604-8632-22235376f84f"
+   ],
+   "children": [
+    "8ccfb876-901b-431b-b120-7d055bce1231"
+   ],
+   "payload": {
+    "status": "failed",
+    "task": "latent_heat of Al via NPT enthalpy difference (solid vs liquid) (ALCHEMI)",
+    "reason": "run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeout=30', '-o', 'ServerAliveInterval=30', '-o', 'ServerAliveCountMax=6', 'coolorbit-h100-host', 'cd ~/cool-orbit-v2d && git fetch -q origin && git checkout -q --detach 1845e84230ce8b4c1e40da6aeae1f62dcefff0ed && mkdir -p runs/remote/fe944af4-n0-a1 && .venv/bin/python -m coolorbit.sim.melting latent --element Al --structure fcc --a 4.05 --reps 4 4 4 --dt 2 --out runs/remote/fe944af",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/remote/science-2/fe944af4-n0-a1",
+    "attempt": 1,
+    "details": {},
+    "_fulfilled_need": {
+     "parent_artifact_id": "fe944af4-e03a-4604-8632-22235376f84f",
+     "artifact_type": "property_result",
+     "query": "latent_heat of Al"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "8ccfb876-901b-431b-b120-7d055bce1231": {
+   "id": "8ccfb876-901b-431b-b120-7d055bce1231",
+   "type": "property_result",
+   "agent": "simulator_h100c",
+   "timestamp": "2026-11-01T07:35:30.154446+00:00",
+   "summary": "Al latent_heat = 355031 J/kg via ALCHEMI/medium-mpa-0 NPT enthalpy difference (solid vs liquid)",
+   "parents": [
+    "da6aca07-9fcc-4e4c-9738-9d43f2016ba9",
+    "0a443abd-a43f-4b32-b23f-2200da757084"
+   ],
+   "children": [
+    "b18d5801-92e0-400a-9335-b2f462ccd97b",
+    "337ee42f-24ba-4353-a4e9-98c40a8dc287",
+    "9f081802-b0b0-4016-a5a1-94643f634323",
+    "a183e46e-7a3f-4f7c-80ac-68d070149b14"
+   ],
+   "payload": {
+    "candidate": "Al",
+    "family": "validation_metal",
+    "tier": "trust",
+    "property": "latent_heat",
+    "value": 355031.0,
+    "units": "J/kg",
+    "uncertainty": 2437.0,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "NPT enthalpy difference (solid vs liquid)",
+     "ensemble": "NPT isotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 256,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "temperatures_K": [
+      933.0
+     ],
+     "run_dir": "runs/remote/science-2/fe944af4-n0-a1/20261101T063702Z_Al_latent"
+    },
+    "flags": [],
+    "note": "Recovered result: the remote run completed after the runner gave up (failed report 0a443abd: run did not complete: TimeoutExpired(['ssh', '-F', '/home/dell/.brev/ssh_config', '-T', '-p', '22', '-o', 'ConnectTimeou). Same run folder; posted with scripts/recover_remote_result.py."
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Al",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent latent_heat for Al with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    },
+    {
+     "artifact_type": "reference_value",
+     "query": "measured latent_heat of Al with a citable source",
+     "rationale": "trust rule (c): trust-tier results must match a sourced measurement",
+     "check_type": null
+    }
+   ]
+  },
+  "b18d5801-92e0-400a-9335-b2f462ccd97b": {
+   "id": "b18d5801-92e0-400a-9335-b2f462ccd97b",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T07:35:44.743738+00:00",
+   "summary": "claims need #0 on 8ccfb876",
+   "parents": [
+    "8ccfb876-901b-431b-b120-7d055bce1231"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "8ccfb876-901b-431b-b120-7d055bce1231",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:40:44.743136+00:00"
+   },
+   "needs": []
+  },
+  "337ee42f-24ba-4353-a4e9-98c40a8dc287": {
+   "id": "337ee42f-24ba-4353-a4e9-98c40a8dc287",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T07:35:44.745781+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "8ccfb876-901b-431b-b120-7d055bce1231"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "8ccfb876-901b-431b-b120-7d055bce1231",
+     "artifact_type": "check",
+     "query": "audit the NPT enthalpy difference (solid vs liquid) latent_heat run for Al"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "9f081802-b0b0-4016-a5a1-94643f634323": {
+   "id": "9f081802-b0b0-4016-a5a1-94643f634323",
+   "type": "need_claim",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T07:35:44.748460+00:00",
+   "summary": "claims need #2 on 8ccfb876",
+   "parents": [
+    "8ccfb876-901b-431b-b120-7d055bce1231"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "8ccfb876-901b-431b-b120-7d055bce1231",
+    "need_index": 2,
+    "expires_at": "2026-11-01T07:45:44.748092+00:00"
+   },
+   "needs": []
+  },
+  "a183e46e-7a3f-4f7c-80ac-68d070149b14": {
+   "id": "a183e46e-7a3f-4f7c-80ac-68d070149b14",
+   "type": "reference_value",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T07:35:44.750044+00:00",
+   "summary": "measured Al latent_heat = 396975 J/kg [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]",
+   "parents": [
+    "8ccfb876-901b-431b-b120-7d055bce1231"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "Al",
+    "property": "latent_heat",
+    "value": 396975.0,
+    "units": "J/kg",
+    "uncertainty": null,
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
+    "note": "H-H(Tr) jump: 28.693 - 17.982 = 10.711 kJ/mol; x 1e6 / 26.9815386 g/mol; formula: Al",
+    "_fulfilled_need": {
+     "parent_artifact_id": "8ccfb876-901b-431b-b120-7d055bce1231",
+     "artifact_type": "reference_value",
+     "query": "measured latent_heat of Al with a citable source"
+    },
+    "_need_index": 2
+   },
+   "needs": []
+  },
+  "2f575597-fc1f-4bc8-9731-29e6d58ea692": {
+   "id": "2f575597-fc1f-4bc8-9731-29e6d58ea692",
+   "type": "property_result",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T07:45:05.597320+00:00",
+   "summary": "Bi melting_point = 408.3 K via ALCHEMI/medium-mpa-0 two-phase coexistence",
+   "parents": [
+    "636b77c4-6dad-4614-9f11-2423bdacac5e",
+    "4b7431a6-daab-49bc-9ae0-992d04df10f4"
+   ],
+   "children": [
+    "8fb2ebf6-8570-4606-a285-c82281f60a9c",
+    "3caf1336-d73e-4ad9-8b7d-cdc174584de0",
+    "b7f41f33-d0c0-4b18-973f-2ff9f8e89d6f",
+    "2dcaca47-f758-4467-8abe-a7cb3ae61c90",
+    "656896ac-7da0-40e5-a9ab-b8b979d4e520",
+    "ce8c95bd-2ed2-4852-b77b-8da922c4ce1c"
+   ],
+   "payload": {
+    "candidate": "Bi",
+    "family": "low_melting_metal",
+    "tier": "trust",
+    "property": "melting_point",
+    "value": 408.3,
+    "units": "K",
+    "uncertainty": 54.7,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "two-phase coexistence",
+     "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 768,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "temperatures_K": [
+      299.0,
+      353.667,
+      408.333,
+      463.0
+     ],
+     "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-2/4b7431a6-n0-a2/20261101T064256Z_Bi_coexistence",
+     "protocol_version": 2,
+     "git_commit": "1845e84230ce8b4c1e40da6aeae1f62dcefff0ed"
+    },
+    "flags": [],
+    "note": "",
+    "_fulfilled_need": {
+     "parent_artifact_id": "4b7431a6-daab-49bc-9ae0-992d04df10f4",
+     "artifact_type": "property_result",
+     "query": "melting_point of Bi (retry 2: bracket shifted down)"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for Bi",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent melting_point for Bi with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    },
+    {
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of Bi with a citable source",
+     "rationale": "trust rule (c): trust-tier results must match a sourced measurement",
+     "check_type": null
+    }
+   ]
+  },
+  "8fb2ebf6-8570-4606-a285-c82281f60a9c": {
+   "id": "8fb2ebf6-8570-4606-a285-c82281f60a9c",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T07:45:05.599710+00:00",
+   "summary": "claims need #0 on 2f575597",
+   "parents": [
+    "2f575597-fc1f-4bc8-9731-29e6d58ea692"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "2f575597-fc1f-4bc8-9731-29e6d58ea692",
+    "need_index": 0,
+    "expires_at": "2026-11-01T07:50:05.599478+00:00"
+   },
+   "needs": []
+  },
+  "3caf1336-d73e-4ad9-8b7d-cdc174584de0": {
+   "id": "3caf1336-d73e-4ad9-8b7d-cdc174584de0",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T07:45:05.600629+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "2f575597-fc1f-4bc8-9731-29e6d58ea692"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "2f575597-fc1f-4bc8-9731-29e6d58ea692",
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for Bi"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "b7f41f33-d0c0-4b18-973f-2ff9f8e89d6f": {
+   "id": "b7f41f33-d0c0-4b18-973f-2ff9f8e89d6f",
+   "type": "need_claim",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T07:45:05.602046+00:00",
+   "summary": "claims need #2 on 2f575597",
+   "parents": [
+    "2f575597-fc1f-4bc8-9731-29e6d58ea692"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "2f575597-fc1f-4bc8-9731-29e6d58ea692",
+    "need_index": 2,
+    "expires_at": "2026-11-01T07:55:05.601868+00:00"
+   },
+   "needs": []
+  },
+  "2dcaca47-f758-4467-8abe-a7cb3ae61c90": {
+   "id": "2dcaca47-f758-4467-8abe-a7cb3ae61c90",
+   "type": "reference_value",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T07:45:05.602898+00:00",
+   "summary": "measured Bi melting_point = 544.556 K [NIST Certificate of Analysis, Standard Reference Material 2235 'Bismuth for Thermal Analysis' (2015), https://tsapps.nist.gov/srmext/certificates/archives/2235.pdf]",
+   "parents": [
+    "2f575597-fc1f-4bc8-9731-29e6d58ea692"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "Bi",
+    "property": "melting_point",
+    "value": 544.556,
+    "units": "K",
+    "uncertainty": 0.005,
+    "source": "NIST Certificate of Analysis, Standard Reference Material 2235 'Bismuth for Thermal Analysis' (2015), https://tsapps.nist.gov/srmext/certificates/archives/2235.pdf",
+    "note": "adiabatic calorimetry (Archer, J. Chem. Eng. Data 49, 1364 (2004)); k=2. ITS-90 secondary reference point 544.553 K; formula: Bi",
+    "_fulfilled_need": {
+     "parent_artifact_id": "2f575597-fc1f-4bc8-9731-29e6d58ea692",
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of Bi with a citable source"
+    },
+    "_need_index": 2
+   },
+   "needs": []
+  },
+  "656896ac-7da0-40e5-a9ab-b8b979d4e520": {
+   "id": "656896ac-7da0-40e5-a9ab-b8b979d4e520",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T07:45:05.605018+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "2f575597-fc1f-4bc8-9731-29e6d58ea692"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [carried] same request as premise check a8dd8ee2: melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "ce8c95bd-2ed2-4852-b77b-8da922c4ce1c": {
+   "id": "ce8c95bd-2ed2-4852-b77b-8da922c4ce1c",
+   "type": "check",
+   "agent": "referee_classical",
+   "timestamp": "2026-11-01T07:46:51.575394+00:00",
+   "summary": "classical_md: disagree",
+   "parents": [
+    "2f575597-fc1f-4bc8-9731-29e6d58ea692"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "classical_md",
+    "verdict": "disagree",
+    "value": 586.7,
+    "units": "K",
+    "uncertainty": 17.0,
+    "method": {
+     "engine": "LAMMPS",
+     "model": "2NN MEAM, NIST IPR 2021--Zhou-H--Bi--LAMMPS--ipr1",
+     "protocol": "two-phase coexistence",
+     "ensemble": "NPT (Nose-Hoover, aniso)",
+     "timestep_fs": 2.0,
+     "n_atoms": 1728,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "nist_implementation": "2021--Zhou-H--Bi--LAMMPS--ipr1",
+     "doi": "10.1088/1361-651x/ac095c",
+     "seed": 2026
+    },
+    "flags": [],
+    "note": "Classical MD (MEAM) two-phase coexistence: Tm = 586.7 +/- 17 K, bracket [576.0, 610.0]; from runs/classical/meam-bi-refine/metals/Bi/analysis_coexistence.json. Measured 544.556 K.",
+    "_fulfilled_need": {
+     "parent_artifact_id": "2f575597-fc1f-4bc8-9731-29e6d58ea692",
+     "artifact_type": "check",
+     "query": "independent melting_point for Bi with a different method (classical MD or a second MLIP)"
+    },
+    "_need_index": 1
+   },
+   "needs": []
+  }
+ }
+}

@@ -1,0 +1,1897 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "name": "science-1",
+ "path": "boards/science-1",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "synthetic": false,
+ "rules_frozen": true,
+ "arm": null,
+ "run": null,
+ "task_id": null,
+ "repeat": null,
+ "finished": null,
+ "agents": [
+  "adjudicator",
+  "librarian",
+  "referee_llm",
+  "referee_premise",
+  "referee_rules",
+  "scout_alloys",
+  "scout_fatty_acid",
+  "scout_metals",
+  "scout_paraffin",
+  "scout_salt_hydrate",
+  "scout_sugar_alcohol",
+  "simulator_gb10"
+ ],
+ "counts": {
+  "artifacts": 43,
+  "by_type": {
+   "candidate": 14,
+   "need_claim": 10,
+   "property_result": 2,
+   "check": 12,
+   "reference_value": 1,
+   "run_report": 4
+  },
+  "by_status": {
+   "flagged": 2
+  },
+  "open_needs": 10
+ },
+ "results": [
+  {
+   "id": "7ed6f997-33fa-4deb-963c-1b3bb43932bf",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-10-31T21:12:48.948325+00:00",
+   "candidate": "BiInSn",
+   "family": "low_melting_alloy",
+   "tier": "trust",
+   "property": "latent_heat",
+   "value": 25334.0,
+   "uncertainty": 184.0,
+   "units": "J/kg",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "NPT enthalpy difference (liquid alloy vs pure-element solids)",
+    "ensemble": "NPT isotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 500,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "temperatures_K": [
+     333.71
+    ],
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/ebc5b678-n0-a1/20261031T200431Z_BiInSn_alloy-latent"
+   },
+   "flags": [
+    "eutectic_solid_assumed_pure_elements"
+   ],
+   "note": "",
+   "status": "flagged",
+   "reasons": [
+    "method_audit by referee_rules: pass, settled by adjudicator ruling 65e3e208",
+    "method_audit by referee_llm: fail, settled by adjudicator ruling 65e3e208",
+    "method_audit by adjudicator: fail [mismatched_solid_reference_phases, eutectic_solid_assumed_pure_elements] ([adjudicator, settles: referee_rules pass (ada06981), referee_llm fail (8af1ea18)] The protocol explicitly computes H(liquid alloy) minus H(pure-element solids), and the producer's own flag 'eutectic_solid_assumed_pure_elements' confirms the solid reference is not the real eutectic assemblage. Field's metal solidifies into BiIn2 plus an In\u2013Sn solid solution, so the reported value includes the intermetallic formation enthalpies and liquid mixing enthalpy rather than the fusion enthalpy alone; this is a systematic bias, not a sampling issue, and the rules referee only checked generic thresholds (timestep, size, length) that do not address reference-phase correctness. The LLM referee's objection is specific and supported by the metadata, so the number as reported does not represent the latent heat of the eutectic.. Fix: Construct the solid reference from the actual eutectic phase assemblage (BiIn2 plus the In\u2013Sn \u03b3/\u03b2 solid solution in lever-rule fractions), compute H_liquid \u2212 H_solid at the same T and P with multiple seeds, or determine the latent heat directly via two-phase coexistence or heating/cooling hysteresis of the real eutectic solid. [claude-fable-5-1, $0.0395])",
+    "matches measured 27115 J/kg (|delta| = 1.78e+03) [Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3]"
+   ],
+   "superseded_by": [],
+   "reference": {
+    "value": 27115.0,
+    "units": "J/kg",
+    "source": "Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3",
+    "origin": "board",
+    "id": "6ca7f7d0-0edb-40af-964e-29c6fde7ab14",
+    "agent": "librarian"
+   }
+  },
+  {
+   "id": "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T00:03:15.967733+00:00",
+   "candidate": "InBi",
+   "family": "low_melting_alloy",
+   "tier": "discovery",
+   "property": "latent_heat",
+   "value": 24674.0,
+   "uncertainty": 330.0,
+   "units": "J/kg",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "NPT enthalpy difference (liquid alloy vs pure-element solids)",
+    "ensemble": "NPT isotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 500,
+    "sim_length_ps": 50.0,
+    "seeds": 1,
+    "temperatures_K": [
+     345.15
+    ],
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/c69f6cad-n0-a1/20261031T223921Z_InBi_alloy-latent"
+   },
+   "flags": [
+    "eutectic_solid_assumed_pure_elements"
+   ],
+   "note": "",
+   "status": "flagged",
+   "reasons": [
+    "method_audit by referee_rules: pass, settled by adjudicator ruling c9f4d6de",
+    "method_audit by referee_llm: fail, settled by adjudicator ruling c9f4d6de",
+    "method_audit by adjudicator: fail [mismatched_solid_reference_phases, eutectic_solid_assumed_pure_elements] ([adjudicator, settles: referee_rules pass (23fc631f), referee_llm fail (d5a93b0e)] The protocol explicitly computes H(liquid alloy) minus H(pure In solid + pure Bi solid), as both the protocol string and the producer's own flag 'eutectic_solid_assumed_pure_elements' confirm. The In-Bi eutectic near 345 K does not freeze into pure elements but into In2Bi intermetallic plus an In-rich solid solution, so the computed difference includes the nonzero In2Bi formation enthalpy and liquid mixing enthalpy rather than the eutectic melting enthalpy. This is a systematic phase-reference error that biases the latent heat, not a sampling or threshold quibble, so the rules referee's checklist pass does not address it. The timestep, cell size, ensemble and temperature are otherwise acceptable.. Fix: Construct the actual eutectic solid reference (In2Bi crystal plus In-rich solid solution in lever-rule proportions), equilibrate it in NPT at 345 K, and take the enthalpy difference against the liquid at the same composition and temperature; alternatively use a two-phase coexistence approach. Run multiple seeds to obtain a meaningful uncertainty. [claude-fable-5-1, $0.0468])"
+   ],
+   "superseded_by": [],
+   "reference": null
+  }
+ ],
+ "proposed": [
+  {
+   "id": "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57",
+   "agent": "scout_metals",
+   "name": "In",
+   "family": "low_melting_metal",
+   "tier": "trust",
+   "formula": "In",
+   "structure_source": "ref:In",
+   "rationale": "low-melting metal with high conductivity; real tetragonal In crystal via ref:In"
+  },
+  {
+   "id": "b3a83103-b607-44ff-b177-63bd3ddefa7e",
+   "agent": "scout_paraffin",
+   "name": "n-eicosane",
+   "family": "paraffin",
+   "tier": "trust",
+   "formula": "C20H42",
+   "structure_source": "pubchem:8222",
+   "rationale": "flight-heritage paraffin class; MACE-MP is out of domain for molecular crystals, so classical MD"
+  },
+  {
+   "id": "2b229689-bb5f-4585-a1e1-b65cb7904ac3",
+   "agent": "scout_fatty_acid",
+   "name": "lauric acid",
+   "family": "fatty_acid",
+   "tier": "trust",
+   "formula": "C12H24O2",
+   "structure_source": "pubchem:3893",
+   "rationale": "fatty-acid PCM in the 300-360 K range"
+  },
+  {
+   "id": "5dbd66a2-bd4b-4d2c-82ab-20af67d90a39",
+   "agent": "scout_sugar_alcohol",
+   "name": "erythritol",
+   "family": "sugar_alcohol",
+   "tier": "trust",
+   "formula": "C4H10O4",
+   "structure_source": "pubchem:222285",
+   "rationale": "high latent heat per kg (~320 kJ/kg) but melts near 391 K"
+  },
+  {
+   "id": "c2e26079-aae1-4f14-8bff-8a3254e66bcc",
+   "agent": "scout_salt_hydrate",
+   "name": "calcium chloride hexahydrate",
+   "family": "salt_hydrate",
+   "tier": "trust",
+   "formula": "CaCl2.6H2O",
+   "structure_source": null,
+   "rationale": "cheap high-density salt hydrate near 302 K; needs a periodic cell in data/structures/"
+  },
+  {
+   "id": "0e254158-7519-4b5e-baff-a11758cf3145",
+   "agent": "scout_metals",
+   "name": "Sn",
+   "family": "low_melting_metal",
+   "tier": "trust",
+   "formula": "Sn",
+   "structure_source": "ref:Sn",
+   "rationale": "low-melting metal (505 K); real beta-Sn crystal via ref:Sn"
+  },
+  {
+   "id": "2b16c2b7-4114-4597-b7bb-73c757965913",
+   "agent": "scout_paraffin",
+   "name": "n-octadecane",
+   "family": "paraffin",
+   "tier": "trust",
+   "formula": "C18H38",
+   "structure_source": "pubchem:11635",
+   "rationale": "the default paraffin PCM baseline to beat"
+  },
+  {
+   "id": "3dc82146-43ca-4aa4-98f7-d35f732140c8",
+   "agent": "scout_fatty_acid",
+   "name": "stearic acid",
+   "family": "fatty_acid",
+   "tier": "trust",
+   "formula": "C18H36O2",
+   "structure_source": "pubchem:5281",
+   "rationale": "fatty-acid PCM near the top of the candidate window"
+  },
+  {
+   "id": "c29135b8-f021-4c3e-8f97-d7eec520d771",
+   "agent": "scout_sugar_alcohol",
+   "name": "xylitol",
+   "family": "sugar_alcohol",
+   "tier": "trust",
+   "formula": "C5H12O5",
+   "structure_source": null,
+   "rationale": "sugar alcohol melting near 366 K; strong supercooling is a known issue; no structure yet"
+  },
+  {
+   "id": "9decf99a-5cd5-4cf4-ab0e-139ff88d9079",
+   "agent": "scout_salt_hydrate",
+   "name": "sodium sulfate decahydrate",
+   "family": "salt_hydrate",
+   "tier": "trust",
+   "formula": "Na2SO4.10H2O",
+   "structure_source": null,
+   "rationale": "Glauber's salt; melts incongruently, a stability risk to flag"
+  },
+  {
+   "id": "577df9a1-269d-4a2d-8d71-9f8a53e91043",
+   "agent": "scout_metals",
+   "name": "Bi",
+   "family": "low_melting_metal",
+   "tier": "trust",
+   "formula": "Bi",
+   "structure_source": "ref:Bi",
+   "rationale": "low-melting metal (545 K), expands on freezing; real Bi crystal via ref:Bi"
+  },
+  {
+   "id": "75a8092c-a0be-43f9-908f-444abfbe520c",
+   "agent": "scout_paraffin",
+   "name": "n-hexadecane",
+   "family": "paraffin",
+   "tier": "trust",
+   "formula": "C16H34",
+   "structure_source": "pubchem:11006",
+   "rationale": "shorter paraffin; brackets the chain-length trend"
+  }
+ ],
+ "open_needs": [
+  {
+   "artifact_id": "b3a83103-b607-44ff-b177-63bd3ddefa7e",
+   "index": 0,
+   "on_type": "candidate",
+   "kind": "property_result",
+   "query": "melting_point of n-eicosane",
+   "rationale": "paraffin candidate; two-phase coexistence bracket centred on the literature value (310 K)",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "2b229689-bb5f-4585-a1e1-b65cb7904ac3",
+   "index": 0,
+   "on_type": "candidate",
+   "kind": "property_result",
+   "query": "melting_point of lauric acid",
+   "rationale": "fatty_acid candidate; two-phase coexistence bracket centred on the literature value (317 K)",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "5dbd66a2-bd4b-4d2c-82ab-20af67d90a39",
+   "index": 0,
+   "on_type": "candidate",
+   "kind": "property_result",
+   "query": "melting_point of erythritol",
+   "rationale": "sugar_alcohol candidate; two-phase coexistence bracket centred on the literature value (391 K)",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "7ed6f997-33fa-4deb-963c-1b3bb43932bf",
+   "index": 1,
+   "on_type": "property_result",
+   "kind": "classical_md",
+   "query": "independent latent_heat for BiInSn with a different method (classical MD or a second MLIP)",
+   "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "2b16c2b7-4114-4597-b7bb-73c757965913",
+   "index": 0,
+   "on_type": "candidate",
+   "kind": "property_result",
+   "query": "melting_point of n-octadecane",
+   "rationale": "paraffin candidate; two-phase coexistence bracket centred on the literature value (301 K)",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "3dc82146-43ca-4aa4-98f7-d35f732140c8",
+   "index": 0,
+   "on_type": "candidate",
+   "kind": "property_result",
+   "query": "melting_point of stearic acid",
+   "rationale": "fatty_acid candidate; two-phase coexistence bracket centred on the literature value (341 K)",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "75a8092c-a0be-43f9-908f-444abfbe520c",
+   "index": 0,
+   "on_type": "candidate",
+   "kind": "property_result",
+   "query": "melting_point of n-hexadecane",
+   "rationale": "paraffin candidate; two-phase coexistence bracket centred on the literature value (291 K)",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8",
+   "index": 1,
+   "on_type": "property_result",
+   "kind": "classical_md",
+   "query": "independent latent_heat for InBi with a different method (classical MD or a second MLIP)",
+   "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "4384c0ea-d43e-4277-aa48-82920a33d900",
+   "index": 0,
+   "on_type": "run_report",
+   "kind": "property_result",
+   "query": "melting_point of In (retry 3: bracket shifted up)",
+   "rationale": "attempt 2 failed: no temperature melted and the hottest run froze: the melting point is above the bracket",
+   "claimed_by": null,
+   "claim_expires_at": null
+  },
+  {
+   "artifact_id": "6473c3f0-b9d4-44cb-b3cc-75b6cedb92d9",
+   "index": 0,
+   "on_type": "run_report",
+   "kind": "property_result",
+   "query": "melting_point of Bi (retry 2: bracket shifted down)",
+   "rationale": "attempt 1 failed: no temperature froze and the coldest run melted: the melting point is below the bracket",
+   "claimed_by": null,
+   "claim_expires_at": null
+  }
+ ],
+ "run_reports": [
+  {
+   "id": "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-10-31T22:39:16.353388+00:00",
+   "status": "failed",
+   "task": "melting_point of In via two-phase coexistence (ALCHEMI)",
+   "reason": "no temperature froze: the melting point is below the bracket",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/f3b5d7b8-n0-a1/20261031T211253Z_In_coexistence",
+   "attempt": 1,
+   "details": {
+    "failure": "below_bracket",
+    "per_temperature": [
+     {
+      "T_target_K": 366.0,
+      "T_measured_K": 365.5,
+      "delta_pe_eV_per_atom": 0.00783403957566442,
+      "block_noise_eV_per_atom": 0.00105710713958425,
+      "threshold_eV_per_atom": 0.00317132141875275,
+      "verdict": "melting"
+     },
+     {
+      "T_target_K": 408.0,
+      "T_measured_K": 408.1,
+      "delta_pe_eV_per_atom": 0.005316697642312462,
+      "block_noise_eV_per_atom": 0.0013331694695081517,
+      "threshold_eV_per_atom": 0.003999508408524455,
+      "verdict": "melting"
+     },
+     {
+      "T_target_K": 452.0,
+      "T_measured_K": 451.9,
+      "delta_pe_eV_per_atom": 0.00166159678012745,
+      "block_noise_eV_per_atom": 0.001158765781155929,
+      "threshold_eV_per_atom": 0.003476297343467787,
+      "verdict": "stable"
+     },
+     {
+      "T_target_K": 494.0,
+      "T_measured_K": 494.0,
+      "delta_pe_eV_per_atom": 0.001054333985274436,
+      "block_noise_eV_per_atom": 0.0006848611481333162,
+      "threshold_eV_per_atom": 0.0020545834443999487,
+      "verdict": "stable"
+     }
+    ],
+    "flags": [
+     "unexpected_superheating_signal"
+    ]
+   },
+   "_fulfilled_need": {
+    "parent_artifact_id": "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57",
+    "artifact_type": "property_result",
+    "query": "melting_point of In"
+   },
+   "_need_index": 0
+  },
+  {
+   "id": "ba6dfd8f-68dc-4bbf-be1f-0b406f37c89b",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T01:30:21.361589+00:00",
+   "status": "failed",
+   "task": "melting_point of Sn via two-phase coexistence (ALCHEMI)",
+   "reason": "undecided: the interface barely moved at the hottest temperatures, so the melting point is near them; rerun the same temperatures longer",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/0e254158-n0-a1/20261101T000322Z_Sn_coexistence",
+   "attempt": 1,
+   "details": {
+    "failure": "undecided",
+    "per_temperature": [
+     {
+      "T_target_K": 429.0,
+      "T_measured_K": 428.5,
+      "delta_pe_eV_per_atom": -0.0010141325546491053,
+      "block_noise_eV_per_atom": 0.00048664668640261886,
+      "threshold_eV_per_atom": 0.002,
+      "verdict": "stable"
+     },
+     {
+      "T_target_K": 480.0,
+      "T_measured_K": 479.2,
+      "delta_pe_eV_per_atom": -0.0013780107734899794,
+      "block_noise_eV_per_atom": 0.0010712470903123934,
+      "threshold_eV_per_atom": 0.0032137412709371802,
+      "verdict": "stable"
+     },
+     {
+      "T_target_K": 530.0,
+      "T_measured_K": 529.1,
+      "delta_pe_eV_per_atom": -1.0010726908316059e-05,
+      "block_noise_eV_per_atom": 0.0007159533504683788,
+      "threshold_eV_per_atom": 0.0021478600514051364,
+      "verdict": "stable"
+     },
+     {
+      "T_target_K": 581.0,
+      "T_measured_K": 580.5,
+      "delta_pe_eV_per_atom": 0.0004291084218532859,
+      "block_noise_eV_per_atom": 0.0008807017153016109,
+      "threshold_eV_per_atom": 0.002642105145904833,
+      "verdict": "stable"
+     }
+    ],
+    "flags": [
+     "unexpected_superheating_signal"
+    ]
+   },
+   "_fulfilled_need": {
+    "parent_artifact_id": "0e254158-7519-4b5e-baff-a11758cf3145",
+    "artifact_type": "property_result",
+    "query": "melting_point of Sn"
+   },
+   "_need_index": 0
+  },
+  {
+   "id": "4384c0ea-d43e-4277-aa48-82920a33d900",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T02:17:32.959318+00:00",
+   "status": "failed",
+   "task": "melting_point of In via two-phase coexistence (ALCHEMI)",
+   "reason": "no temperature melted and the hottest run froze: the melting point is above the bracket",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/33a4ea1a-n0-a2/20261101T013024Z_In_coexistence",
+   "attempt": 2,
+   "details": {
+    "failure": "above_bracket",
+    "per_temperature": [
+     {
+      "T_target_K": 238.0,
+      "T_measured_K": 238.0,
+      "delta_pe_eV_per_atom": -0.011984717761371222,
+      "block_noise_eV_per_atom": 0.0018840501276447617,
+      "threshold_eV_per_atom": 0.005652150382934285,
+      "verdict": "freezing"
+     },
+     {
+      "T_target_K": 280.667,
+      "T_measured_K": 280.5,
+      "delta_pe_eV_per_atom": -0.01105053765131192,
+      "block_noise_eV_per_atom": 0.0019014430359993893,
+      "threshold_eV_per_atom": 0.005704329107998168,
+      "verdict": "freezing"
+     },
+     {
+      "T_target_K": 323.333,
+      "T_measured_K": 324.0,
+      "delta_pe_eV_per_atom": -0.012740308088613705,
+      "block_noise_eV_per_atom": 0.0015757518021353575,
+      "threshold_eV_per_atom": 0.0047272554064060725,
+      "verdict": "freezing"
+     },
+     {
+      "T_target_K": 366.0,
+      "T_measured_K": 366.2,
+      "delta_pe_eV_per_atom": -0.016847535228052823,
+      "block_noise_eV_per_atom": 0.0018169932994923736,
+      "threshold_eV_per_atom": 0.005450979898477121,
+      "verdict": "freezing"
+     }
+    ],
+    "flags": [
+     "liquid_half_incompletely_melted"
+    ]
+   },
+   "_fulfilled_need": {
+    "parent_artifact_id": "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62",
+    "artifact_type": "property_result",
+    "query": "melting_point of In (retry 2: bracket shifted down)"
+   },
+   "_need_index": 0
+  },
+  {
+   "id": "6473c3f0-b9d4-44cb-b3cc-75b6cedb92d9",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T03:40:34.061588+00:00",
+   "status": "failed",
+   "task": "melting_point of Bi via two-phase coexistence (ALCHEMI)",
+   "reason": "no temperature froze and the coldest run melted: the melting point is below the bracket",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/577df9a1-n0-a1/20261101T021736Z_Bi_coexistence",
+   "attempt": 1,
+   "details": {
+    "failure": "below_bracket",
+    "per_temperature": [
+     {
+      "T_target_K": 463.0,
+      "T_measured_K": 463.3,
+      "delta_pe_eV_per_atom": 0.010029459781680572,
+      "block_noise_eV_per_atom": 0.0013516706958099955,
+      "threshold_eV_per_atom": 0.004055012087429986,
+      "verdict": "melting"
+     },
+     {
+      "T_target_K": 518.0,
+      "T_measured_K": 518.0,
+      "delta_pe_eV_per_atom": 0.024242306220616072,
+      "block_noise_eV_per_atom": 0.0011870725277700125,
+      "threshold_eV_per_atom": 0.0035612175833100376,
+      "verdict": "melting"
+     },
+     {
+      "T_target_K": 572.0,
+      "T_measured_K": 572.0,
+      "delta_pe_eV_per_atom": 0.016704327459876378,
+      "block_noise_eV_per_atom": 0.0021210855853314925,
+      "threshold_eV_per_atom": 0.006363256755994477,
+      "verdict": "melting"
+     },
+     {
+      "T_target_K": 627.0,
+      "T_measured_K": 627.1,
+      "delta_pe_eV_per_atom": 0.0032465391336602423,
+      "block_noise_eV_per_atom": 0.001541164497988937,
+      "threshold_eV_per_atom": 0.004623493493966811,
+      "verdict": "stable"
+     }
+    ],
+    "flags": [
+     "unexpected_superheating_signal"
+    ]
+   },
+   "_fulfilled_need": {
+    "parent_artifact_id": "577df9a1-269d-4a2d-8d71-9f8a53e91043",
+    "artifact_type": "property_result",
+    "query": "melting_point of Bi"
+   },
+   "_need_index": 0
+  }
+ ],
+ "ranking": null,
+ "scorecard": null,
+ "scorecard_post_hoc": null,
+ "lineage": {
+  "ebc5b678-5e33-428f-8035-ab8ac1dc292f": {
+   "id": "ebc5b678-5e33-428f-8035-ab8ac1dc292f",
+   "type": "candidate",
+   "agent": "scout_alloys",
+   "timestamp": "2026-10-31T20:04:26.436231+00:00",
+   "summary": "candidate BiInSn (low_melting_alloy, trust tier)",
+   "parents": [],
+   "children": [
+    "e65acc4a-9f83-4ac2-b036-9d622715361a",
+    "7ed6f997-33fa-4deb-963c-1b3bb43932bf"
+   ],
+   "payload": {
+    "name": "BiInSn",
+    "family": "low_melting_alloy",
+    "tier": "trust",
+    "formula": "Bi32.5In51Sn16.5 (wt%)",
+    "structure_source": "alloy:wt:Bi32.5In51Sn16.5",
+    "rationale": "low-melting alloy PCM; latent heat simulated at the measured melting point; a measured latent heat exists, so this checks the method"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "latent_heat of BiInSn at its measured melting point (333.71 K)",
+     "rationale": "alloy latent heat H(liquid) - sum x_i H(solid i) at the measured melting temperature; alloy melting points are not simulated",
+     "check_type": null,
+     "property": "latent_heat",
+     "temperature_K": 333.71
+    }
+   ]
+  },
+  "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57": {
+   "id": "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-10-31T20:04:26.436741+00:00",
+   "summary": "candidate In (low_melting_metal, trust tier)",
+   "parents": [],
+   "children": [
+    "fbc65a2d-b328-45ad-926b-b1f81321b40d",
+    "083aff81-f9a5-4ca4-bcbf-3c1b2cd7c484",
+    "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62",
+    "4384c0ea-d43e-4277-aa48-82920a33d900"
+   ],
+   "payload": {
+    "name": "In",
+    "family": "low_melting_metal",
+    "tier": "trust",
+    "formula": "In",
+    "structure_source": "ref:In",
+    "rationale": "low-melting metal with high conductivity; real tetragonal In crystal via ref:In"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of In",
+     "rationale": "low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (430 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "t_guess_K": 430
+    }
+   ]
+  },
+  "b3a83103-b607-44ff-b177-63bd3ddefa7e": {
+   "id": "b3a83103-b607-44ff-b177-63bd3ddefa7e",
+   "type": "candidate",
+   "agent": "scout_paraffin",
+   "timestamp": "2026-10-31T20:04:26.437094+00:00",
+   "summary": "candidate n-eicosane (paraffin, trust tier)",
+   "parents": [],
+   "children": [
+    "9e1c9385-1990-4329-8aa5-310e0197596b"
+   ],
+   "payload": {
+    "name": "n-eicosane",
+    "family": "paraffin",
+    "tier": "trust",
+    "formula": "C20H42",
+    "structure_source": "pubchem:8222",
+    "rationale": "flight-heritage paraffin class; MACE-MP is out of domain for molecular crystals, so classical MD"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of n-eicosane",
+     "rationale": "paraffin candidate; two-phase coexistence bracket centred on the literature value (310 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "engine": "classical_md",
+     "t_guess_K": 310
+    }
+   ]
+  },
+  "2b229689-bb5f-4585-a1e1-b65cb7904ac3": {
+   "id": "2b229689-bb5f-4585-a1e1-b65cb7904ac3",
+   "type": "candidate",
+   "agent": "scout_fatty_acid",
+   "timestamp": "2026-10-31T20:04:26.437475+00:00",
+   "summary": "candidate lauric acid (fatty_acid, trust tier)",
+   "parents": [],
+   "children": [
+    "f318fe25-c2f7-4bae-8c0f-dc4c87306744"
+   ],
+   "payload": {
+    "name": "lauric acid",
+    "family": "fatty_acid",
+    "tier": "trust",
+    "formula": "C12H24O2",
+    "structure_source": "pubchem:3893",
+    "rationale": "fatty-acid PCM in the 300-360 K range"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of lauric acid",
+     "rationale": "fatty_acid candidate; two-phase coexistence bracket centred on the literature value (317 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "engine": "classical_md",
+     "t_guess_K": 317
+    }
+   ]
+  },
+  "5dbd66a2-bd4b-4d2c-82ab-20af67d90a39": {
+   "id": "5dbd66a2-bd4b-4d2c-82ab-20af67d90a39",
+   "type": "candidate",
+   "agent": "scout_sugar_alcohol",
+   "timestamp": "2026-10-31T20:04:26.437888+00:00",
+   "summary": "candidate erythritol (sugar_alcohol, trust tier)",
+   "parents": [],
+   "children": [
+    "703d6d23-1e71-4360-ac83-58b6d31b8516"
+   ],
+   "payload": {
+    "name": "erythritol",
+    "family": "sugar_alcohol",
+    "tier": "trust",
+    "formula": "C4H10O4",
+    "structure_source": "pubchem:222285",
+    "rationale": "high latent heat per kg (~320 kJ/kg) but melts near 391 K"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of erythritol",
+     "rationale": "sugar_alcohol candidate; two-phase coexistence bracket centred on the literature value (391 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "engine": "classical_md",
+     "t_guess_K": 391
+    }
+   ]
+  },
+  "c2e26079-aae1-4f14-8bff-8a3254e66bcc": {
+   "id": "c2e26079-aae1-4f14-8bff-8a3254e66bcc",
+   "type": "candidate",
+   "agent": "scout_salt_hydrate",
+   "timestamp": "2026-10-31T20:04:26.438362+00:00",
+   "summary": "candidate calcium chloride hexahydrate (salt_hydrate, trust tier)",
+   "parents": [],
+   "children": [],
+   "payload": {
+    "name": "calcium chloride hexahydrate",
+    "family": "salt_hydrate",
+    "tier": "trust",
+    "formula": "CaCl2.6H2O",
+    "structure_source": null,
+    "rationale": "cheap high-density salt hydrate near 302 K; needs a periodic cell in data/structures/"
+   },
+   "needs": []
+  },
+  "e65acc4a-9f83-4ac2-b036-9d622715361a": {
+   "id": "e65acc4a-9f83-4ac2-b036-9d622715361a",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-10-31T20:04:26.442779+00:00",
+   "summary": "claims need #0 on ebc5b678",
+   "parents": [
+    "ebc5b678-5e33-428f-8035-ab8ac1dc292f"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "ebc5b678-5e33-428f-8035-ab8ac1dc292f",
+    "need_index": 0,
+    "expires_at": "2026-10-31T23:35:26.442696+00:00"
+   },
+   "needs": []
+  },
+  "7ed6f997-33fa-4deb-963c-1b3bb43932bf": {
+   "id": "7ed6f997-33fa-4deb-963c-1b3bb43932bf",
+   "type": "property_result",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-10-31T21:12:48.948325+00:00",
+   "summary": "BiInSn latent_heat = 25334 J/kg via ALCHEMI/medium-mpa-0 NPT enthalpy difference (liquid alloy vs pure-element solids)",
+   "parents": [
+    "ebc5b678-5e33-428f-8035-ab8ac1dc292f"
+   ],
+   "children": [
+    "a07f08a3-aa90-4527-84da-f5beb1f3efa2",
+    "ada06981-348d-440d-a803-395ecac20a3e",
+    "9cd7f54c-e727-4b8c-a9d4-0fb4c23bd4bf",
+    "6ca7f7d0-0edb-40af-964e-29c6fde7ab14",
+    "8af1ea18-bc14-48ee-9740-42a43ddcad7c",
+    "65e3e208-a4e7-4519-90ef-0b975ee9ec7d"
+   ],
+   "payload": {
+    "candidate": "BiInSn",
+    "family": "low_melting_alloy",
+    "tier": "trust",
+    "property": "latent_heat",
+    "value": 25334.0,
+    "units": "J/kg",
+    "uncertainty": 184.0,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "NPT enthalpy difference (liquid alloy vs pure-element solids)",
+     "ensemble": "NPT isotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 500,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "temperatures_K": [
+      333.71
+     ],
+     "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/ebc5b678-n0-a1/20261031T200431Z_BiInSn_alloy-latent"
+    },
+    "flags": [
+     "eutectic_solid_assumed_pure_elements"
+    ],
+    "note": "",
+    "_fulfilled_need": {
+     "parent_artifact_id": "ebc5b678-5e33-428f-8035-ab8ac1dc292f",
+     "artifact_type": "property_result",
+     "query": "latent_heat of BiInSn at its measured melting point (333.71 K)"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the NPT enthalpy difference (liquid alloy vs pure-element solids) latent_heat run for BiInSn",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent latent_heat for BiInSn with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    },
+    {
+     "artifact_type": "reference_value",
+     "query": "measured latent_heat of BiInSn with a citable source",
+     "rationale": "trust rule (c): trust-tier results must match a sourced measurement",
+     "check_type": null
+    }
+   ]
+  },
+  "a07f08a3-aa90-4527-84da-f5beb1f3efa2": {
+   "id": "a07f08a3-aa90-4527-84da-f5beb1f3efa2",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-10-31T21:12:48.950549+00:00",
+   "summary": "claims need #0 on 7ed6f997",
+   "parents": [
+    "7ed6f997-33fa-4deb-963c-1b3bb43932bf"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "7ed6f997-33fa-4deb-963c-1b3bb43932bf",
+    "need_index": 0,
+    "expires_at": "2026-10-31T21:17:48.950318+00:00"
+   },
+   "needs": []
+  },
+  "ada06981-348d-440d-a803-395ecac20a3e": {
+   "id": "ada06981-348d-440d-a803-395ecac20a3e",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-10-31T21:12:48.952025+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "7ed6f997-33fa-4deb-963c-1b3bb43932bf"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "7ed6f997-33fa-4deb-963c-1b3bb43932bf",
+     "artifact_type": "check",
+     "query": "audit the NPT enthalpy difference (liquid alloy vs pure-element solids) latent_heat run for BiInSn"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "9cd7f54c-e727-4b8c-a9d4-0fb4c23bd4bf": {
+   "id": "9cd7f54c-e727-4b8c-a9d4-0fb4c23bd4bf",
+   "type": "need_claim",
+   "agent": "librarian",
+   "timestamp": "2026-10-31T21:12:48.953369+00:00",
+   "summary": "claims need #2 on 7ed6f997",
+   "parents": [
+    "7ed6f997-33fa-4deb-963c-1b3bb43932bf"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "7ed6f997-33fa-4deb-963c-1b3bb43932bf",
+    "need_index": 2,
+    "expires_at": "2026-10-31T21:22:48.953208+00:00"
+   },
+   "needs": []
+  },
+  "6ca7f7d0-0edb-40af-964e-29c6fde7ab14": {
+   "id": "6ca7f7d0-0edb-40af-964e-29c6fde7ab14",
+   "type": "reference_value",
+   "agent": "librarian",
+   "timestamp": "2026-10-31T21:12:48.954483+00:00",
+   "summary": "measured BiInSn latent_heat = 27115 J/kg [Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3]",
+   "parents": [
+    "7ed6f997-33fa-4deb-963c-1b3bb43932bf"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "BiInSn",
+    "property": "latent_heat",
+    "value": 27115.0,
+    "units": "J/kg",
+    "uncertainty": null,
+    "source": "Zamora, Martinez-Pastor, Faura, Materials 14, 7392 (2021), doi:10.3390/ma14237392, Table 3",
+    "note": "DSC. Independent DSC: 25.4 +/- 0.1 J/g (Manasijevic 2018, Bi 32.0 / In 51.2 / Sn 16.8 wt%): ~6.5% lower; formula: Bi32.5In51Sn16.5 (wt%)",
+    "_fulfilled_need": {
+     "parent_artifact_id": "7ed6f997-33fa-4deb-963c-1b3bb43932bf",
+     "artifact_type": "reference_value",
+     "query": "measured latent_heat of BiInSn with a citable source"
+    },
+    "_need_index": 2
+   },
+   "needs": []
+  },
+  "fbc65a2d-b328-45ad-926b-b1f81321b40d": {
+   "id": "fbc65a2d-b328-45ad-926b-b1f81321b40d",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-10-31T21:12:48.956632+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "c69f6cad-8351-40d9-ba87-7475227a667d": {
+   "id": "c69f6cad-8351-40d9-ba87-7475227a667d",
+   "type": "candidate",
+   "agent": "scout_alloys",
+   "timestamp": "2026-10-31T21:12:48.958004+00:00",
+   "summary": "candidate InBi (low_melting_alloy, discovery tier)",
+   "parents": [],
+   "children": [
+    "8e076b80-7d8f-4c8e-a96c-067039619a9d",
+    "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8"
+   ],
+   "payload": {
+    "name": "InBi",
+    "family": "low_melting_alloy",
+    "tier": "discovery",
+    "formula": "In66.3Bi33.7 (wt%)",
+    "structure_source": "alloy:wt:In66.3Bi33.7",
+    "rationale": "low-melting alloy PCM; latent heat simulated at the measured melting point; no measured latent heat: a prediction"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "latent_heat of InBi at its measured melting point (345.15 K)",
+     "rationale": "alloy latent heat H(liquid) - sum x_i H(solid i) at the measured melting temperature; alloy melting points are not simulated",
+     "check_type": null,
+     "property": "latent_heat",
+     "temperature_K": 345.15
+    }
+   ]
+  },
+  "0e254158-7519-4b5e-baff-a11758cf3145": {
+   "id": "0e254158-7519-4b5e-baff-a11758cf3145",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-10-31T21:12:48.959996+00:00",
+   "summary": "candidate Sn (low_melting_metal, trust tier)",
+   "parents": [],
+   "children": [
+    "47f66040-4295-4bc0-8c74-c7570a904439",
+    "ba6dfd8f-68dc-4bbf-be1f-0b406f37c89b"
+   ],
+   "payload": {
+    "name": "Sn",
+    "family": "low_melting_metal",
+    "tier": "trust",
+    "formula": "Sn",
+    "structure_source": "ref:Sn",
+    "rationale": "low-melting metal (505 K); real beta-Sn crystal via ref:Sn"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of Sn",
+     "rationale": "low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (505 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "t_guess_K": 505
+    }
+   ]
+  },
+  "2b16c2b7-4114-4597-b7bb-73c757965913": {
+   "id": "2b16c2b7-4114-4597-b7bb-73c757965913",
+   "type": "candidate",
+   "agent": "scout_paraffin",
+   "timestamp": "2026-10-31T21:12:48.962010+00:00",
+   "summary": "candidate n-octadecane (paraffin, trust tier)",
+   "parents": [],
+   "children": [
+    "d1bdd250-46d5-47fa-b815-c660e6523e1f"
+   ],
+   "payload": {
+    "name": "n-octadecane",
+    "family": "paraffin",
+    "tier": "trust",
+    "formula": "C18H38",
+    "structure_source": "pubchem:11635",
+    "rationale": "the default paraffin PCM baseline to beat"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of n-octadecane",
+     "rationale": "paraffin candidate; two-phase coexistence bracket centred on the literature value (301 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "engine": "classical_md",
+     "t_guess_K": 301
+    }
+   ]
+  },
+  "3dc82146-43ca-4aa4-98f7-d35f732140c8": {
+   "id": "3dc82146-43ca-4aa4-98f7-d35f732140c8",
+   "type": "candidate",
+   "agent": "scout_fatty_acid",
+   "timestamp": "2026-10-31T21:12:48.964089+00:00",
+   "summary": "candidate stearic acid (fatty_acid, trust tier)",
+   "parents": [],
+   "children": [
+    "a1568b2f-f4f9-430f-9f87-4822bea536dc"
+   ],
+   "payload": {
+    "name": "stearic acid",
+    "family": "fatty_acid",
+    "tier": "trust",
+    "formula": "C18H36O2",
+    "structure_source": "pubchem:5281",
+    "rationale": "fatty-acid PCM near the top of the candidate window"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of stearic acid",
+     "rationale": "fatty_acid candidate; two-phase coexistence bracket centred on the literature value (341 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "engine": "classical_md",
+     "t_guess_K": 341
+    }
+   ]
+  },
+  "c29135b8-f021-4c3e-8f97-d7eec520d771": {
+   "id": "c29135b8-f021-4c3e-8f97-d7eec520d771",
+   "type": "candidate",
+   "agent": "scout_sugar_alcohol",
+   "timestamp": "2026-10-31T21:12:48.966088+00:00",
+   "summary": "candidate xylitol (sugar_alcohol, trust tier)",
+   "parents": [],
+   "children": [],
+   "payload": {
+    "name": "xylitol",
+    "family": "sugar_alcohol",
+    "tier": "trust",
+    "formula": "C5H12O5",
+    "structure_source": null,
+    "rationale": "sugar alcohol melting near 366 K; strong supercooling is a known issue; no structure yet"
+   },
+   "needs": []
+  },
+  "9decf99a-5cd5-4cf4-ab0e-139ff88d9079": {
+   "id": "9decf99a-5cd5-4cf4-ab0e-139ff88d9079",
+   "type": "candidate",
+   "agent": "scout_salt_hydrate",
+   "timestamp": "2026-10-31T21:12:48.968062+00:00",
+   "summary": "candidate sodium sulfate decahydrate (salt_hydrate, trust tier)",
+   "parents": [],
+   "children": [],
+   "payload": {
+    "name": "sodium sulfate decahydrate",
+    "family": "salt_hydrate",
+    "tier": "trust",
+    "formula": "Na2SO4.10H2O",
+    "structure_source": null,
+    "rationale": "Glauber's salt; melts incongruently, a stability risk to flag"
+   },
+   "needs": []
+  },
+  "083aff81-f9a5-4ca4-bcbf-3c1b2cd7c484": {
+   "id": "083aff81-f9a5-4ca4-bcbf-3c1b2cd7c484",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-10-31T21:12:48.973593+00:00",
+   "summary": "claims need #0 on f3b5d7b8",
+   "parents": [
+    "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57",
+    "need_index": 0,
+    "expires_at": "2026-11-01T00:10:32.173368+00:00"
+   },
+   "needs": []
+  },
+  "8af1ea18-bc14-48ee-9740-42a43ddcad7c": {
+   "id": "8af1ea18-bc14-48ee-9740-42a43ddcad7c",
+   "type": "check",
+   "agent": "referee_llm",
+   "timestamp": "2026-10-31T21:13:23.475370+00:00",
+   "summary": "method_audit: fail",
+   "parents": [
+    "7ed6f997-33fa-4deb-963c-1b3bb43932bf"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "fail",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [
+     "mismatched_solid_reference_phases",
+     "eutectic_solid_assumed_pure_elements"
+    ],
+    "note": "[llm audit] The latent heat is computed as H(liquid alloy) minus H(pure-element solids). The real solid of Field's metal (Bi32.5In51Sn16.5) is a eutectic of intermetallic phases (BiIn2 and an In\u2013Sn \u03b3/\u03b2 solid solution), not elemental Bi, In and Sn. This reference choice, which the agent's own flag records, folds the formation enthalpies of those intermetallics and the liquid mixing enthalpy into the reported value. That biases the latent heat by an amount comparable to the reported uncertainty or larger. The rest of the setup is reasonable for a heavy-metal system: a MACE-MP model on inorganic metals, a 2 fs timestep, 500 atoms and NPT enthalpies at the eutectic temperature.. Fix: Build the solid reference from the actual eutectic phase assemblage, i.e. BiIn2 plus the In\u2013Sn intermetallic or solid solution in the correct lever-rule fractions. Then compute H_liquid \u2212 H_solid at the same T and P with multiple seeds. Better still, obtain the latent heat from two-phase coexistence or from a heating/cooling hysteresis of the actual eutectic solid. [claude-opus-5-5, $0.0215]"
+   },
+   "needs": []
+  },
+  "65e3e208-a4e7-4519-90ef-0b975ee9ec7d": {
+   "id": "65e3e208-a4e7-4519-90ef-0b975ee9ec7d",
+   "type": "check",
+   "agent": "adjudicator",
+   "timestamp": "2026-10-31T21:13:50.111554+00:00",
+   "summary": "method_audit: fail",
+   "parents": [
+    "7ed6f997-33fa-4deb-963c-1b3bb43932bf"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "fail",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [
+     "mismatched_solid_reference_phases",
+     "eutectic_solid_assumed_pure_elements"
+    ],
+    "note": "[adjudicator, settles: referee_rules pass (ada06981), referee_llm fail (8af1ea18)] The protocol explicitly computes H(liquid alloy) minus H(pure-element solids), and the producer's own flag 'eutectic_solid_assumed_pure_elements' confirms the solid reference is not the real eutectic assemblage. Field's metal solidifies into BiIn2 plus an In\u2013Sn solid solution, so the reported value includes the intermetallic formation enthalpies and liquid mixing enthalpy rather than the fusion enthalpy alone; this is a systematic bias, not a sampling issue, and the rules referee only checked generic thresholds (timestep, size, length) that do not address reference-phase correctness. The LLM referee's objection is specific and supported by the metadata, so the number as reported does not represent the latent heat of the eutectic.. Fix: Construct the solid reference from the actual eutectic phase assemblage (BiIn2 plus the In\u2013Sn \u03b3/\u03b2 solid solution in lever-rule fractions), compute H_liquid \u2212 H_solid at the same T and P with multiple seeds, or determine the latent heat directly via two-phase coexistence or heating/cooling hysteresis of the real eutectic solid. [claude-fable-5-1, $0.0395]"
+   },
+   "needs": []
+  },
+  "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62": {
+   "id": "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62",
+   "type": "run_report",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-10-31T22:39:16.353388+00:00",
+   "summary": "failed: melting_point of In via two-phase coexistence (ALCHEMI) (no temperature froze: the melting point is below the bracket)",
+   "parents": [
+    "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57"
+   ],
+   "children": [
+    "1dd35d3e-6b19-4863-98f6-c4f15e35cc3e",
+    "4384c0ea-d43e-4277-aa48-82920a33d900"
+   ],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of In via two-phase coexistence (ALCHEMI)",
+    "reason": "no temperature froze: the melting point is below the bracket",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/f3b5d7b8-n0-a1/20261031T211253Z_In_coexistence",
+    "attempt": 1,
+    "details": {
+     "failure": "below_bracket",
+     "per_temperature": [
+      {
+       "T_target_K": 366.0,
+       "T_measured_K": 365.5,
+       "delta_pe_eV_per_atom": 0.00783403957566442,
+       "block_noise_eV_per_atom": 0.00105710713958425,
+       "threshold_eV_per_atom": 0.00317132141875275,
+       "verdict": "melting"
+      },
+      {
+       "T_target_K": 408.0,
+       "T_measured_K": 408.1,
+       "delta_pe_eV_per_atom": 0.005316697642312462,
+       "block_noise_eV_per_atom": 0.0013331694695081517,
+       "threshold_eV_per_atom": 0.003999508408524455,
+       "verdict": "melting"
+      },
+      {
+       "T_target_K": 452.0,
+       "T_measured_K": 451.9,
+       "delta_pe_eV_per_atom": 0.00166159678012745,
+       "block_noise_eV_per_atom": 0.001158765781155929,
+       "threshold_eV_per_atom": 0.003476297343467787,
+       "verdict": "stable"
+      },
+      {
+       "T_target_K": 494.0,
+       "T_measured_K": 494.0,
+       "delta_pe_eV_per_atom": 0.001054333985274436,
+       "block_noise_eV_per_atom": 0.0006848611481333162,
+       "threshold_eV_per_atom": 0.0020545834443999487,
+       "verdict": "stable"
+      }
+     ],
+     "flags": [
+      "unexpected_superheating_signal"
+     ]
+    },
+    "_fulfilled_need": {
+     "parent_artifact_id": "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57",
+     "artifact_type": "property_result",
+     "query": "melting_point of In"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of In (retry 2: bracket shifted down)",
+     "rationale": "attempt 1 failed: no temperature froze: the melting point is below the bracket",
+     "check_type": null,
+     "property": "melting_point",
+     "temps_K": [
+      238.0,
+      280.6666666666667,
+      323.3333333333333,
+      366.0
+     ],
+     "attempt": 2
+    }
+   ]
+  },
+  "9e1c9385-1990-4329-8aa5-310e0197596b": {
+   "id": "9e1c9385-1990-4329-8aa5-310e0197596b",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-10-31T22:39:16.358157+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "b3a83103-b607-44ff-b177-63bd3ddefa7e"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "577df9a1-269d-4a2d-8d71-9f8a53e91043": {
+   "id": "577df9a1-269d-4a2d-8d71-9f8a53e91043",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-10-31T22:39:16.361236+00:00",
+   "summary": "candidate Bi (low_melting_metal, trust tier)",
+   "parents": [],
+   "children": [
+    "c5c4f79e-4fec-432f-ac41-98c9a8d41b8f",
+    "6473c3f0-b9d4-44cb-b3cc-75b6cedb92d9"
+   ],
+   "payload": {
+    "name": "Bi",
+    "family": "low_melting_metal",
+    "tier": "trust",
+    "formula": "Bi",
+    "structure_source": "ref:Bi",
+    "rationale": "low-melting metal (545 K), expands on freezing; real Bi crystal via ref:Bi"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of Bi",
+     "rationale": "low_melting_metal candidate; two-phase coexistence bracket centred on the literature value (545 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "t_guess_K": 545
+    }
+   ]
+  },
+  "75a8092c-a0be-43f9-908f-444abfbe520c": {
+   "id": "75a8092c-a0be-43f9-908f-444abfbe520c",
+   "type": "candidate",
+   "agent": "scout_paraffin",
+   "timestamp": "2026-10-31T22:39:16.363841+00:00",
+   "summary": "candidate n-hexadecane (paraffin, trust tier)",
+   "parents": [],
+   "children": [],
+   "payload": {
+    "name": "n-hexadecane",
+    "family": "paraffin",
+    "tier": "trust",
+    "formula": "C16H34",
+    "structure_source": "pubchem:11006",
+    "rationale": "shorter paraffin; brackets the chain-length trend"
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of n-hexadecane",
+     "rationale": "paraffin candidate; two-phase coexistence bracket centred on the literature value (291 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "engine": "classical_md",
+     "t_guess_K": 291
+    }
+   ]
+  },
+  "8e076b80-7d8f-4c8e-a96c-067039619a9d": {
+   "id": "8e076b80-7d8f-4c8e-a96c-067039619a9d",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-10-31T22:39:16.379752+00:00",
+   "summary": "claims need #0 on c69f6cad",
+   "parents": [
+    "c69f6cad-8351-40d9-ba87-7475227a667d"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "c69f6cad-8351-40d9-ba87-7475227a667d",
+    "need_index": 0,
+    "expires_at": "2026-11-01T01:28:16.379414+00:00"
+   },
+   "needs": []
+  },
+  "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8": {
+   "id": "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8",
+   "type": "property_result",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T00:03:15.967733+00:00",
+   "summary": "InBi latent_heat = 24674 J/kg via ALCHEMI/medium-mpa-0 NPT enthalpy difference (liquid alloy vs pure-element solids)",
+   "parents": [
+    "c69f6cad-8351-40d9-ba87-7475227a667d"
+   ],
+   "children": [
+    "2221d573-3402-4a5d-9dcd-8aa7bc642166",
+    "23fc631f-0c28-4618-9670-b54714402d07",
+    "d5a93b0e-d7c9-4c61-b503-367adcb81e14",
+    "c9f4d6de-216c-4d7a-b040-787b15924eff"
+   ],
+   "payload": {
+    "candidate": "InBi",
+    "family": "low_melting_alloy",
+    "tier": "discovery",
+    "property": "latent_heat",
+    "value": 24674.0,
+    "units": "J/kg",
+    "uncertainty": 330.0,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "NPT enthalpy difference (liquid alloy vs pure-element solids)",
+     "ensemble": "NPT isotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 500,
+     "sim_length_ps": 50.0,
+     "seeds": 1,
+     "temperatures_K": [
+      345.15
+     ],
+     "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/c69f6cad-n0-a1/20261031T223921Z_InBi_alloy-latent"
+    },
+    "flags": [
+     "eutectic_solid_assumed_pure_elements"
+    ],
+    "note": "",
+    "_fulfilled_need": {
+     "parent_artifact_id": "c69f6cad-8351-40d9-ba87-7475227a667d",
+     "artifact_type": "property_result",
+     "query": "latent_heat of InBi at its measured melting point (345.15 K)"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the NPT enthalpy difference (liquid alloy vs pure-element solids) latent_heat run for InBi",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent latent_heat for InBi with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    }
+   ]
+  },
+  "2221d573-3402-4a5d-9dcd-8aa7bc642166": {
+   "id": "2221d573-3402-4a5d-9dcd-8aa7bc642166",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T00:03:15.970773+00:00",
+   "summary": "claims need #0 on b3d4ad1b",
+   "parents": [
+    "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8",
+    "need_index": 0,
+    "expires_at": "2026-11-01T00:08:15.970520+00:00"
+   },
+   "needs": []
+  },
+  "23fc631f-0c28-4618-9670-b54714402d07": {
+   "id": "23fc631f-0c28-4618-9670-b54714402d07",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T00:03:15.971993+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "rule-based audit passed: protocol, ensemble, model domain, timestep, size, length, producer flags [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8",
+     "artifact_type": "check",
+     "query": "audit the NPT enthalpy difference (liquid alloy vs pure-element solids) latent_heat run for InBi"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "f318fe25-c2f7-4bae-8c0f-dc4c87306744": {
+   "id": "f318fe25-c2f7-4bae-8c0f-dc4c87306744",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T00:03:15.975747+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "2b229689-bb5f-4585-a1e1-b65cb7904ac3"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "47f66040-4295-4bc0-8c74-c7570a904439": {
+   "id": "47f66040-4295-4bc0-8c74-c7570a904439",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T00:03:15.998760+00:00",
+   "summary": "claims need #0 on 0e254158",
+   "parents": [
+    "0e254158-7519-4b5e-baff-a11758cf3145"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "0e254158-7519-4b5e-baff-a11758cf3145",
+    "need_index": 0,
+    "expires_at": "2026-11-01T02:42:54.398393+00:00"
+   },
+   "needs": []
+  },
+  "d5a93b0e-d7c9-4c61-b503-367adcb81e14": {
+   "id": "d5a93b0e-d7c9-4c61-b503-367adcb81e14",
+   "type": "check",
+   "agent": "referee_llm",
+   "timestamp": "2026-11-01T00:03:33.545097+00:00",
+   "summary": "method_audit: fail",
+   "parents": [
+    "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "fail",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [
+     "mismatched_solid_reference_phases",
+     "eutectic_solid_assumed_pure_elements"
+    ],
+    "note": "[llm audit] The latent heat is the enthalpy of the liquid alloy minus the enthalpy of pure In and pure Bi solids, as the agent's own flag 'eutectic_solid_assumed_pure_elements' admits. The In-33.7 wt% Bi eutectic at about 345 K solidifies into the intermetallic In2Bi plus an In-rich solid solution, not into the pure elements. In2Bi has a nonzero (negative) formation enthalpy, and the liquid has its own mixing enthalpy. The computed number therefore includes these formation and mixing terms rather than the melting enthalpy of the eutectic solid, a mismatched-phase latent heat that biases the value. The model choice, the 2 fs timestep for heavy In/Bi atoms, the 500-atom cell and the evaluation temperature are otherwise reasonable.. Fix: Build the actual eutectic solid as the reference: an In2Bi crystal plus an In-rich solid solution, in proportions set by the lever rule. Run NPT on that solid at 345 K, alongside the liquid at the same composition and temperature, and take the enthalpy difference. Alternatively, run two-phase coexistence of the eutectic solid and the liquid. Use multiple seeds for the uncertainty. [claude-opus-5-5, $0.0219]"
+   },
+   "needs": []
+  },
+  "c9f4d6de-216c-4d7a-b040-787b15924eff": {
+   "id": "c9f4d6de-216c-4d7a-b040-787b15924eff",
+   "type": "check",
+   "agent": "adjudicator",
+   "timestamp": "2026-11-01T00:03:58.381597+00:00",
+   "summary": "method_audit: fail",
+   "parents": [
+    "b3d4ad1b-512b-403c-87ac-ef84e39f7fb8"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "fail",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [
+     "mismatched_solid_reference_phases",
+     "eutectic_solid_assumed_pure_elements"
+    ],
+    "note": "[adjudicator, settles: referee_rules pass (23fc631f), referee_llm fail (d5a93b0e)] The protocol explicitly computes H(liquid alloy) minus H(pure In solid + pure Bi solid), as both the protocol string and the producer's own flag 'eutectic_solid_assumed_pure_elements' confirm. The In-Bi eutectic near 345 K does not freeze into pure elements but into In2Bi intermetallic plus an In-rich solid solution, so the computed difference includes the nonzero In2Bi formation enthalpy and liquid mixing enthalpy rather than the eutectic melting enthalpy. This is a systematic phase-reference error that biases the latent heat, not a sampling or threshold quibble, so the rules referee's checklist pass does not address it. The timestep, cell size, ensemble and temperature are otherwise acceptable.. Fix: Construct the actual eutectic solid reference (In2Bi crystal plus In-rich solid solution in lever-rule proportions), equilibrate it in NPT at 345 K, and take the enthalpy difference against the liquid at the same composition and temperature; alternatively use a two-phase coexistence approach. Run multiple seeds to obtain a meaningful uncertainty. [claude-fable-5-1, $0.0468]"
+   },
+   "needs": []
+  },
+  "ba6dfd8f-68dc-4bbf-be1f-0b406f37c89b": {
+   "id": "ba6dfd8f-68dc-4bbf-be1f-0b406f37c89b",
+   "type": "run_report",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T01:30:21.361589+00:00",
+   "summary": "failed: melting_point of Sn via two-phase coexistence (ALCHEMI) (undecided: the interface barely moved at the hottest temperatures, so the melting point is near them)",
+   "parents": [
+    "0e254158-7519-4b5e-baff-a11758cf3145"
+   ],
+   "children": [],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of Sn via two-phase coexistence (ALCHEMI)",
+    "reason": "undecided: the interface barely moved at the hottest temperatures, so the melting point is near them; rerun the same temperatures longer",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/0e254158-n0-a1/20261101T000322Z_Sn_coexistence",
+    "attempt": 1,
+    "details": {
+     "failure": "undecided",
+     "per_temperature": [
+      {
+       "T_target_K": 429.0,
+       "T_measured_K": 428.5,
+       "delta_pe_eV_per_atom": -0.0010141325546491053,
+       "block_noise_eV_per_atom": 0.00048664668640261886,
+       "threshold_eV_per_atom": 0.002,
+       "verdict": "stable"
+      },
+      {
+       "T_target_K": 480.0,
+       "T_measured_K": 479.2,
+       "delta_pe_eV_per_atom": -0.0013780107734899794,
+       "block_noise_eV_per_atom": 0.0010712470903123934,
+       "threshold_eV_per_atom": 0.0032137412709371802,
+       "verdict": "stable"
+      },
+      {
+       "T_target_K": 530.0,
+       "T_measured_K": 529.1,
+       "delta_pe_eV_per_atom": -1.0010726908316059e-05,
+       "block_noise_eV_per_atom": 0.0007159533504683788,
+       "threshold_eV_per_atom": 0.0021478600514051364,
+       "verdict": "stable"
+      },
+      {
+       "T_target_K": 581.0,
+       "T_measured_K": 580.5,
+       "delta_pe_eV_per_atom": 0.0004291084218532859,
+       "block_noise_eV_per_atom": 0.0008807017153016109,
+       "threshold_eV_per_atom": 0.002642105145904833,
+       "verdict": "stable"
+      }
+     ],
+     "flags": [
+      "unexpected_superheating_signal"
+     ]
+    },
+    "_fulfilled_need": {
+     "parent_artifact_id": "0e254158-7519-4b5e-baff-a11758cf3145",
+     "artifact_type": "property_result",
+     "query": "melting_point of Sn"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "703d6d23-1e71-4360-ac83-58b6d31b8516": {
+   "id": "703d6d23-1e71-4360-ac83-58b6d31b8516",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T01:30:21.367122+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "5dbd66a2-bd4b-4d2c-82ab-20af67d90a39"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "1dd35d3e-6b19-4863-98f6-c4f15e35cc3e": {
+   "id": "1dd35d3e-6b19-4863-98f6-c4f15e35cc3e",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T01:30:21.391185+00:00",
+   "summary": "claims need #0 on 33a4ea1a",
+   "parents": [
+    "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62",
+    "need_index": 0,
+    "expires_at": "2026-11-01T04:28:04.590912+00:00"
+   },
+   "needs": []
+  },
+  "4384c0ea-d43e-4277-aa48-82920a33d900": {
+   "id": "4384c0ea-d43e-4277-aa48-82920a33d900",
+   "type": "run_report",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T02:17:32.959318+00:00",
+   "summary": "failed: melting_point of In via two-phase coexistence (ALCHEMI) (no temperature melted and the hottest run froze: the melting point is above the bracket)",
+   "parents": [
+    "f3b5d7b8-d2bf-4dab-8227-742c4ca5be57",
+    "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62"
+   ],
+   "children": [
+    "8088f824-4350-4ea8-8e78-dfbafc0a1445"
+   ],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of In via two-phase coexistence (ALCHEMI)",
+    "reason": "no temperature melted and the hottest run froze: the melting point is above the bracket",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/33a4ea1a-n0-a2/20261101T013024Z_In_coexistence",
+    "attempt": 2,
+    "details": {
+     "failure": "above_bracket",
+     "per_temperature": [
+      {
+       "T_target_K": 238.0,
+       "T_measured_K": 238.0,
+       "delta_pe_eV_per_atom": -0.011984717761371222,
+       "block_noise_eV_per_atom": 0.0018840501276447617,
+       "threshold_eV_per_atom": 0.005652150382934285,
+       "verdict": "freezing"
+      },
+      {
+       "T_target_K": 280.667,
+       "T_measured_K": 280.5,
+       "delta_pe_eV_per_atom": -0.01105053765131192,
+       "block_noise_eV_per_atom": 0.0019014430359993893,
+       "threshold_eV_per_atom": 0.005704329107998168,
+       "verdict": "freezing"
+      },
+      {
+       "T_target_K": 323.333,
+       "T_measured_K": 324.0,
+       "delta_pe_eV_per_atom": -0.012740308088613705,
+       "block_noise_eV_per_atom": 0.0015757518021353575,
+       "threshold_eV_per_atom": 0.0047272554064060725,
+       "verdict": "freezing"
+      },
+      {
+       "T_target_K": 366.0,
+       "T_measured_K": 366.2,
+       "delta_pe_eV_per_atom": -0.016847535228052823,
+       "block_noise_eV_per_atom": 0.0018169932994923736,
+       "threshold_eV_per_atom": 0.005450979898477121,
+       "verdict": "freezing"
+      }
+     ],
+     "flags": [
+      "liquid_half_incompletely_melted"
+     ]
+    },
+    "_fulfilled_need": {
+     "parent_artifact_id": "33a4ea1a-eb82-4def-97a6-0c2b01f2ee62",
+     "artifact_type": "property_result",
+     "query": "melting_point of In (retry 2: bracket shifted down)"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of In (retry 3: bracket shifted up)",
+     "rationale": "attempt 2 failed: no temperature melted and the hottest run froze: the melting point is above the bracket",
+     "check_type": null,
+     "property": "melting_point",
+     "temps_K": [
+      366.0,
+      408.6666666666667,
+      451.3333333333333,
+      494.0
+     ],
+     "attempt": 3
+    }
+   ]
+  },
+  "d1bdd250-46d5-47fa-b815-c660e6523e1f": {
+   "id": "d1bdd250-46d5-47fa-b815-c660e6523e1f",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T02:17:32.965269+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "2b16c2b7-4114-4597-b7bb-73c757965913"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "c5c4f79e-4fec-432f-ac41-98c9a8d41b8f": {
+   "id": "c5c4f79e-4fec-432f-ac41-98c9a8d41b8f",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T02:17:32.990438+00:00",
+   "summary": "claims need #0 on 577df9a1",
+   "parents": [
+    "577df9a1-269d-4a2d-8d71-9f8a53e91043"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "577df9a1-269d-4a2d-8d71-9f8a53e91043",
+    "need_index": 0,
+    "expires_at": "2026-11-01T06:09:30.590144+00:00"
+   },
+   "needs": []
+  },
+  "6473c3f0-b9d4-44cb-b3cc-75b6cedb92d9": {
+   "id": "6473c3f0-b9d4-44cb-b3cc-75b6cedb92d9",
+   "type": "run_report",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T03:40:34.061588+00:00",
+   "summary": "failed: melting_point of Bi via two-phase coexistence (ALCHEMI) (no temperature froze and the coldest run melted: the melting point is below the bracket)",
+   "parents": [
+    "577df9a1-269d-4a2d-8d71-9f8a53e91043"
+   ],
+   "children": [],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of Bi via two-phase coexistence (ALCHEMI)",
+    "reason": "no temperature froze and the coldest run melted: the melting point is below the bracket",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/science/science-1/577df9a1-n0-a1/20261101T021736Z_Bi_coexistence",
+    "attempt": 1,
+    "details": {
+     "failure": "below_bracket",
+     "per_temperature": [
+      {
+       "T_target_K": 463.0,
+       "T_measured_K": 463.3,
+       "delta_pe_eV_per_atom": 0.010029459781680572,
+       "block_noise_eV_per_atom": 0.0013516706958099955,
+       "threshold_eV_per_atom": 0.004055012087429986,
+       "verdict": "melting"
+      },
+      {
+       "T_target_K": 518.0,
+       "T_measured_K": 518.0,
+       "delta_pe_eV_per_atom": 0.024242306220616072,
+       "block_noise_eV_per_atom": 0.0011870725277700125,
+       "threshold_eV_per_atom": 0.0035612175833100376,
+       "verdict": "melting"
+      },
+      {
+       "T_target_K": 572.0,
+       "T_measured_K": 572.0,
+       "delta_pe_eV_per_atom": 0.016704327459876378,
+       "block_noise_eV_per_atom": 0.0021210855853314925,
+       "threshold_eV_per_atom": 0.006363256755994477,
+       "verdict": "melting"
+      },
+      {
+       "T_target_K": 627.0,
+       "T_measured_K": 627.1,
+       "delta_pe_eV_per_atom": 0.0032465391336602423,
+       "block_noise_eV_per_atom": 0.001541164497988937,
+       "threshold_eV_per_atom": 0.004623493493966811,
+       "verdict": "stable"
+      }
+     ],
+     "flags": [
+      "unexpected_superheating_signal"
+     ]
+    },
+    "_fulfilled_need": {
+     "parent_artifact_id": "577df9a1-269d-4a2d-8d71-9f8a53e91043",
+     "artifact_type": "property_result",
+     "query": "melting_point of Bi"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "melting_point of Bi (retry 2: bracket shifted down)",
+     "rationale": "attempt 1 failed: no temperature froze and the coldest run melted: the melting point is below the bracket",
+     "check_type": null,
+     "property": "melting_point",
+     "temps_K": [
+      299.0,
+      353.6666666666667,
+      408.3333333333333,
+      463.0
+     ],
+     "attempt": 2
+    }
+   ]
+  },
+  "a1568b2f-f4f9-430f-9f87-4822bea536dc": {
+   "id": "a1568b2f-f4f9-430f-9f87-4822bea536dc",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T03:40:34.068912+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "3dc82146-43ca-4aa4-98f7-d35f732140c8"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "8088f824-4350-4ea8-8e78-dfbafc0a1445": {
+   "id": "8088f824-4350-4ea8-8e78-dfbafc0a1445",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T03:40:34.096537+00:00",
+   "summary": "claims need #0 on 4384c0ea",
+   "parents": [
+    "4384c0ea-d43e-4277-aa48-82920a33d900"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "4384c0ea-d43e-4277-aa48-82920a33d900",
+    "need_index": 0,
+    "expires_at": "2026-11-01T06:38:17.296059+00:00"
+   },
+   "needs": []
+  }
+ }
+}

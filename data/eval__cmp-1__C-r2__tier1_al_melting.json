@@ -1,0 +1,1338 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "name": "eval__cmp-1__C-r2__tier1_al_melting",
+ "path": "boards/eval/cmp-1/C-r2/tier1_al_melting",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "synthetic": false,
+ "rules_frozen": true,
+ "arm": "C",
+ "run": "eval__cmp-1",
+ "task_id": "tier1_al_melting",
+ "repeat": 2,
+ "finished": true,
+ "agents": [
+  "adjudicator",
+  "eval_harness",
+  "librarian",
+  "referee_llm",
+  "referee_premise",
+  "referee_rules",
+  "scout_metals",
+  "simulator_gb10"
+ ],
+ "counts": {
+  "artifacts": 15,
+  "by_type": {
+   "request": 1,
+   "check": 5,
+   "need_claim": 5,
+   "candidate": 1,
+   "property_result": 1,
+   "reference_value": 1,
+   "run_report": 1
+  },
+  "by_status": {
+   "flagged": 1
+  },
+  "open_needs": 1
+ },
+ "results": [
+  {
+   "id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T05:04:18.885265+00:00",
+   "candidate": "Al",
+   "family": "validation_metal",
+   "tier": "trust",
+   "property": "melting_point",
+   "value": 895.4,
+   "uncertainty": 93.5,
+   "units": "K",
+   "method": {
+    "engine": "ALCHEMI",
+    "model": "medium-mpa-0",
+    "protocol": "two-phase coexistence",
+    "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+    "timestep_fs": 2.0,
+    "n_atoms": 512,
+    "sim_length_ps": 5.0,
+    "seeds": 1,
+    "temperatures_K": [
+     793.0,
+     886.0,
+     980.0,
+     1073.0
+    ],
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r2/tier1_al_melting/702ba3a5-n0-a1/20261101T044856Z_Al_coexistence_quick"
+   },
+   "flags": [
+    "quick_settings_not_production"
+   ],
+   "note": "",
+   "status": "flagged",
+   "reasons": [
+    "method_audit by referee_rules: fail, settled by adjudicator ruling 6a707049",
+    "method_audit by referee_llm: pass, settled by adjudicator ruling 6a707049",
+    "method_audit by adjudicator: fail [run_too_short, quick_settings_not_production, small_coexistence_cell] ([adjudicator, settles: referee_rules fail (b3bd5111), referee_llm pass (a446480b)] Two-phase coexistence determines Tm by watching which way the solid-liquid interface migrates, and 5 ps is far too short for that: at realistic Al interface velocities (tens of m/s near Tm, i.e. a few tenths of an A/ps) the interface moves only a few angstroms, so none of the four temperatures can be reliably classified as melted or frozen within the run; the outcome then reflects the initial setup rather than thermodynamics, which is a bias, not merely a precision loss. A 512-atom cell gives each phase slab only ~8 A, so interfacial free energy and the two interfaces dominate the small bulk regions, further shifting the apparent coexistence point. The producer's own flag states these are quick pipeline-test settings, not production, yet the number is presented at the trust tier. The referee_llm's claim that short runs only widen the error bar does not hold for an interface-migration protocol whose readout is binary per temperature.. Fix: Rerun coexistence at production settings: >=20-50 ps per temperature with a >=2000-4000 atom elongated cell (long axis normal to the interface), confirm complete transformation of each run via order parameter/density traces, use a finer temperature grid (10-20 K) bracketing the transition, and run multiple seeds; alternatively cross-check with a solid-liquid interface pinning or free-energy (Frenkel-Ladd/thermodynamic integration) method. [claude-fable-5-1, $0.0914])",
+    "matches measured 933.45 K (|delta| = 38.1) [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]"
+   ],
+   "superseded_by": [],
+   "reference": {
+    "value": 933.45,
+    "units": "K",
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
+    "origin": "board",
+    "id": "20f9445b-dc81-42ca-ac10-a7a686f9e43d",
+    "agent": "librarian"
+   }
+  }
+ ],
+ "proposed": [],
+ "open_needs": [
+  {
+   "artifact_id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+   "index": 1,
+   "on_type": "property_result",
+   "kind": "classical_md",
+   "query": "independent melting_point for Al with a different method (classical MD or a second MLIP)",
+   "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+   "claimed_by": null,
+   "claim_expires_at": null
+  }
+ ],
+ "run_reports": [
+  {
+   "id": "bc4770ec-79e6-43be-99a5-51577f058d52",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T05:48:52.095770+00:00",
+   "status": "failed",
+   "task": "melting_point of Al via two-phase coexistence (ALCHEMI)",
+   "reason": "run did not complete: TimeoutExpired(['/home/dell/Desktop/cool-orbit/.venv/bin/python', '-m', 'coolorbit.sim.melting', 'coexistence', '--element', 'Al', '--structure', 'fcc', '--a', '4.05', '--reps', '4', '4', '8', '--dt', '2', '--out', '/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r2/tier1_al_melting/b3bd5111-n0-a1', '--label', 'Al', '--temps', '793', '886', '980', '1073', '--quick', '--prod-steps', '10000'], 2638.8335791986683)",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r2/tier1_al_melting/b3bd5111-n0-a1",
+   "attempt": 1,
+   "details": {},
+   "_fulfilled_need": {
+    "parent_artifact_id": "b3bd5111-ac25-4b5f-b2c7-c9574b603715",
+    "artifact_type": "property_result",
+    "query": "rerun melting_point of Al with production settings (the result used the quick preset) and a longer production run (10000 steps = 20.0 ps)"
+   },
+   "_need_index": 0
+  }
+ ],
+ "ranking": null,
+ "scorecard": {
+  "board": "boards/eval/cmp-1/C-r2/tier1_al_melting",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": true,
+    "shipped_id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+    "shipped_value": 895.4,
+    "shipped_units": "K",
+    "shipped_status": "flagged",
+    "confident": false,
+    "refused": false,
+    "n_results": 1,
+    "n_failed_runs": 1,
+    "fell_in": false,
+    "wrong": false,
+    "error": -38.05000000000007,
+    "rel_error": 0.04076276179763251,
+    "trap_outcome": "avoided",
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "answered_unconfident",
+    "reasons": [
+     "shipped result carries flags ['quick_settings_not_production']",
+     "trust rule says flagged: method_audit by referee_rules: fail, settled by adjudicator ruling 6a707049; method_audit by referee_llm: pass, settled by adjudicator ruling 6a707049; method_audit by adjudicator: fail [run_too_short, quick_settings_not_production, small_coexistence_cell] ([adjudicator, settles: referee_rules fail (b3bd5111), referee_llm pass (a446480b)] Two-phase coexistence determines Tm by watching which way the solid-liquid interface migrates, and 5 ps is far too short for that: at realistic Al interface velocities (tens of m/s near Tm, i.e. a few tenths of an A/ps) the interface moves only a few angstroms, so none of the four temperatures can be reliably classified as melted or frozen within the run; the outcome then reflects the initial setup rather than thermodynamics, which is a bias, not merely a precision loss. A 512-atom cell gives each phase slab only ~8 A, so interfacial free energy and the two interfaces dominate the small bulk regions, further shifting the apparent coexistence point. The producer's own flag states these are quick pipeline-test settings, not production, yet the number is presented at the trust tier. The referee_llm's claim that short runs only widen the error bar does not hold for an interface-migration protocol whose readout is binary per temperature.. Fix: Rerun coexistence at production settings: >=20-50 ps per temperature with a >=2000-4000 atom elongated cell (long axis normal to the interface), confirm complete transformation of each run via order parameter/density traces, use a finer temperature grid (10-20 K) bracketing the transition, and run multiple seeds; alternatively cross-check with a solid-liquid interface pinning or free-energy (Frenkel-Ladd/thermodynamic integration) method. [claude-fable-5-1, $0.0914])",
+     "error -38.05 K vs reference: within tolerance {'rel': 0.1}"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 1,
+  "trap_avoided": 1,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": 1.0,
+  "control_tasks": 0,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": null,
+  "silent_errors": 0,
+  "mean_abs_rel_error": 0.04076276179763251,
+  "n_errors_measured": 1,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 2909.0,
+    "output_tokens": 2342.0,
+    "gpu_hours": 0.9907999999999999,
+    "usd": 0.11329800000000001
+   },
+   "per_task": {
+    "tier1_al_melting": {
+     "input_tokens": 2909.0,
+     "output_tokens": 2342.0,
+     "gpu_hours": 0.9907999999999999,
+     "usd": 0.11329800000000001
+    }
+   },
+   "n_entries": 4
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": []
+ },
+ "scorecard_post_hoc": {
+  "board": "boards/eval/cmp-1/C-r2/tier1_al_melting",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": true,
+    "shipped_id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+    "shipped_value": 895.4,
+    "shipped_units": "K",
+    "shipped_status": "flagged",
+    "confident": false,
+    "refused": false,
+    "n_results": 1,
+    "n_failed_runs": 1,
+    "fell_in": false,
+    "wrong": false,
+    "error": -38.05000000000007,
+    "rel_error": 0.04076276179763251,
+    "trap_outcome": "avoided",
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "answered_unconfident",
+    "reasons": [
+     "shipped result carries flags ['quick_settings_not_production']",
+     "trust rule says flagged: method_audit by referee_rules: fail, settled by adjudicator ruling 6a707049; method_audit by referee_llm: pass, settled by adjudicator ruling 6a707049; method_audit by adjudicator: fail [run_too_short, quick_settings_not_production, small_coexistence_cell] ([adjudicator, settles: referee_rules fail (b3bd5111), referee_llm pass (a446480b)] Two-phase coexistence determines Tm by watching which way the solid-liquid interface migrates, and 5 ps is far too short for that: at realistic Al interface velocities (tens of m/s near Tm, i.e. a few tenths of an A/ps) the interface moves only a few angstroms, so none of the four temperatures can be reliably classified as melted or frozen within the run; the outcome then reflects the initial setup rather than thermodynamics, which is a bias, not merely a precision loss. A 512-atom cell gives each phase slab only ~8 A, so interfacial free energy and the two interfaces dominate the small bulk regions, further shifting the apparent coexistence point. The producer's own flag states these are quick pipeline-test settings, not production, yet the number is presented at the trust tier. The referee_llm's claim that short runs only widen the error bar does not hold for an interface-migration protocol whose readout is binary per temperature.. Fix: Rerun coexistence at production settings: >=20-50 ps per temperature with a >=2000-4000 atom elongated cell (long axis normal to the interface), confirm complete transformation of each run via order parameter/density traces, use a finer temperature grid (10-20 K) bracketing the transition, and run multiple seeds; alternatively cross-check with a solid-liquid interface pinning or free-energy (Frenkel-Ladd/thermodynamic integration) method. [claude-fable-5-1, $0.0914])",
+     "error -38.05 K vs reference: within tolerance {'rel': 0.1}"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 1,
+  "trap_avoided": 1,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": 1.0,
+  "control_tasks": 0,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": null,
+  "silent_errors": 0,
+  "mean_abs_rel_error": 0.04076276179763251,
+  "n_errors_measured": 1,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 2909.0,
+    "output_tokens": 2342.0,
+    "gpu_hours": 0.9907999999999999,
+    "usd": 0.11329800000000001
+   },
+   "per_task": {
+    "tier1_al_melting": {
+     "input_tokens": 2909.0,
+     "output_tokens": 2342.0,
+     "gpu_hours": 0.9907999999999999,
+     "usd": 0.11329800000000001
+    }
+   },
+   "n_entries": 4
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": [
+   "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+  ]
+ },
+ "lineage": {
+  "ff35b474-292a-417d-89ec-910c46a7f0f5": {
+   "id": "ff35b474-292a-417d-89ec-910c46a7f0f5",
+   "type": "request",
+   "agent": "eval_harness",
+   "timestamp": "2026-11-01T04:48:51.481587+00:00",
+   "summary": "eval task tier1_al_melting: Find the melting point of aluminum at ambient pressure.",
+   "parents": [],
+   "children": [
+    "ca3d251e-8dc2-4fdd-b22d-926d80a9cf0c",
+    "78b1d583-e35c-4f38-b0a3-f641553c22fe",
+    "702ba3a5-927e-4e50-848d-e1268fe04bed"
+   ],
+   "payload": {
+    "note": "eval_task:tier1_al_melting"
+   },
+   "needs": [
+    {
+     "artifact_type": "candidate",
+     "query": "Find the melting point of aluminum at ambient pressure.",
+     "rationale": "evaluation task tier1_al_melting: propose the material as a candidate (parent: this request), then answer it on this board",
+     "check_type": null,
+     "eval_task": "tier1_al_melting",
+     "property": "melting_point",
+     "units": "K"
+    }
+   ]
+  },
+  "ca3d251e-8dc2-4fdd-b22d-926d80a9cf0c": {
+   "id": "ca3d251e-8dc2-4fdd-b22d-926d80a9cf0c",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T04:48:51.525671+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "ff35b474-292a-417d-89ec-910c46a7f0f5"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "78b1d583-e35c-4f38-b0a3-f641553c22fe": {
+   "id": "78b1d583-e35c-4f38-b0a3-f641553c22fe",
+   "type": "need_claim",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T04:48:51.526163+00:00",
+   "summary": "claims need #0 on ff35b474",
+   "parents": [
+    "ff35b474-292a-417d-89ec-910c46a7f0f5"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "ff35b474-292a-417d-89ec-910c46a7f0f5",
+    "need_index": 0,
+    "expires_at": "2026-11-01T05:18:51.526113+00:00"
+   },
+   "needs": []
+  },
+  "702ba3a5-927e-4e50-848d-e1268fe04bed": {
+   "id": "702ba3a5-927e-4e50-848d-e1268fe04bed",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-11-01T04:48:51.526414+00:00",
+   "summary": "candidate Al (validation_metal, trust tier)",
+   "parents": [
+    "ff35b474-292a-417d-89ec-910c46a7f0f5"
+   ],
+   "children": [
+    "276730c6-c034-4dfa-ac5c-2ca7ca226096",
+    "ae1ba529-3231-4593-b2d4-d364874c162f",
+    "bc4770ec-79e6-43be-99a5-51577f058d52"
+   ],
+   "payload": {
+    "name": "Al",
+    "family": "validation_metal",
+    "tier": "trust",
+    "formula": "Al",
+    "structure_source": "ase:Al:fcc:4.05",
+    "rationale": "method validation: second well-measured fcc metal",
+    "_fulfilled_need": {
+     "parent_artifact_id": "ff35b474-292a-417d-89ec-910c46a7f0f5",
+     "artifact_type": "candidate",
+     "query": "Find the melting point of aluminum at ambient pressure."
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "Find the melting point of aluminum at ambient pressure.",
+     "rationale": "evaluation task tier1_al_melting; two-phase coexistence bracket centred on the literature value (933 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "preset": "production",
+     "t_guess_K": 933
+    }
+   ]
+  },
+  "276730c6-c034-4dfa-ac5c-2ca7ca226096": {
+   "id": "276730c6-c034-4dfa-ac5c-2ca7ca226096",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T04:48:51.710293+00:00",
+   "summary": "claims need #0 on 702ba3a5",
+   "parents": [
+    "702ba3a5-927e-4e50-848d-e1268fe04bed"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "702ba3a5-927e-4e50-848d-e1268fe04bed",
+    "need_index": 0,
+    "expires_at": "2026-11-01T05:19:51.710179+00:00"
+   },
+   "needs": []
+  },
+  "ae1ba529-3231-4593-b2d4-d364874c162f": {
+   "id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+   "type": "property_result",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T05:04:18.885265+00:00",
+   "summary": "Al melting_point = 895.4 K via ALCHEMI/medium-mpa-0 two-phase coexistence",
+   "parents": [
+    "702ba3a5-927e-4e50-848d-e1268fe04bed"
+   ],
+   "children": [
+    "bdacce2d-51df-4d8b-ae03-2d8810892584",
+    "7471b97f-419c-43b0-8b8c-02cbb1950324",
+    "b3bd5111-ac25-4b5f-b2c7-c9574b603715",
+    "a446480b-7a95-4b49-9d93-b31b2927658b",
+    "6a707049-6569-4e57-8b3f-1799dddcfa54",
+    "3fae048d-c48a-40b8-a6df-2047241be329",
+    "20f9445b-dc81-42ca-ac10-a7a686f9e43d",
+    "bc4770ec-79e6-43be-99a5-51577f058d52"
+   ],
+   "payload": {
+    "candidate": "Al",
+    "family": "validation_metal",
+    "tier": "trust",
+    "property": "melting_point",
+    "value": 895.4,
+    "units": "K",
+    "uncertainty": 93.5,
+    "method": {
+     "engine": "ALCHEMI",
+     "model": "medium-mpa-0",
+     "protocol": "two-phase coexistence",
+     "ensemble": "NPT anisotropic (MTK + Nose-Hoover chains)",
+     "timestep_fs": 2.0,
+     "n_atoms": 512,
+     "sim_length_ps": 5.0,
+     "seeds": 1,
+     "temperatures_K": [
+      793.0,
+      886.0,
+      980.0,
+      1073.0
+     ],
+     "run_dir": "/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r2/tier1_al_melting/702ba3a5-n0-a1/20261101T044856Z_Al_coexistence_quick"
+    },
+    "flags": [
+     "quick_settings_not_production"
+    ],
+    "note": "",
+    "_fulfilled_need": {
+     "parent_artifact_id": "702ba3a5-927e-4e50-848d-e1268fe04bed",
+     "artifact_type": "property_result",
+     "query": "Find the melting point of aluminum at ambient pressure."
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for Al",
+     "rationale": "trust rule (a): another agent must audit the simulation method",
+     "check_type": "method_audit"
+    },
+    {
+     "artifact_type": "check",
+     "query": "independent melting_point for Al with a different method (classical MD or a second MLIP)",
+     "rationale": "trust rule (b): an independent method must agree within the pre-registered tolerance",
+     "check_type": "classical_md"
+    },
+    {
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of Al with a citable source",
+     "rationale": "trust rule (c): trust-tier results must match a sourced measurement",
+     "check_type": null
+    }
+   ]
+  },
+  "bdacce2d-51df-4d8b-ae03-2d8810892584": {
+   "id": "bdacce2d-51df-4d8b-ae03-2d8810892584",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-11-01T05:04:18.887184+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "ae1ba529-3231-4593-b2d4-d364874c162f"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point by 'two-phase coexistence' is well-posed"
+   },
+   "needs": []
+  },
+  "7471b97f-419c-43b0-8b8c-02cbb1950324": {
+   "id": "7471b97f-419c-43b0-8b8c-02cbb1950324",
+   "type": "need_claim",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T05:04:18.893034+00:00",
+   "summary": "claims need #0 on ae1ba529",
+   "parents": [
+    "ae1ba529-3231-4593-b2d4-d364874c162f"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+    "need_index": 0,
+    "expires_at": "2026-11-01T05:09:18.892852+00:00"
+   },
+   "needs": []
+  },
+  "b3bd5111-ac25-4b5f-b2c7-c9574b603715": {
+   "id": "b3bd5111-ac25-4b5f-b2c7-c9574b603715",
+   "type": "check",
+   "agent": "referee_rules",
+   "timestamp": "2026-11-01T05:04:18.894127+00:00",
+   "summary": "method_audit: fail",
+   "parents": [
+    "ae1ba529-3231-4593-b2d4-d364874c162f"
+   ],
+   "children": [
+    "61046dec-d726-4975-a008-6dc2fe98904c",
+    "bc4770ec-79e6-43be-99a5-51577f058d52"
+   ],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "fail",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [
+     "run_too_short",
+     "quick_settings_not_production"
+    ],
+    "note": "5.0 ps production < 20.0 ps required for 'two-phase coexistence'; producer flag 'quick_settings_not_production': quick pipeline-test settings, not production [audit thresholds are placeholders, not frozen]",
+    "_fulfilled_need": {
+     "parent_artifact_id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+     "artifact_type": "check",
+     "query": "audit the two-phase coexistence melting_point run for Al"
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "rerun melting_point of Al with production settings (the result used the quick preset) and a longer production run (10000 steps = 20.0 ps)",
+     "rationale": "method audit failed on run_too_short, quick_settings_not_production; a corrected rerun supersedes this result",
+     "check_type": null,
+     "property": "melting_point",
+     "temps_K": [
+      793.0,
+      886.0,
+      980.0,
+      1073.0
+     ],
+     "preset": "production",
+     "prod_steps": 10000
+    }
+   ]
+  },
+  "a446480b-7a95-4b49-9d93-b31b2927658b": {
+   "id": "a446480b-7a95-4b49-9d93-b31b2927658b",
+   "type": "check",
+   "agent": "referee_llm",
+   "timestamp": "2026-11-01T05:04:29.380098+00:00",
+   "summary": "method_audit: pass",
+   "parents": [
+    "ae1ba529-3231-4593-b2d4-d364874c162f"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[llm audit] The melting point comes from two-phase coexistence, which avoids crystal superheating. NPT anisotropic MTK lets the solid and liquid relax to zero stress. MACE-MPA-0 is applied to elemental fcc Al, which is inside its inorganic training domain, and a 2 fs timestep is safe for Al's mass. The 512-atom cell, 5 ps runs and single seed are short, but this mainly limits precision rather than biasing the result. The \u00b193.5 K uncertainty matches the ~93 K spacing of the temperature grid, and the run is honestly flagged as quick settings rather than production. [claude-opus-5-5, $0.0219]"
+   },
+   "needs": []
+  },
+  "6a707049-6569-4e57-8b3f-1799dddcfa54": {
+   "id": "6a707049-6569-4e57-8b3f-1799dddcfa54",
+   "type": "check",
+   "agent": "adjudicator",
+   "timestamp": "2026-11-01T05:04:52.644825+00:00",
+   "summary": "method_audit: fail",
+   "parents": [
+    "ae1ba529-3231-4593-b2d4-d364874c162f"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "method_audit",
+    "verdict": "fail",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [
+     "run_too_short",
+     "quick_settings_not_production",
+     "small_coexistence_cell"
+    ],
+    "note": "[adjudicator, settles: referee_rules fail (b3bd5111), referee_llm pass (a446480b)] Two-phase coexistence determines Tm by watching which way the solid-liquid interface migrates, and 5 ps is far too short for that: at realistic Al interface velocities (tens of m/s near Tm, i.e. a few tenths of an A/ps) the interface moves only a few angstroms, so none of the four temperatures can be reliably classified as melted or frozen within the run; the outcome then reflects the initial setup rather than thermodynamics, which is a bias, not merely a precision loss. A 512-atom cell gives each phase slab only ~8 A, so interfacial free energy and the two interfaces dominate the small bulk regions, further shifting the apparent coexistence point. The producer's own flag states these are quick pipeline-test settings, not production, yet the number is presented at the trust tier. The referee_llm's claim that short runs only widen the error bar does not hold for an interface-migration protocol whose readout is binary per temperature.. Fix: Rerun coexistence at production settings: >=20-50 ps per temperature with a >=2000-4000 atom elongated cell (long axis normal to the interface), confirm complete transformation of each run via order parameter/density traces, use a finer temperature grid (10-20 K) bracketing the transition, and run multiple seeds; alternatively cross-check with a solid-liquid interface pinning or free-energy (Frenkel-Ladd/thermodynamic integration) method. [claude-fable-5-1, $0.0914]"
+   },
+   "needs": []
+  },
+  "3fae048d-c48a-40b8-a6df-2047241be329": {
+   "id": "3fae048d-c48a-40b8-a6df-2047241be329",
+   "type": "need_claim",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T05:04:52.646096+00:00",
+   "summary": "claims need #2 on ae1ba529",
+   "parents": [
+    "ae1ba529-3231-4593-b2d4-d364874c162f"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+    "need_index": 2,
+    "expires_at": "2026-11-01T05:14:52.646002+00:00"
+   },
+   "needs": []
+  },
+  "20f9445b-dc81-42ca-ac10-a7a686f9e43d": {
+   "id": "20f9445b-dc81-42ca-ac10-a7a686f9e43d",
+   "type": "reference_value",
+   "agent": "librarian",
+   "timestamp": "2026-11-01T05:04:52.646576+00:00",
+   "summary": "measured Al melting_point = 933.45 K [NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt]",
+   "parents": [
+    "ae1ba529-3231-4593-b2d4-d364874c162f"
+   ],
+   "children": [],
+   "payload": {
+    "candidate": "Al",
+    "property": "melting_point",
+    "value": 933.45,
+    "units": "K",
+    "uncertainty": null,
+    "source": "NIST-JANAF Thermochemical Tables, https://janaf.nist.gov/tables/Al-001.txt",
+    "note": "ITS-90 freezing point is 933.473 K (seen only on its-90.com, not an official copy); formula: Al",
+    "_fulfilled_need": {
+     "parent_artifact_id": "ae1ba529-3231-4593-b2d4-d364874c162f",
+     "artifact_type": "reference_value",
+     "query": "measured melting_point of Al with a citable source"
+    },
+    "_need_index": 2
+   },
+   "needs": []
+  },
+  "61046dec-d726-4975-a008-6dc2fe98904c": {
+   "id": "61046dec-d726-4975-a008-6dc2fe98904c",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T05:04:52.647848+00:00",
+   "summary": "claims need #0 on b3bd5111",
+   "parents": [
+    "b3bd5111-ac25-4b5f-b2c7-c9574b603715"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "b3bd5111-ac25-4b5f-b2c7-c9574b603715",
+    "need_index": 0,
+    "expires_at": "2026-11-01T06:14:16.647758+00:00"
+   },
+   "needs": []
+  },
+  "bc4770ec-79e6-43be-99a5-51577f058d52": {
+   "id": "bc4770ec-79e6-43be-99a5-51577f058d52",
+   "type": "run_report",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T05:48:52.095770+00:00",
+   "summary": "failed: melting_point of Al via two-phase coexistence (ALCHEMI) (run did not complete: TimeoutExpired(['/home/dell/Desktop/cool-orbit/.venv/bin/python', '-m', 'coolo)",
+   "parents": [
+    "702ba3a5-927e-4e50-848d-e1268fe04bed",
+    "ae1ba529-3231-4593-b2d4-d364874c162f",
+    "b3bd5111-ac25-4b5f-b2c7-c9574b603715"
+   ],
+   "children": [],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of Al via two-phase coexistence (ALCHEMI)",
+    "reason": "run did not complete: TimeoutExpired(['/home/dell/Desktop/cool-orbit/.venv/bin/python', '-m', 'coolorbit.sim.melting', 'coexistence', '--element', 'Al', '--structure', 'fcc', '--a', '4.05', '--reps', '4', '4', '8', '--dt', '2', '--out', '/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r2/tier1_al_melting/b3bd5111-n0-a1', '--label', 'Al', '--temps', '793', '886', '980', '1073', '--quick', '--prod-steps', '10000'], 2638.8335791986683)",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r2/tier1_al_melting/b3bd5111-n0-a1",
+    "attempt": 1,
+    "details": {},
+    "_fulfilled_need": {
+     "parent_artifact_id": "b3bd5111-ac25-4b5f-b2c7-c9574b603715",
+     "artifact_type": "property_result",
+     "query": "rerun melting_point of Al with production settings (the result used the quick preset) and a longer production run (10000 steps = 20.0 ps)"
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  }
+ }
+}

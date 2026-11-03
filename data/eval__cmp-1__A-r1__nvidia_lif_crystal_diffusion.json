@@ -1,0 +1,938 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "name": "eval__cmp-1__A-r1__nvidia_lif_crystal_diffusion",
+ "path": "boards/eval/cmp-1/A-r1/nvidia_lif_crystal_diffusion",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "synthetic": false,
+ "rules_frozen": true,
+ "arm": "A",
+ "run": "eval__cmp-1",
+ "task_id": "nvidia_lif_crystal_diffusion",
+ "repeat": 1,
+ "finished": true,
+ "agents": [
+  "eval_harness",
+  "single_agent"
+ ],
+ "counts": {
+  "artifacts": 3,
+  "by_type": {
+   "request": 1,
+   "candidate": 1,
+   "run_report": 1
+  },
+  "by_status": {},
+  "open_needs": 0
+ },
+ "results": [],
+ "proposed": [
+  {
+   "id": "ea03fcab-8db6-4cea-9f93-a98a5a44bb29",
+   "agent": "single_agent",
+   "name": "LiF (pristine rock-salt crystal)",
+   "family": "alkali halide",
+   "tier": "trust",
+   "formula": "LiF",
+   "structure_source": "rock-salt Fm-3m (Materials Project mp-1138)",
+   "rationale": "Material named in request dc13f7ac need #0.",
+   "_fulfilled_need": {
+    "parent_artifact_id": "dc13f7ac-e164-44c4-a30e-97a409bf668c",
+    "artifact_type": "candidate",
+    "query": "Compute the Li-ion diffusion coefficient in pristine crystalline LiF using molecular dynamics."
+   },
+   "_need_index": 0
+  }
+ ],
+ "open_needs": [],
+ "run_reports": [
+  {
+   "id": "8eff82be-3d9e-4d01-8270-fff93403e4e0",
+   "agent": "single_agent",
+   "timestamp": "2026-10-31T23:59:10.965016+00:00",
+   "status": "refused",
+   "task": "Li-ion self_diffusion (cm2/s) in pristine crystalline LiF by MLIP molecular dynamics",
+   "reason": "Premise check failed: the quantity is not measurable with this method in the posed form. (1) Physics: in an ionic crystal like LiF, Li transport happens by point defects (vacancies/interstitials, either intrinsic Schottky/Frenkel pairs or extrinsic from impurities). A pristine, defect-free periodic supercell has no carriers, so in MD the Li MSD just plateaus at the vibrational amplitude. A fit would return about 0 (below the detection limit), and that reflects the absent defects and the ns window, not the real material. (2) Timescale: real solid-state D in LiF is many orders of magnitude below what ns-scale MD can resolve. Resolving D ~ 1e-9 cm2/s needs MSD > ~1 A^2 over the run, so at ~1-10 ns the floor is ~1e-8 to 1e-9 cm2/s. Thermally creating defects in a ~10^3-10^4-atom cell would need an Arrhenius extrapolation over a huge range. (3) Forcing hops by heating: a defect-free crystal heated in MD superheats past the melting point (~1120 K) and then melts. Any D measured that way belongs to the liquid, or to a superheated/melting state, not to crystalline LiF. (4) Validation: tier1.json has no LiF or ionic-diffusion record, so no independent known result is available on the board to validate a crystal-diffusion number. Any number I posted would be an artefact (about 0, or a liquid-like value from superheating) and would look like a real measurement.",
+   "run_dir": null,
+   "attempt": 1,
+   "details": {
+    "well_posed_alternatives": [
+     "Vacancy-mediated Li diffusion: put one explicit Li vacancy (charge-compensated, e.g. paired F vacancy or uniform background) in a >=4x4x4 conventional supercell. Run NVT MD at several T (~700-1050 K, below melting, with a melting check by tracking the F sublattice MSD and the RDF). Get D_vac from the MSD slope, then the Arrhenius migration barrier E_m. Validate E_m against a static NEB barrier from the same MLIP and against published experimental migration enthalpies (to be sourced, not assumed). Report D_Li = D_vac * c_v with c_v stated explicitly as an assumption.",
+     "Molten LiF self-diffusion above melting (~1150-1300 K, NPT then NVT, >=1000 atoms, >=200 ps production). This is well-defined and measurable by MD, but it is a liquid property and must be labelled so. Validate the MLIP liquid density / D against published molten-salt measurements once sourced.",
+     "Static migration barrier (NEB) for Li vacancy and interstitial hops: cheap, well-posed, and comparable to experimental ionic-conductivity activation energies."
+    ],
+    "what_would_be_flagged_if_run_anyway": [
+     "defect-free cell: D below detection limit",
+     "superheating / melting if T raised to force hops",
+     "no validation reference available"
+    ]
+   }
+  }
+ ],
+ "ranking": null,
+ "scorecard": {
+  "board": "boards/eval/cmp-1/A-r1/nvidia_lif_crystal_diffusion",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": true,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": true,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": "avoided",
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "refused",
+    "reasons": []
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 1,
+  "trap_avoided": 1,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": 1.0,
+  "control_tasks": 0,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": null,
+  "silent_errors": 0,
+  "mean_abs_rel_error": null,
+  "n_errors_measured": 0,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 134476.0,
+    "output_tokens": 3331.0,
+    "gpu_hours": 0.0,
+    "usd": 0.15748240000000002
+   },
+   "per_task": {
+    "nvidia_lif_crystal_diffusion": {
+     "input_tokens": 134476.0,
+     "output_tokens": 3331.0,
+     "gpu_hours": 0.0,
+     "usd": 0.15748240000000002
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_al_melting",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": []
+ },
+ "scorecard_post_hoc": {
+  "board": "boards/eval/cmp-1/A-r1/nvidia_lif_crystal_diffusion",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": true,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": true,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": "avoided",
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "refused",
+    "reasons": []
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 1,
+  "trap_avoided": 1,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 0,
+  "trap_catch_rate": 1.0,
+  "control_tasks": 0,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": null,
+  "silent_errors": 0,
+  "mean_abs_rel_error": null,
+  "n_errors_measured": 0,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 134476.0,
+    "output_tokens": 3331.0,
+    "gpu_hours": 0.0,
+    "usd": 0.15748240000000002
+   },
+   "per_task": {
+    "nvidia_lif_crystal_diffusion": {
+     "input_tokens": 134476.0,
+     "output_tokens": 3331.0,
+     "gpu_hours": 0.0,
+     "usd": 0.15748240000000002
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_al_melting",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": [
+   "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+  ]
+ },
+ "lineage": {
+  "dc13f7ac-e164-44c4-a30e-97a409bf668c": {
+   "id": "dc13f7ac-e164-44c4-a30e-97a409bf668c",
+   "type": "request",
+   "agent": "eval_harness",
+   "timestamp": "2026-10-31T23:57:42.854069+00:00",
+   "summary": "eval task nvidia_lif_crystal_diffusion: Compute the Li-ion diffusion coefficient in pristine crystalline LiF using molecular dynamics.",
+   "parents": [],
+   "children": [
+    "ea03fcab-8db6-4cea-9f93-a98a5a44bb29"
+   ],
+   "payload": {
+    "note": "eval_task:nvidia_lif_crystal_diffusion"
+   },
+   "needs": [
+    {
+     "artifact_type": "candidate",
+     "query": "Compute the Li-ion diffusion coefficient in pristine crystalline LiF using molecular dynamics.",
+     "rationale": "evaluation task nvidia_lif_crystal_diffusion: propose the material as a candidate (parent: this request), then answer it on this board",
+     "check_type": null,
+     "eval_task": "nvidia_lif_crystal_diffusion",
+     "property": "self_diffusion",
+     "units": "cm2/s"
+    }
+   ]
+  },
+  "ea03fcab-8db6-4cea-9f93-a98a5a44bb29": {
+   "id": "ea03fcab-8db6-4cea-9f93-a98a5a44bb29",
+   "type": "candidate",
+   "agent": "single_agent",
+   "timestamp": "2026-10-31T23:58:57.281089+00:00",
+   "summary": "candidate LiF (pristine rock-salt crystal) (alkali halide, trust tier)",
+   "parents": [
+    "dc13f7ac-e164-44c4-a30e-97a409bf668c"
+   ],
+   "children": [
+    "8eff82be-3d9e-4d01-8270-fff93403e4e0"
+   ],
+   "payload": {
+    "name": "LiF (pristine rock-salt crystal)",
+    "family": "alkali halide",
+    "tier": "trust",
+    "formula": "LiF",
+    "structure_source": "rock-salt Fm-3m (Materials Project mp-1138)",
+    "rationale": "Material named in request dc13f7ac need #0.",
+    "_fulfilled_need": {
+     "parent_artifact_id": "dc13f7ac-e164-44c4-a30e-97a409bf668c",
+     "artifact_type": "candidate",
+     "query": "Compute the Li-ion diffusion coefficient in pristine crystalline LiF using molecular dynamics."
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  },
+  "8eff82be-3d9e-4d01-8270-fff93403e4e0": {
+   "id": "8eff82be-3d9e-4d01-8270-fff93403e4e0",
+   "type": "run_report",
+   "agent": "single_agent",
+   "timestamp": "2026-10-31T23:59:10.965016+00:00",
+   "summary": "refused: Li-ion self_diffusion (cm2/s) in pristine crystalline LiF by MLIP molecular dynamics (Premise check failed: the quantity is not measurable with this method in the posed form. (1) Physics)",
+   "parents": [
+    "ea03fcab-8db6-4cea-9f93-a98a5a44bb29"
+   ],
+   "children": [],
+   "payload": {
+    "status": "refused",
+    "task": "Li-ion self_diffusion (cm2/s) in pristine crystalline LiF by MLIP molecular dynamics",
+    "reason": "Premise check failed: the quantity is not measurable with this method in the posed form. (1) Physics: in an ionic crystal like LiF, Li transport happens by point defects (vacancies/interstitials, either intrinsic Schottky/Frenkel pairs or extrinsic from impurities). A pristine, defect-free periodic supercell has no carriers, so in MD the Li MSD just plateaus at the vibrational amplitude. A fit would return about 0 (below the detection limit), and that reflects the absent defects and the ns window, not the real material. (2) Timescale: real solid-state D in LiF is many orders of magnitude below what ns-scale MD can resolve. Resolving D ~ 1e-9 cm2/s needs MSD > ~1 A^2 over the run, so at ~1-10 ns the floor is ~1e-8 to 1e-9 cm2/s. Thermally creating defects in a ~10^3-10^4-atom cell would need an Arrhenius extrapolation over a huge range. (3) Forcing hops by heating: a defect-free crystal heated in MD superheats past the melting point (~1120 K) and then melts. Any D measured that way belongs to the liquid, or to a superheated/melting state, not to crystalline LiF. (4) Validation: tier1.json has no LiF or ionic-diffusion record, so no independent known result is available on the board to validate a crystal-diffusion number. Any number I posted would be an artefact (about 0, or a liquid-like value from superheating) and would look like a real measurement.",
+    "run_dir": null,
+    "attempt": 1,
+    "details": {
+     "well_posed_alternatives": [
+      "Vacancy-mediated Li diffusion: put one explicit Li vacancy (charge-compensated, e.g. paired F vacancy or uniform background) in a >=4x4x4 conventional supercell. Run NVT MD at several T (~700-1050 K, below melting, with a melting check by tracking the F sublattice MSD and the RDF). Get D_vac from the MSD slope, then the Arrhenius migration barrier E_m. Validate E_m against a static NEB barrier from the same MLIP and against published experimental migration enthalpies (to be sourced, not assumed). Report D_Li = D_vac * c_v with c_v stated explicitly as an assumption.",
+      "Molten LiF self-diffusion above melting (~1150-1300 K, NPT then NVT, >=1000 atoms, >=200 ps production). This is well-defined and measurable by MD, but it is a liquid property and must be labelled so. Validate the MLIP liquid density / D against published molten-salt measurements once sourced.",
+      "Static migration barrier (NEB) for Li vacancy and interstitial hops: cheap, well-posed, and comparable to experimental ionic-conductivity activation energies."
+     ],
+     "what_would_be_flagged_if_run_anyway": [
+      "defect-free cell: D below detection limit",
+      "superheating / melting if T raised to force hops",
+      "no validation reference available"
+     ]
+    }
+   },
+   "needs": []
+  }
+ }
+}

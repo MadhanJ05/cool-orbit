@@ -1,0 +1,1005 @@
+{
+ "schema": "coolorbit.dashboard/1",
+ "name": "eval__cmp-1__C-r1__tier1_al_melting",
+ "path": "boards/eval/cmp-1/C-r1/tier1_al_melting",
+ "exported_at": "2026-11-03T03:24:21.230933+00:00",
+ "synthetic": false,
+ "rules_frozen": true,
+ "arm": "C",
+ "run": "eval__cmp-1",
+ "task_id": "tier1_al_melting",
+ "repeat": 1,
+ "finished": true,
+ "agents": [
+  "eval_harness",
+  "referee_premise",
+  "scout_metals",
+  "simulator_gb10"
+ ],
+ "counts": {
+  "artifacts": 6,
+  "by_type": {
+   "request": 1,
+   "check": 1,
+   "need_claim": 2,
+   "candidate": 1,
+   "run_report": 1
+  },
+  "by_status": {},
+  "open_needs": 0
+ },
+ "results": [],
+ "proposed": [
+  {
+   "id": "12ea6749-5aef-4aca-9de9-e6400c55c9bf",
+   "agent": "scout_metals",
+   "name": "Al",
+   "family": "validation_metal",
+   "tier": "trust",
+   "formula": "Al",
+   "structure_source": "ase:Al:fcc:4.05",
+   "rationale": "method validation: second well-measured fcc metal",
+   "_fulfilled_need": {
+    "parent_artifact_id": "e5cc93de-9ca6-4b59-a148-7a1a70c25cf9",
+    "artifact_type": "candidate",
+    "query": "Find the melting point of aluminum at ambient pressure."
+   },
+   "_need_index": 0
+  }
+ ],
+ "open_needs": [],
+ "run_reports": [
+  {
+   "id": "9efb5e57-fdbd-4e37-8cd5-82b3dfc78235",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T00:29:56.551075+00:00",
+   "status": "failed",
+   "task": "melting_point of Al via two-phase coexistence (ALCHEMI)",
+   "reason": "run did not complete: TimeoutExpired(['/home/dell/Desktop/cool-orbit/.venv/bin/python', '-m', 'coolorbit.sim.melting', 'coexistence', '--element', 'Al', '--structure', 'fcc', '--a', '4.05', '--reps', '4', '4', '8', '--dt', '2', '--out', '/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r1/tier1_al_melting/12ea6749-n0-a1', '--label', 'Al', '--temps', '793', '886', '980', '1073'], 3599.7129455293616)",
+   "run_dir": "/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r1/tier1_al_melting/12ea6749-n0-a1",
+   "attempt": 1,
+   "details": {},
+   "_fulfilled_need": {
+    "parent_artifact_id": "12ea6749-5aef-4aca-9de9-e6400c55c9bf",
+    "artifact_type": "property_result",
+    "query": "Find the melting point of aluminum at ambient pressure."
+   },
+   "_need_index": 0
+  }
+ ],
+ "ranking": null,
+ "scorecard": {
+  "board": "boards/eval/cmp-1/C-r1/tier1_al_melting",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": true,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 1,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": "no_answer",
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "no answer and no refusal: counts as not caught"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 1,
+  "trap_avoided": 0,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 1,
+  "trap_catch_rate": 0.0,
+  "control_tasks": 0,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": null,
+  "silent_errors": 0,
+  "mean_abs_rel_error": null,
+  "n_errors_measured": 0,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 0.0,
+    "output_tokens": 0.0,
+    "gpu_hours": 1.0001,
+    "usd": 0.0
+   },
+   "per_task": {
+    "tier1_al_melting": {
+     "input_tokens": 0.0,
+     "output_tokens": 0.0,
+     "gpu_hours": 1.0001,
+     "usd": 0.0
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": []
+ },
+ "scorecard_post_hoc": {
+  "board": "boards/eval/cmp-1/C-r1/tier1_al_melting",
+  "n_tasks": 1,
+  "outcomes": [
+   {
+    "task_id": "nvidia_si_lattice_constant",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_si_bulk_modulus",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_o_cu111_adsorption",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_li_liquid_diffusion_800k",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "nvidia_lif_crystal_diffusion",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "team_cu_crystal_diffusion_300k",
+    "kind": "ill_posed",
+    "expected": "refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "control_li_liquid_diffusion_nve_800k",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_melting_coexistence",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_cu_latent_heat",
+    "kind": "well_posed",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_al_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": true,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 1,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": "no_answer",
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "no answer and no refusal: counts as not caught"
+    ]
+   },
+   {
+    "task_id": "tier1_ga_melting",
+    "kind": "trap",
+    "expected": "answer",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_eicosane_melting_mace",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   },
+   {
+    "task_id": "tier1_octadecane_melting",
+    "kind": "trap",
+    "expected": "answer_or_refuse",
+    "seeded": false,
+    "shipped_id": null,
+    "shipped_value": null,
+    "shipped_units": null,
+    "shipped_status": null,
+    "confident": false,
+    "refused": false,
+    "n_results": 0,
+    "n_failed_runs": 0,
+    "fell_in": false,
+    "wrong": null,
+    "error": null,
+    "rel_error": null,
+    "trap_outcome": null,
+    "false_alarm": null,
+    "silent_error": false,
+    "reported_reference": false,
+    "disposition": "no_answer",
+    "reasons": [
+     "task was not seeded on this board"
+    ]
+   }
+  ],
+  "trap_tasks": 1,
+  "trap_avoided": 0,
+  "trap_caught": 0,
+  "trap_missed": 0,
+  "trap_no_answer": 1,
+  "trap_catch_rate": 0.0,
+  "control_tasks": 0,
+  "controls_no_answer": 0,
+  "false_alarms": 0,
+  "false_alarm_rate": null,
+  "silent_errors": 0,
+  "mean_abs_rel_error": null,
+  "n_errors_measured": 0,
+  "cost": {
+   "recorded": true,
+   "total": {
+    "input_tokens": 0.0,
+    "output_tokens": 0.0,
+    "gpu_hours": 1.0001,
+    "usd": 0.0
+   },
+   "per_task": {
+    "tier1_al_melting": {
+     "input_tokens": 0.0,
+     "output_tokens": 0.0,
+     "gpu_hours": 1.0001,
+     "usd": 0.0
+    }
+   },
+   "n_entries": 1
+  },
+  "unseeded_tasks": [
+   "nvidia_si_lattice_constant",
+   "nvidia_si_bulk_modulus",
+   "nvidia_o_cu111_adsorption",
+   "nvidia_li_liquid_diffusion_800k",
+   "nvidia_lif_crystal_diffusion",
+   "team_cu_crystal_diffusion_300k",
+   "control_li_liquid_diffusion_nve_800k",
+   "tier1_cu_melting_coexistence",
+   "tier1_cu_latent_heat",
+   "tier1_ga_melting",
+   "tier1_eicosane_melting_mace",
+   "tier1_octadecane_melting"
+  ],
+  "reported_reference": 0,
+  "post_hoc_rules": [
+   "reported_reference (post-hoc, 2026-11-01, after cmp-1 repeat 1)"
+  ]
+ },
+ "lineage": {
+  "e5cc93de-9ca6-4b59-a148-7a1a70c25cf9": {
+   "id": "e5cc93de-9ca6-4b59-a148-7a1a70c25cf9",
+   "type": "request",
+   "agent": "eval_harness",
+   "timestamp": "2026-10-31T23:29:55.964534+00:00",
+   "summary": "eval task tier1_al_melting: Find the melting point of aluminum at ambient pressure.",
+   "parents": [],
+   "children": [
+    "5d050730-ad07-413c-b9ac-e12529b816f3",
+    "5ce30150-d43f-47f6-8960-e50657a67b53",
+    "12ea6749-5aef-4aca-9de9-e6400c55c9bf"
+   ],
+   "payload": {
+    "note": "eval_task:tier1_al_melting"
+   },
+   "needs": [
+    {
+     "artifact_type": "candidate",
+     "query": "Find the melting point of aluminum at ambient pressure.",
+     "rationale": "evaluation task tier1_al_melting: propose the material as a candidate (parent: this request), then answer it on this board",
+     "check_type": null,
+     "eval_task": "tier1_al_melting",
+     "property": "melting_point",
+     "units": "K"
+    }
+   ]
+  },
+  "5d050730-ad07-413c-b9ac-e12529b816f3": {
+   "id": "5d050730-ad07-413c-b9ac-e12529b816f3",
+   "type": "check",
+   "agent": "referee_premise",
+   "timestamp": "2026-10-31T23:29:56.037362+00:00",
+   "summary": "premise_check: pass",
+   "parents": [
+    "e5cc93de-9ca6-4b59-a148-7a1a70c25cf9"
+   ],
+   "children": [],
+   "payload": {
+    "check_type": "premise_check",
+    "verdict": "pass",
+    "value": null,
+    "units": null,
+    "uncertainty": null,
+    "method": null,
+    "flags": [],
+    "note": "[need 0] [rules] melting point is well-defined; condition: two-phase coexistence (or hysteresis), never single-phase heating"
+   },
+   "needs": []
+  },
+  "5ce30150-d43f-47f6-8960-e50657a67b53": {
+   "id": "5ce30150-d43f-47f6-8960-e50657a67b53",
+   "type": "need_claim",
+   "agent": "scout_metals",
+   "timestamp": "2026-10-31T23:29:56.038727+00:00",
+   "summary": "claims need #0 on e5cc93de",
+   "parents": [
+    "e5cc93de-9ca6-4b59-a148-7a1a70c25cf9"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "e5cc93de-9ca6-4b59-a148-7a1a70c25cf9",
+    "need_index": 0,
+    "expires_at": "2026-10-31T23:59:56.038582+00:00"
+   },
+   "needs": []
+  },
+  "12ea6749-5aef-4aca-9de9-e6400c55c9bf": {
+   "id": "12ea6749-5aef-4aca-9de9-e6400c55c9bf",
+   "type": "candidate",
+   "agent": "scout_metals",
+   "timestamp": "2026-10-31T23:29:56.039568+00:00",
+   "summary": "candidate Al (validation_metal, trust tier)",
+   "parents": [
+    "e5cc93de-9ca6-4b59-a148-7a1a70c25cf9"
+   ],
+   "children": [
+    "a44abfc8-36b1-4017-9280-417be888293b",
+    "9efb5e57-fdbd-4e37-8cd5-82b3dfc78235"
+   ],
+   "payload": {
+    "name": "Al",
+    "family": "validation_metal",
+    "tier": "trust",
+    "formula": "Al",
+    "structure_source": "ase:Al:fcc:4.05",
+    "rationale": "method validation: second well-measured fcc metal",
+    "_fulfilled_need": {
+     "parent_artifact_id": "e5cc93de-9ca6-4b59-a148-7a1a70c25cf9",
+     "artifact_type": "candidate",
+     "query": "Find the melting point of aluminum at ambient pressure."
+    },
+    "_need_index": 0
+   },
+   "needs": [
+    {
+     "artifact_type": "property_result",
+     "query": "Find the melting point of aluminum at ambient pressure.",
+     "rationale": "evaluation task tier1_al_melting; two-phase coexistence bracket centred on the literature value (933 K)",
+     "check_type": null,
+     "property": "melting_point",
+     "preset": "production",
+     "t_guess_K": 933
+    }
+   ]
+  },
+  "a44abfc8-36b1-4017-9280-417be888293b": {
+   "id": "a44abfc8-36b1-4017-9280-417be888293b",
+   "type": "need_claim",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-10-31T23:29:56.251418+00:00",
+   "summary": "claims need #0 on 12ea6749",
+   "parents": [
+    "12ea6749-5aef-4aca-9de9-e6400c55c9bf"
+   ],
+   "children": [],
+   "payload": {
+    "target_artifact_id": "12ea6749-5aef-4aca-9de9-e6400c55c9bf",
+    "need_index": 0,
+    "expires_at": "2026-11-01T02:09:34.651286+00:00"
+   },
+   "needs": []
+  },
+  "9efb5e57-fdbd-4e37-8cd5-82b3dfc78235": {
+   "id": "9efb5e57-fdbd-4e37-8cd5-82b3dfc78235",
+   "type": "run_report",
+   "agent": "simulator_gb10",
+   "timestamp": "2026-11-01T00:29:56.551075+00:00",
+   "summary": "failed: melting_point of Al via two-phase coexistence (ALCHEMI) (run did not complete: TimeoutExpired(['/home/dell/Desktop/cool-orbit/.venv/bin/python', '-m', 'coolo)",
+   "parents": [
+    "12ea6749-5aef-4aca-9de9-e6400c55c9bf"
+   ],
+   "children": [],
+   "payload": {
+    "status": "failed",
+    "task": "melting_point of Al via two-phase coexistence (ALCHEMI)",
+    "reason": "run did not complete: TimeoutExpired(['/home/dell/Desktop/cool-orbit/.venv/bin/python', '-m', 'coolorbit.sim.melting', 'coexistence', '--element', 'Al', '--structure', 'fcc', '--a', '4.05', '--reps', '4', '4', '8', '--dt', '2', '--out', '/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r1/tier1_al_melting/12ea6749-n0-a1', '--label', 'Al', '--temps', '793', '886', '980', '1073'], 3599.7129455293616)",
+    "run_dir": "/home/dell/Desktop/cool-orbit/runs/arm_c/cmp-1/C-r1/tier1_al_melting/12ea6749-n0-a1",
+    "attempt": 1,
+    "details": {},
+    "_fulfilled_need": {
+     "parent_artifact_id": "12ea6749-5aef-4aca-9de9-e6400c55c9bf",
+     "artifact_type": "property_result",
+     "query": "Find the melting point of aluminum at ambient pressure."
+    },
+    "_need_index": 0
+   },
+   "needs": []
+  }
+ }
+}
